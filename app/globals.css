@@ -1,26 +1,46 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+@theme {
+  --color-brand: #8133f1;
+  --color-brand-50: #f3ebff;
+  --color-brand-100: #e0ccff;
+  --color-brand-dark: #6920d4;
+  --color-background: #ffffff;
+  --color-foreground: #0a0a0a;
+  --color-muted: #f7f7f7;
+  --color-muted-foreground: #6b6b6b;
+  --color-border: #e8e8e8;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
+  --font-sans: var(--font-geist-sans), var(--font-bangla);
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* Bengali text uses the serif font for all Bengali-script characters */
+:lang(bn),
+.translated-ltr {
+  font-family: var(--font-bangla), "Noto Serif Bengali", serif;
+  line-height: 1.85;
+  letter-spacing: 0.01em;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--color-background);
+  color: var(--color-foreground);
+}
+
+/* ── Suppress Google Translate toolbar ── */
+.goog-te-banner-frame,
+.skiptranslate > iframe {
+  display: none !important;
+}
+body {
+  top: 0 !important;
+}
+.goog-te-gadget {
+  display: none !important;
+}
+.goog-logo-link {
+  display: none !important;
 }
