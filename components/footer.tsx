@@ -3,7 +3,7 @@ import Link from "next/link";
 
 const links = {
   Services: [
-    { href: "/marketplace", label: "Share Marketplace" },
+    { href: "/shares", label: "Share Marketplace" },
     { href: "/wallet", label: "Wallet" },
     { href: "/air-ticket", label: "Air Tickets" },
     { href: "/taxi", label: "Taxi Rental" },

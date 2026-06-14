@@ -53,6 +53,11 @@ export function GoogleTranslateInit() {
   return <div id="google_translate_element" className="hidden" />;
 }
 
+const LANGUAGES = [
+  { value: "bn", label: "বাংলা" },
+  { value: "en", label: "English" },
+];
+
 export function LanguageToggle() {
   const [lang, setLang] = useState<"bn" | "en">("bn");
 
@@ -60,33 +65,35 @@ export function LanguageToggle() {
     setLang(getActiveLang());
   }, []);
 
-  const toggle = () => {
-    const next = lang === "bn" ? "en" : "bn";
+  const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const next = e.target.value as "bn" | "en";
     document.cookie = `googtrans=/en/${next}; path=/`;
     setLang(next);
     location.reload();
   };
 
   return (
-    <button
-      onClick={toggle}
-      className="notranslate inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold border border-border rounded-full hover:border-brand hover:text-brand transition-colors"
-      title={lang === "bn" ? "Switch to English" : "বাংলায় দেখুন"}
-    >
+    <div className="notranslate relative inline-flex items-center">
+      <select
+        value={lang}
+        onChange={handleChange}
+        className="appearance-none pl-3 pr-7 py-1.5 text-xs font-semibold border border-border rounded-full bg-white text-foreground hover:border-brand hover:text-brand focus:outline-none focus:border-brand cursor-pointer transition-colors"
+      >
+        {LANGUAGES.map((l) => (
+          <option key={l.value} value={l.value}>
+            {l.label}
+          </option>
+        ))}
+      </select>
       <svg
-        className="w-3.5 h-3.5 shrink-0"
-        viewBox="0 0 24 24"
+        className="pointer-events-none absolute right-2 w-3 h-3 text-muted-foreground"
         fill="none"
         stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
+        viewBox="0 0 24 24"
+        strokeWidth={2.5}
       >
-        <circle cx="12" cy="12" r="10" />
-        <line x1="2" y1="12" x2="22" y2="12" />
-        <path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
       </svg>
-      {lang === "bn" ? "English" : "বাংলা"}
-    </button>
+    </div>
   );
 }
