@@ -17,10 +17,9 @@
 	--font-mono: var(--font-geist-mono);
 }
 
-/* Bengali font — driven solely by lang="bn" which we set in JS.
-   .translated-ltr is NOT used: GT leaves it on <html> even in English mode. */
+/* Bengali font — driven solely by lang="bn" which we set in JS. */
 :lang(bn) {
-	font-family: var(--font-bangla), "Noto Serif Bengali", serif;
+	font-family: var(--font-bangla), "Hind Siliguri", sans-serif;
 	line-height: 1.1;
 	letter-spacing: 0.01em;
 }

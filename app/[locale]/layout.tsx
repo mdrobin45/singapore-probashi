@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
-import localFont from "next/font/local";
+import { Geist, Geist_Mono, Hind_Siliguri } from "next/font/google";
 import { NextIntlClientProvider } from "next-intl";
 import { getMessages } from "next-intl/server";
 import { notFound } from "next/navigation";
@@ -18,18 +17,9 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-const showpnocari = localFont({
-  src: [
-    { path: "../fonts/Showpnocari-Light.ttf",         weight: "300", style: "normal" },
-    { path: "../fonts/Showpnocari-Regular.ttf",        weight: "400", style: "normal" },
-    { path: "../fonts/Showpnocari-Italic.ttf",         weight: "400", style: "italic" },
-    { path: "../fonts/Showpnocari-Medium.ttf",         weight: "500", style: "normal" },
-    { path: "../fonts/Showpnocari-MediumItalic.ttf",   weight: "500", style: "italic" },
-    { path: "../fonts/Showpnocari-SemiBold.ttf",       weight: "600", style: "normal" },
-    { path: "../fonts/Showpnocari-SemiBoldItalic.ttf", weight: "600", style: "italic" },
-    { path: "../fonts/Showpnocari-Bold.ttf",           weight: "700", style: "normal" },
-    { path: "../fonts/Showpnocari-BoldItalic.ttf",     weight: "700", style: "italic" },
-  ],
+const hindSiliguri = Hind_Siliguri({
+  weight: ["300", "400", "500", "600", "700"],
+  subsets: ["bengali"],
   variable: "--font-bangla",
   display: "swap",
 });
@@ -58,7 +48,7 @@ export default async function LocaleLayout({
   return (
     <html
       lang={locale}
-      className={`${geistSans.variable} ${geistMono.variable} ${showpnocari.variable}`}
+      className={`${geistSans.variable} ${geistMono.variable} ${hindSiliguri.variable}`}
     >
       <body className="min-h-screen flex flex-col bg-background text-foreground antialiased">
         <NextIntlClientProvider messages={messages}>

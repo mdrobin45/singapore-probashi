@@ -31,61 +31,76 @@
     "noData": "No data available"
   },
   "home": {
-    "badge": "Bangladesh Community in Singapore",
-    "title": "Your Complete Guide to Life in Singapore",
-    "subtitle": "Trusted by thousands of Bangladeshi expatriates. Share investments, flight bookings, currency exchange, Islamic resources, and community support.",
-    "cta": {
-      "explore": "Explore Platform",
-      "register": "Join Free Today"
-    },
-    "stats": {
-      "members": "Active Members",
-      "shares": "Share Investments",
-      "flights": "Flights Booked",
-      "savings": "Avg. Savings"
-    },
-    "features": {
-      "badge": "Why Choose Us",
-      "title": "Everything You Need in One Place",
-      "subtitle": "Built by the community, for the community",
-      "shareMarket": {
-        "title": "Share Market",
-        "desc": "Invest in Singapore property projects with as little as S$1,000. Earn dividends and grow your wealth together."
-      },
-      "airTicket": {
-        "title": "Air Tickets",
-        "desc": "Book discounted Bangladesh–Singapore flights through trusted community agents. No hidden fees."
-      },
-      "currency": {
-        "title": "Currency Exchange",
-        "desc": "Real-time BDT ↔ SGD rates. Find the best exchange counters near you."
-      },
-      "islamicCenter": {
-        "title": "Islamic Center",
-        "desc": "Prayer times, Quran, duas, and Islamic articles for the Muslim community."
-      },
-      "lostFound": {
-        "title": "Lost & Found",
-        "desc": "Community-driven lost and found board. Post or search for missing items and documents."
-      },
-      "blog": {
-        "title": "Community Blog",
-        "desc": "Tips, guides, and stories from fellow Bangladeshis living in Singapore."
-      }
-    },
-    "howItWorks": {
-      "badge": "Simple Process",
-      "title": "Get Started in Minutes",
-      "step1": { "title": "Create Account", "desc": "Register free with your email. Verification takes under a minute." },
-      "step2": { "title": "Explore Services", "desc": "Browse shares, book flights, check currency rates, and more." },
-      "step3": { "title": "Connect & Grow", "desc": "Join the community, share knowledge, and grow together." }
-    },
-    "cta2": {
-      "title": "Ready to Join the Community?",
-      "subtitle": "Thousands of Bangladeshis in Singapore trust our platform every day.",
-      "register": "Get Started Free",
-      "explore": "Browse Platform"
-    }
+    "heroBadge": "Bangladesh Community in Singapore",
+    "heroTitle1": "Your Complete",
+    "heroTitle2": "Community",
+    "heroTitle3": "Platform",
+    "heroSubtitle": "Invest in projects, manage your wallet, book air tickets, access Islamic resources — everything you need as a Bangladeshi in Singapore, in one place.",
+    "heroCta1": "Get Started Free",
+    "heroCta2": "Explore Services",
+    "heroMembers": "members already joined",
+    "platformLive": "Live",
+    "platformOverview": "Platform Overview",
+    "platformMembers": "Members",
+    "platformProjects": "Projects",
+    "platformShares": "Shares",
+    "platformShareMarket": "Share Marketplace",
+    "platformWallet": "Wallet Deposits",
+    "platformAirTicket": "Air Tickets",
+    "platformIslamicCenter": "Islamic Center",
+    "platformActive": "Active",
+    "platformOpen": "Open",
+    "platformAvailable": "Available",
+    "stat1Label": "Registered Members",
+    "stat2Label": "Active Projects",
+    "stat3Label": "Shares Traded",
+    "stat4Label": "Platform Services",
+    "servicesTitle": "Everything You Need in One Place",
+    "servicesSubtitle": "From financial services to community tools — built specifically for Bangladeshi expatriates in Singapore.",
+    "learnMore": "Learn more",
+    "svc1Title": "Share Marketplace",
+    "svc1Desc": "Invest in community projects. Buy, sell and trade shares with admin-verified transparent transactions.",
+    "svc2Title": "Wallet System",
+    "svc2Desc": "Secure internal wallet for deposits, share purchases and all platform service payments.",
+    "svc3Title": "Air Tickets",
+    "svc3Desc": "Book and refer air tickets. Track referrals and earn commissions through your network.",
+    "svc4Title": "Taxi Rental",
+    "svc4Desc": "Request a taxi with pickup location, destination, date, time, and vehicle type preferences.",
+    "svc5Title": "Currency Converter",
+    "svc5Desc": "Live exchange rates for BDT, SGD and all major currencies. Always up to date.",
+    "svc6Title": "Blog",
+    "svc6Desc": "Stay updated with community news, important guides and announcements from our team.",
+    "svc7Title": "Islamic Center",
+    "svc7Desc": "Surah collection, duas, Islamic articles and a full PDF library with an online reader.",
+    "svc8Title": "Lost & Found",
+    "svc8Desc": "Post lost or found items with images. Share on Facebook and WhatsApp to reach the community.",
+    "svc9Title": "Customer Support",
+    "svc9Desc": "Direct WhatsApp support channel. Get quick help from our team at any time.",
+    "mktBadge": "Featured Module",
+    "mktTitle": "Share Investment Marketplace",
+    "mktSubtitle": "Invest in verified community projects. Every transaction is manually approved by our admin team — transparent, secure and community-driven.",
+    "mktPoint1": "Admin-created and verified investment projects",
+    "mktPoint2": "Manual payment approval — bKash, Nagad, Bank Transfer",
+    "mktPoint3": "Secondary market: list your shares for resale",
+    "mktPoint4": "Dynamic share pricing set by admin",
+    "mktPoint5": "Full purchase and transaction history",
+    "mktCta": "View Marketplace",
+    "mktAvailable": "Available Projects",
+    "mktUpdated": "Updated live",
+    "mktSharesAvailable": "shares available",
+    "mktRegister": "Register to Invest",
+    "howTitle": "How to Get Started",
+    "howSubtitle": "Join thousands of community members in 3 simple steps.",
+    "step1Title": "Create Your Account",
+    "step1Desc": "Register with your email address. Verify via OTP to activate your account instantly.",
+    "step2Title": "Complete Your Profile",
+    "step2Desc": "Add your personal information and profile photo to get full access to all platform features.",
+    "step3Title": "Start Using Services",
+    "step3Desc": "Explore the marketplace, convert currency, book tickets and connect with your community.",
+    "ctaTitle": "Ready to Join the Community?",
+    "ctaSubtitle": "Register today and get access to all platform features — completely free for community members.",
+    "ctaRegister": "Create Free Account",
+    "ctaContact": "Contact Support"
   },
   "auth": {
     "login": {
