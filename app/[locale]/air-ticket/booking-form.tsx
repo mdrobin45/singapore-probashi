@@ -2,6 +2,7 @@
 
 import { useActionState, useState } from "react";
 import { bookTicketAction } from "@/app/actions/tickets";
+import { useTranslations } from "next-intl";
 
 type Props = {
   listingId: string;
@@ -11,6 +12,8 @@ type Props = {
 };
 
 export function BookingForm({ listingId, price, airline, destination }: Props) {
+  const t = useTranslations("airTicket");
+  const tCommon = useTranslations("common");
   const [state, action, pending] = useActionState(bookTicketAction, null);
   const [open, setOpen] = useState(false);
   const [passengers, setPassengers] = useState(1);
@@ -29,7 +32,7 @@ export function BookingForm({ listingId, price, airline, destination }: Props) {
         onClick={() => setOpen(true)}
         className="bg-brand text-white text-sm font-semibold px-6 py-2.5 rounded-xl hover:bg-brand-dark transition-colors"
       >
-        Book Now
+        {t("bookNow")}
       </button>
     );
   }
@@ -42,7 +45,7 @@ export function BookingForm({ listingId, price, airline, destination }: Props) {
       <form action={action} className="space-y-3">
         <input type="hidden" name="listingId" value={listingId} />
         <div>
-          <label className="block text-xs text-muted-foreground mb-1">Passengers</label>
+          <label className="block text-xs text-muted-foreground mb-1">{t("passengers")}</label>
           <input
             name="passengers"
             type="number"
@@ -54,36 +57,36 @@ export function BookingForm({ listingId, price, airline, destination }: Props) {
           />
         </div>
         <div>
-          <label className="block text-xs text-muted-foreground mb-1">Referral Code (optional)</label>
+          <label className="block text-xs text-muted-foreground mb-1">{t("referralCode")}</label>
           <input
             name="referralCode"
             type="text"
-            placeholder="Enter code if you have one"
+            placeholder={t("referralCodePlaceholder")}
             className="w-full px-3 py-2 rounded-lg border border-border text-sm focus:outline-none focus:border-brand bg-white"
           />
         </div>
         <div>
-          <label className="block text-xs text-muted-foreground mb-1">Notes (optional)</label>
+          <label className="block text-xs text-muted-foreground mb-1">{t("notes")}</label>
           <input
             name="notes"
             type="text"
-            placeholder="e.g. window seat preference"
+            placeholder={t("notesPlaceholder")}
             className="w-full px-3 py-2 rounded-lg border border-border text-sm focus:outline-none focus:border-brand bg-white"
           />
         </div>
         <div className="bg-brand-50 rounded-lg px-3 py-2 flex justify-between text-xs">
-          <span className="text-muted-foreground">Estimated total</span>
+          <span className="text-muted-foreground">{t("estimatedTotal")}</span>
           <span className="font-bold text-brand">S${(price * passengers).toFixed(2)}</span>
         </div>
         {state?.error && <p className="text-xs text-red-600">{state.error}</p>}
         <div className="flex gap-2">
           <button type="submit" disabled={pending}
             className="flex-1 bg-brand text-white text-xs font-semibold py-2 rounded-lg hover:bg-brand-dark disabled:opacity-50 transition-colors">
-            {pending ? "Submitting…" : "Submit Request"}
+            {pending ? t("submitting") : t("submitRequest")}
           </button>
           <button type="button" onClick={() => setOpen(false)}
             className="px-3 text-xs border border-border rounded-lg hover:bg-muted transition-colors">
-            Cancel
+            {tCommon("cancel")}
           </button>
         </div>
       </form>

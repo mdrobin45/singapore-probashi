@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
+import { getTranslations } from "next-intl/server";
 
 async function getPosts(category?: string) {
   return prisma.blog.findMany({
@@ -25,7 +26,11 @@ export default async function BlogPage({
   searchParams: Promise<{ category?: string }>;
 }) {
   const { category } = await searchParams;
-  const [posts, categories] = await Promise.all([getPosts(category), getCategories()]);
+  const [posts, categories, t] = await Promise.all([
+    getPosts(category),
+    getCategories(),
+    getTranslations("blog"),
+  ]);
 
   return (
     <div className="min-h-screen bg-muted">
@@ -33,11 +38,11 @@ export default async function BlogPage({
       <div className="bg-white border-b border-border">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
           <span className="inline-block text-xs font-bold uppercase tracking-wider text-brand bg-brand-50 px-3 py-1 rounded-full mb-3">
-            Community Blog
+            {t("badge")}
           </span>
-          <h1 className="text-3xl font-bold text-foreground">News & Articles</h1>
+          <h1 className="text-3xl font-bold text-foreground">{t("pageTitle")}</h1>
           <p className="text-muted-foreground mt-2">
-            Community news, financial tips, Singapore life guides and more.
+            {t("pageSubtitle")}
           </p>
 
           {/* Category filter */}
@@ -49,7 +54,7 @@ export default async function BlogPage({
                   !category ? "bg-brand text-white border-brand" : "border-border text-muted-foreground hover:border-brand hover:text-brand"
                 }`}
               >
-                All
+                {t("all")}
               </Link>
               {categories.map((c) => (
                 <Link
@@ -71,8 +76,8 @@ export default async function BlogPage({
         {posts.length === 0 ? (
           <div className="text-center py-20">
             <div className="text-5xl mb-4">📝</div>
-            <p className="text-lg font-semibold text-foreground mb-2">No articles yet</p>
-            <p className="text-muted-foreground text-sm">Check back soon — our community contributors are writing!</p>
+            <p className="text-lg font-semibold text-foreground mb-2">{t("noArticles")}</p>
+            <p className="text-muted-foreground text-sm">{t("noArticlesHint")}</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

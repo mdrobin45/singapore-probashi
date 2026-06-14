@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
+import { getTranslations } from "next-intl/server";
 
 const SURAH_PLACEHOLDER = [
   { number: 1, arabicName: "الفاتحة", englishName: "Al-Fatihah", meaningName: "The Opening", totalVerses: 7, revelationType: "Meccan" },
@@ -15,7 +16,10 @@ const SURAH_PLACEHOLDER = [
 ];
 
 export default async function QuranPage() {
-  const surahs = await prisma.surah.findMany({ orderBy: { number: "asc" } });
+  const [surahs, t] = await Promise.all([
+    prisma.surah.findMany({ orderBy: { number: "asc" } }),
+    getTranslations("islamicCenter"),
+  ]);
   const displayList = surahs.length > 0 ? surahs : SURAH_PLACEHOLDER;
   const isPlaceholder = surahs.length === 0;
 
@@ -25,20 +29,22 @@ export default async function QuranPage() {
       <div className="bg-white border-b border-border">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="flex items-center gap-2 text-sm text-muted-foreground mb-4">
-            <Link href="/islamic-center" className="hover:text-brand transition-colors">Islamic Center</Link>
+            <Link href="/islamic-center" className="hover:text-brand transition-colors">{t("badge")}</Link>
             <span>/</span>
-            <span className="text-foreground">Quran</span>
+            <span className="text-foreground">{t("quran")}</span>
           </div>
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-foreground">Al-Quran</h1>
+              <h1 className="text-3xl font-bold text-foreground">{t("quranPageTitle")}</h1>
               <p className="text-muted-foreground mt-1">
-                {surahs.length > 0 ? `${surahs.length} surahs available` : "Browse selected surahs · Full library coming soon"}
+                {surahs.length > 0
+                  ? t("quranSurahCount", { count: surahs.length })
+                  : t("quranBrowseHint")}
               </p>
             </div>
             {isPlaceholder && (
               <span className="text-xs bg-amber-50 text-amber-700 border border-amber-200 font-semibold px-3 py-1 rounded-full">
-                Preview
+                {t("preview")}
               </span>
             )}
           </div>
@@ -48,10 +54,10 @@ export default async function QuranPage() {
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Featured: Al-Fatihah */}
         <div className="bg-gradient-to-br from-brand to-brand-dark rounded-2xl p-7 text-white mb-7 text-center">
-          <p className="text-sm font-medium text-white/70 mb-2">Surah 1</p>
+          <p className="text-sm font-medium text-white/70 mb-2">{t("surah1Label")}</p>
           <p className="text-4xl font-arabic mb-2" dir="rtl">بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ</p>
           <p className="text-sm text-white/70">Bismillāhir-raḥmānir-raḥīm</p>
-          <p className="text-xs text-white/60 mt-1">In the name of Allah, the Most Gracious, the Most Merciful</p>
+          <p className="text-xs text-white/60 mt-1">{t("bismillahTranslation")}</p>
         </div>
 
         {/* Surah grid */}
@@ -67,13 +73,13 @@ export default async function QuranPage() {
               <p className="font-semibold text-foreground text-sm">{surah.englishName}</p>
               <p className="text-xs text-muted-foreground">{surah.meaningName}</p>
               <div className="flex items-center justify-between mt-3 pt-3 border-t border-border">
-                <span className="text-xs text-muted-foreground">{surah.totalVerses} verses</span>
+                <span className="text-xs text-muted-foreground">{t("verses", { count: surah.totalVerses })}</span>
                 <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${
                   surah.revelationType === "Meccan"
                     ? "bg-amber-50 text-amber-700"
                     : "bg-blue-50 text-blue-700"
                 }`}>
-                  {surah.revelationType}
+                  {surah.revelationType === "Meccan" ? t("meccan") : t("medinan")}
                 </span>
               </div>
             </div>
@@ -82,7 +88,7 @@ export default async function QuranPage() {
 
         {isPlaceholder && (
           <div className="mt-6 bg-white rounded-xl border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
-            More surahs will be added by admin. This is a preview of the structure.
+            {t("quranPlaceholderNote")}
           </div>
         )}
       </div>

@@ -1,12 +1,14 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 
 const CURRENCIES = ["SGD", "BDT", "USD", "EUR", "GBP", "MYR", "SAR", "AED", "INR"];
 
 type Props = { rates: Record<string, number> };
 
 export function CurrencyCalculator({ rates }: Props) {
+  const t = useTranslations("currency");
   const [amount, setAmount] = useState("1");
   const [from, setFrom] = useState("SGD");
   const [to, setTo] = useState("BDT");
@@ -22,10 +24,10 @@ export function CurrencyCalculator({ rates }: Props) {
 
   return (
     <div className="bg-white rounded-2xl border border-border p-6">
-      <h2 className="font-semibold text-foreground mb-5">Convert Currency</h2>
+      <h2 className="font-semibold text-foreground mb-5">{t("convertTitle")}</h2>
       <div className="flex flex-col sm:flex-row gap-3 items-end">
         <div className="flex-1">
-          <label className="block text-xs text-muted-foreground mb-1.5">Amount</label>
+          <label className="block text-xs text-muted-foreground mb-1.5">{t("amountLabel")}</label>
           <input
             type="number"
             value={amount}
@@ -36,7 +38,7 @@ export function CurrencyCalculator({ rates }: Props) {
           />
         </div>
         <div className="w-full sm:w-36">
-          <label className="block text-xs text-muted-foreground mb-1.5">From</label>
+          <label className="block text-xs text-muted-foreground mb-1.5">{t("fromLabel")}</label>
           <select
             value={from}
             onChange={(e) => setFrom(e.target.value)}
@@ -52,7 +54,7 @@ export function CurrencyCalculator({ rates }: Props) {
           type="button"
           onClick={() => { setFrom(to); setTo(from); }}
           className="w-10 h-10 rounded-xl border border-border flex items-center justify-center hover:bg-muted transition-colors shrink-0 mb-0.5"
-          title="Swap currencies"
+          title={t("swapTitle")}
         >
           <svg className="w-4 h-4 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
@@ -60,7 +62,7 @@ export function CurrencyCalculator({ rates }: Props) {
         </button>
 
         <div className="w-full sm:w-36">
-          <label className="block text-xs text-muted-foreground mb-1.5">To</label>
+          <label className="block text-xs text-muted-foreground mb-1.5">{t("toLabel")}</label>
           <select
             value={to}
             onChange={(e) => setTo(e.target.value)}
@@ -81,7 +83,7 @@ export function CurrencyCalculator({ rates }: Props) {
           {result.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} {to}
         </p>
         <p className="text-xs text-muted-foreground mt-1">
-          1 {from} = {convert(1, from, to).toFixed(4)} {to}
+          {t("rateDisplay", { from, rate: convert(1, from, to).toFixed(4), to })}
         </p>
       </div>
     </div>

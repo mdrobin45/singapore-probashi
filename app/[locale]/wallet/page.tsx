@@ -1,7 +1,8 @@
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/session";
+import { getTranslations } from "next-intl/server";
 import { redirect } from "next/navigation";
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 
 async function getWalletData(userId: string) {
   const [wallet, deposits] = await Promise.all([
@@ -20,14 +21,6 @@ async function getWalletData(userId: string) {
   return { wallet, deposits };
 }
 
-const TX_TYPE_LABELS: Record<string, string> = {
-  DEPOSIT: "Deposit",
-  WITHDRAWAL: "Withdrawal",
-  SHARE_PURCHASE: "Share Purchase",
-  SHARE_SALE: "Share Sale",
-  REFUND: "Refund",
-};
-
 const CREDIT_TYPES = new Set(["DEPOSIT", "SHARE_SALE", "REFUND"]);
 
 const DEPOSIT_STATUS: Record<string, string> = {
@@ -40,6 +33,18 @@ export default async function WalletPage() {
   const session = await getSession();
   if (!session) redirect("/login");
 
+  const t = await getTranslations("wallet");
+  const tNav = await getTranslations("nav");
+  const tDash = await getTranslations("dashboard");
+
+  const TX_TYPE_LABELS: Record<string, string> = {
+    DEPOSIT: tDash("txDeposit"),
+    WITHDRAWAL: tDash("txWithdrawal"),
+    SHARE_PURCHASE: tDash("txSharePurchase"),
+    SHARE_SALE: tDash("txShareSale"),
+    REFUND: tDash("txRefund"),
+  };
+
   const { wallet, deposits } = await getWalletData(session.userId);
   const balance = wallet ? Number(wallet.balance) : 0;
 
@@ -47,21 +52,23 @@ export default async function WalletPage() {
     <div className="min-h-screen bg-muted">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex items-center gap-2 text-sm text-muted-foreground mb-6">
-          <Link href="/dashboard" className="hover:text-brand transition-colors">Dashboard</Link>
+          <Link href="/dashboard" className="hover:text-brand transition-colors">
+            {tNav("dashboard")}
+          </Link>
           <span>/</span>
-          <span className="text-foreground">Wallet</span>
+          <span className="text-foreground">{t("title")}</span>
         </div>
 
         {/* Balance card */}
-        <div className="bg-gradient-to-br from-brand to-brand-dark rounded-2xl p-7 mb-6 text-white">
-          <p className="text-sm font-medium text-white/70 mb-1">Available Balance</p>
+        <div className="bg-linear-to-br from-brand to-brand-dark rounded-2xl p-7 mb-6 text-white">
+          <p className="text-sm font-medium text-white/70 mb-1">{t("availableBalance")}</p>
           <p className="text-4xl font-bold">S${balance.toFixed(2)}</p>
-          <p className="text-xs text-white/60 mt-1">Singapore Dollar</p>
+          <p className="text-xs text-white/60 mt-1">{t("singaporeDollar")}</p>
           <Link
             href="/dashboard/deposit"
             className="inline-block mt-5 bg-white/20 hover:bg-white/30 text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition-colors"
           >
-            + Deposit Funds
+            {t("depositFunds")}
           </Link>
         </div>
 
@@ -69,7 +76,7 @@ export default async function WalletPage() {
         {deposits.filter((d) => d.status === "PENDING").length > 0 && (
           <div className="bg-amber-50 border border-amber-200 rounded-xl px-5 py-4 mb-6">
             <p className="text-sm font-semibold text-amber-800">
-              {deposits.filter((d) => d.status === "PENDING").length} deposit request(s) pending admin approval
+              {t("pendingDepositsWarning", { count: deposits.filter((d) => d.status === "PENDING").length })}
             </p>
           </div>
         )}
@@ -78,11 +85,11 @@ export default async function WalletPage() {
           {/* Transactions */}
           <div className="md:col-span-2 bg-white rounded-2xl border border-border overflow-hidden">
             <div className="px-6 py-4 border-b border-border">
-              <h2 className="font-semibold text-foreground">Transaction History</h2>
+              <h2 className="font-semibold text-foreground">{t("transactionHistory")}</h2>
             </div>
             {!wallet || wallet.transactions.length === 0 ? (
               <div className="px-6 py-12 text-center text-muted-foreground text-sm">
-                No transactions yet.
+                {t("noTransactions")}
               </div>
             ) : (
               <div className="divide-y divide-border">
@@ -119,25 +126,25 @@ export default async function WalletPage() {
           {/* Deposit history */}
           <div className="md:col-span-2 bg-white rounded-2xl border border-border overflow-hidden">
             <div className="px-6 py-4 border-b border-border flex items-center justify-between">
-              <h2 className="font-semibold text-foreground">Deposit Requests</h2>
+              <h2 className="font-semibold text-foreground">{t("depositRequests")}</h2>
               <Link href="/dashboard/deposit" className="text-xs text-brand font-medium hover:underline">
-                + New Deposit
+                {t("newDeposit")}
               </Link>
             </div>
             {deposits.length === 0 ? (
               <div className="px-6 py-10 text-center text-muted-foreground text-sm">
-                No deposit requests yet.
+                {t("noDeposits")}
               </div>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b border-border bg-muted/50">
-                      <th className="text-left text-xs font-semibold text-muted-foreground px-6 py-3">Amount</th>
-                      <th className="text-left text-xs font-semibold text-muted-foreground px-4 py-3">Method</th>
-                      <th className="text-left text-xs font-semibold text-muted-foreground px-4 py-3">TXN ID</th>
-                      <th className="text-left text-xs font-semibold text-muted-foreground px-4 py-3">Status</th>
-                      <th className="text-left text-xs font-semibold text-muted-foreground px-4 py-3">Date</th>
+                      <th className="text-left text-xs font-semibold text-muted-foreground px-6 py-3">{t("colAmount")}</th>
+                      <th className="text-left text-xs font-semibold text-muted-foreground px-4 py-3">{t("colMethod")}</th>
+                      <th className="text-left text-xs font-semibold text-muted-foreground px-4 py-3">{t("colTxnId")}</th>
+                      <th className="text-left text-xs font-semibold text-muted-foreground px-4 py-3">{t("colStatus")}</th>
+                      <th className="text-left text-xs font-semibold text-muted-foreground px-4 py-3">{t("colDate")}</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border">

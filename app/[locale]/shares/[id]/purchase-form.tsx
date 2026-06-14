@@ -2,6 +2,7 @@
 
 import { useActionState, useState } from "react";
 import { requestSharePurchaseAction } from "@/app/actions/shares";
+import { useTranslations } from "next-intl";
 
 const PAYMENT_METHODS = [
   { value: "BKASH", label: "bKash", needsTxId: true },
@@ -19,6 +20,7 @@ type Props = {
 };
 
 export function PurchaseForm({ projectId, sharePrice, availableShares, hasPending }: Props) {
+  const t = useTranslations("shares");
   const [state, action, pending] = useActionState(requestSharePurchaseAction, null);
   const [qty, setQty] = useState(1);
   const [method, setMethod] = useState("BKASH");
@@ -35,8 +37,8 @@ export function PurchaseForm({ projectId, sharePrice, availableShares, hasPendin
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
           </div>
-          <p className="font-semibold text-foreground text-sm">Purchase request pending</p>
-          <p className="text-xs text-muted-foreground mt-1">Wait for admin approval before submitting another.</p>
+          <p className="font-semibold text-foreground text-sm">{t("purchaseRequestPending")}</p>
+          <p className="text-xs text-muted-foreground mt-1">{t("waitForApproval")}</p>
         </div>
       </div>
     );
@@ -60,8 +62,8 @@ export function PurchaseForm({ projectId, sharePrice, availableShares, hasPendin
   return (
     <div className="bg-white rounded-2xl border border-border overflow-hidden sticky top-24">
       <div className="px-6 py-5 border-b border-border">
-        <h3 className="font-bold text-foreground text-lg">Buy Shares</h3>
-        <p className="text-xs text-muted-foreground mt-0.5">S${sharePrice.toFixed(2)} per share</p>
+        <h3 className="font-bold text-foreground text-lg">{t("buyShares")}</h3>
+        <p className="text-xs text-muted-foreground mt-0.5">{t("perSharePrice", { price: sharePrice.toFixed(2) })}</p>
       </div>
 
       <form action={action} className="p-6 space-y-5">
@@ -70,7 +72,7 @@ export function PurchaseForm({ projectId, sharePrice, availableShares, hasPendin
         {/* Quantity */}
         <div>
           <label className="block text-sm font-medium text-foreground mb-1.5">
-            Number of Shares
+            {t("numberOfShares")}
           </label>
           <div className="flex items-center gap-2">
             <button
@@ -97,19 +99,19 @@ export function PurchaseForm({ projectId, sharePrice, availableShares, hasPendin
               +
             </button>
           </div>
-          <p className="text-xs text-muted-foreground mt-1">{availableShares} shares available</p>
+          <p className="text-xs text-muted-foreground mt-1">{t("sharesAvailableCount", { count: availableShares })}</p>
         </div>
 
         {/* Total */}
         <div className="bg-brand-50 rounded-xl px-4 py-3 flex items-center justify-between">
-          <span className="text-sm text-brand font-medium">Total Amount</span>
+          <span className="text-sm text-brand font-medium">{t("totalAmount")}</span>
           <span className="text-xl font-bold text-brand">S${total.toFixed(2)}</span>
         </div>
 
         {/* Payment method */}
         <div>
           <label className="block text-sm font-medium text-foreground mb-2">
-            Payment Method
+            {t("paymentMethod")}
           </label>
           <div className="grid grid-cols-2 gap-2">
             {PAYMENT_METHODS.map((m) => (
@@ -134,7 +136,7 @@ export function PurchaseForm({ projectId, sharePrice, availableShares, hasPendin
         {selectedMethod?.needsTxId && (
           <div>
             <label className="block text-sm font-medium text-foreground mb-1.5">
-              Transaction ID <span className="text-red-500">*</span>
+              {t("transactionId")} <span className="text-red-500">*</span>
             </label>
             <input
               name="txId"
@@ -158,11 +160,13 @@ export function PurchaseForm({ projectId, sharePrice, availableShares, hasPendin
           disabled={pending || availableShares === 0}
           className="w-full bg-brand text-white rounded-xl py-3 text-sm font-semibold hover:bg-brand-dark transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
         >
-          {pending ? "Submitting…" : `Buy ${qty} Share${qty > 1 ? "s" : ""} · S$${total.toFixed(2)}`}
+          {pending
+            ? t("submitting")
+            : t("buySharesButton", { qty, plural: qty > 1 ? "s" : "", total: total.toFixed(2) })}
         </button>
 
         <p className="text-xs text-muted-foreground text-center">
-          Your request will be reviewed by an admin before shares are transferred.
+          {t("purchaseReviewNotice")}
         </p>
       </form>
     </div>

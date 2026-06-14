@@ -4,9 +4,11 @@ import { useActionState } from "react";
 import { resetPasswordAction } from "@/app/actions/auth";
 import { useSearchParams } from "next/navigation";
 import { Suspense } from "react";
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
+import { useTranslations } from "next-intl";
 
 function ResetForm() {
+  const t = useTranslations("auth.resetPassword");
   const [state, action, pending] = useActionState(resetPasswordAction, null);
   const params = useSearchParams();
   const email = params.get("email") ?? "";
@@ -20,9 +22,9 @@ function ResetForm() {
         </svg>
       </div>
 
-      <h1 className="text-2xl font-bold text-foreground mb-1">Set New Password</h1>
+      <h1 className="text-2xl font-bold text-foreground mb-1">{t("title")}</h1>
       <p className="text-sm text-muted-foreground mb-7">
-        Choose a strong password for your account
+        {t("subtitle")}
       </p>
 
       <form action={action} className="space-y-5">
@@ -30,25 +32,25 @@ function ResetForm() {
         <input type="hidden" name="otp" value={otp} />
 
         <div>
-          <label className="block text-sm font-medium text-foreground mb-1.5">New Password</label>
+          <label className="block text-sm font-medium text-foreground mb-1.5">{t("newPassword")}</label>
           <input
             name="password"
             type="password"
             required
             autoComplete="new-password"
-            placeholder="At least 8 characters"
+            placeholder={t("passwordPlaceholder")}
             className="w-full px-3.5 py-2.5 rounded-lg border border-border bg-white text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-brand/30 focus:border-brand text-sm transition-colors"
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-foreground mb-1.5">Confirm Password</label>
+          <label className="block text-sm font-medium text-foreground mb-1.5">{t("confirmPassword")}</label>
           <input
             name="confirmPassword"
             type="password"
             required
             autoComplete="new-password"
-            placeholder="Repeat your new password"
+            placeholder={t("confirmPlaceholder")}
             className="w-full px-3.5 py-2.5 rounded-lg border border-border bg-white text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-brand/30 focus:border-brand text-sm transition-colors"
           />
         </div>
@@ -64,13 +66,13 @@ function ResetForm() {
           disabled={pending}
           className="w-full bg-brand text-white rounded-lg py-2.5 text-sm font-semibold hover:bg-brand-dark transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
         >
-          {pending ? "Saving…" : "Reset Password"}
+          {pending ? t("submitting") : t("submit")}
         </button>
       </form>
 
       <p className="text-center text-sm text-muted-foreground mt-6">
         <Link href="/login" className="text-brand font-medium hover:underline">
-          ← Back to sign in
+          {t("backToLogin")}
         </Link>
       </p>
     </div>

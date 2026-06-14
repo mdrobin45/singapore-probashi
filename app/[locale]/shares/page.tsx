@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/session";
-import Link from "next/link";
+import { getTranslations } from "next-intl/server";
+import { Link } from "@/i18n/navigation";
 import { SecondaryMarket } from "./secondary-market";
 
 async function getPrimaryData() {
@@ -30,10 +31,11 @@ export default async function SharesPage({
   const { tab } = await searchParams;
   const activeTab = tab === "secondary" ? "secondary" : "primary";
 
-  const [projects, secondaryListings, session] = await Promise.all([
+  const [projects, secondaryListings, session, t] = await Promise.all([
     getPrimaryData(),
     getSecondaryListings(),
     getSession(),
+    getTranslations("shares"),
   ]);
 
   const totalValue = projects.reduce(
@@ -49,27 +51,27 @@ export default async function SharesPage({
           <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
             <div>
               <span className="inline-block text-xs font-bold uppercase tracking-wider text-brand bg-brand-50 px-3 py-1 rounded-full mb-3">
-                Share Investment
+                {t("investmentBadge")}
               </span>
-              <h1 className="text-3xl font-bold text-foreground">Community Marketplace</h1>
+              <h1 className="text-3xl font-bold text-foreground">{t("marketplaceTitle")}</h1>
               <p className="text-muted-foreground mt-2 max-w-xl">
-                Invest in community-owned projects. Buy shares, resell to other members, and grow together.
+                {t("marketplaceSubtitle")}
               </p>
             </div>
             <div className="flex gap-6 text-center shrink-0">
               <div>
                 <p className="text-2xl font-bold text-foreground">{projects.length}</p>
-                <p className="text-xs text-muted-foreground">Active Projects</p>
+                <p className="text-xs text-muted-foreground">{t("activeProjects")}</p>
               </div>
               <div className="w-px bg-border" />
               <div>
                 <p className="text-2xl font-bold text-foreground">S${(totalValue / 1000).toFixed(0)}K</p>
-                <p className="text-xs text-muted-foreground">Total Value</p>
+                <p className="text-xs text-muted-foreground">{t("totalValue")}</p>
               </div>
               <div className="w-px bg-border" />
               <div>
                 <p className="text-2xl font-bold text-foreground">{secondaryListings.length}</p>
-                <p className="text-xs text-muted-foreground">Resell Listings</p>
+                <p className="text-xs text-muted-foreground">{t("resellListings")}</p>
               </div>
             </div>
           </div>
@@ -84,7 +86,7 @@ export default async function SharesPage({
                   : "text-muted-foreground hover:text-foreground"
               }`}
             >
-              Primary Market
+              {t("primaryTab")}
             </Link>
             <Link
               href="/shares?tab=secondary"
@@ -94,7 +96,7 @@ export default async function SharesPage({
                   : "text-muted-foreground hover:text-foreground"
               }`}
             >
-              Secondary Market
+              {t("secondaryTab")}
               {secondaryListings.length > 0 && (
                 <span className="bg-brand text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">
                   {secondaryListings.length}
@@ -110,7 +112,7 @@ export default async function SharesPage({
           <>
             {projects.length === 0 ? (
               <div className="text-center py-20 text-muted-foreground">
-                No active projects at the moment. Check back soon.
+                {t("noActiveProjects")}
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
@@ -129,7 +131,7 @@ export default async function SharesPage({
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
                             </svg>
                           </div>
-                          <span className="text-xs font-semibold text-green-700 bg-green-100 px-2.5 py-1 rounded-full">Active</span>
+                          <span className="text-xs font-semibold text-green-700 bg-green-100 px-2.5 py-1 rounded-full">{t("activeStatus")}</span>
                         </div>
                         <h2 className="font-bold text-foreground text-lg leading-snug">{project.name}</h2>
                         <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{project.description}</p>
@@ -138,28 +140,31 @@ export default async function SharesPage({
                       <div className="px-6 py-4 border-b border-border grid grid-cols-3 gap-3 text-center">
                         <div>
                           <p className="text-base font-bold text-foreground">S${Number(project.sharePrice).toFixed(0)}</p>
-                          <p className="text-[11px] text-muted-foreground">Per Share</p>
+                          <p className="text-[11px] text-muted-foreground">{t("perShare")}</p>
                         </div>
                         <div>
                           <p className="text-base font-bold text-foreground">{project.availableShares.toLocaleString()}</p>
-                          <p className="text-[11px] text-muted-foreground">Available</p>
+                          <p className="text-[11px] text-muted-foreground">{t("available")}</p>
                         </div>
                         <div>
                           <p className="text-base font-bold text-foreground">S${(totalProjectValue / 1000).toFixed(0)}K</p>
-                          <p className="text-[11px] text-muted-foreground">Total Fund</p>
+                          <p className="text-[11px] text-muted-foreground">{t("totalFund")}</p>
                         </div>
                       </div>
 
                       <div className="px-6 py-4 flex-1">
                         <div className="flex items-center justify-between text-xs text-muted-foreground mb-1.5">
-                          <span>Shares sold</span>
+                          <span>{t("sharesSold")}</span>
                           <span className="font-medium text-foreground">{soldPct}%</span>
                         </div>
                         <div className="h-2 bg-muted rounded-full overflow-hidden">
                           <div className="h-full bg-brand rounded-full" style={{ width: `${soldPct}%` }} />
                         </div>
                         <p className="text-xs text-muted-foreground mt-1.5">
-                          {project.totalShares - project.availableShares} of {project.totalShares} shares sold
+                          {t("sharesSoldOf", {
+                            sold: project.totalShares - project.availableShares,
+                            total: project.totalShares,
+                          })}
                         </p>
                       </div>
 
@@ -168,7 +173,7 @@ export default async function SharesPage({
                           href={session ? `/shares/${project.id}` : "/login"}
                           className="block w-full text-center bg-brand text-white rounded-xl py-2.5 text-sm font-semibold hover:bg-brand-dark transition-colors"
                         >
-                          {session ? "View & Invest" : "Login to Invest"}
+                          {session ? t("viewAndInvest") : t("loginToInvest")}
                         </Link>
                       </div>
                     </div>

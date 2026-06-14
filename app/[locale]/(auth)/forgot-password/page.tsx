@@ -2,9 +2,11 @@
 
 import { useActionState } from "react";
 import { forgotPasswordAction } from "@/app/actions/auth";
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
+import { useTranslations } from "next-intl";
 
 export default function ForgotPasswordPage() {
+  const t = useTranslations("auth.forgot");
   const [state, action, pending] = useActionState(forgotPasswordAction, null);
 
   return (
@@ -15,20 +17,20 @@ export default function ForgotPasswordPage() {
         </svg>
       </div>
 
-      <h1 className="text-2xl font-bold text-foreground mb-1">Forgot password?</h1>
+      <h1 className="text-2xl font-bold text-foreground mb-1">{t("title")}</h1>
       <p className="text-sm text-muted-foreground mb-7">
-        Enter your email and we&apos;ll send you a verification code to reset your password.
+        {t("subtitle")}
       </p>
 
       <form action={action} className="space-y-5">
         <div>
-          <label className="block text-sm font-medium text-foreground mb-1.5">Email Address</label>
+          <label className="block text-sm font-medium text-foreground mb-1.5">{t("email")}</label>
           <input
             name="email"
             type="email"
             required
             autoComplete="email"
-            placeholder="you@email.com"
+            placeholder={t("emailPlaceholder")}
             className="w-full px-3.5 py-2.5 rounded-lg border border-border bg-white text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-brand/30 focus:border-brand text-sm transition-colors"
           />
         </div>
@@ -44,14 +46,13 @@ export default function ForgotPasswordPage() {
           disabled={pending}
           className="w-full bg-brand text-white rounded-lg py-2.5 text-sm font-semibold hover:bg-brand-dark transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
         >
-          {pending ? "Sending…" : "Send Verification Code"}
+          {pending ? t("submitting") : t("submit")}
         </button>
       </form>
 
       <p className="text-center text-sm text-muted-foreground mt-6">
-        Remembered your password?{" "}
         <Link href="/login" className="text-brand font-medium hover:underline">
-          Sign in
+          {t("backToLogin")}
         </Link>
       </p>
     </div>

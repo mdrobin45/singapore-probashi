@@ -1,3 +1,4 @@
+import { getTranslations } from "next-intl/server";
 import { CurrencyCalculator } from "./calculator";
 
 const CURRENCY_META: Record<string, { name: string; symbol: string }> = {
@@ -30,7 +31,7 @@ async function getRates(): Promise<{ rates: Record<string, number>; updatedAt: s
 }
 
 export default async function CurrencyPage() {
-  const data = await getRates();
+  const [data, t] = await Promise.all([getRates(), getTranslations("currency")]);
   const rates = data?.rates ?? {};
   const isFallback = data?.updatedAt === "fallback";
 
@@ -42,17 +43,17 @@ export default async function CurrencyPage() {
       <div className="bg-white border-b border-border">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
           <span className="inline-block text-xs font-bold uppercase tracking-wider text-brand bg-brand-50 px-3 py-1 rounded-full mb-3">
-            Currency Converter
+            {t("badge")}
           </span>
-          <h1 className="text-3xl font-bold text-foreground">SGD Exchange Rates</h1>
+          <h1 className="text-3xl font-bold text-foreground">{t("sgdRatesTitle")}</h1>
           <p className="text-muted-foreground mt-2">
-            Live rates updated hourly. Base currency: Singapore Dollar (SGD).
+            {t("sgdRatesSubtitle")}
           </p>
           {isFallback && (
-            <p className="text-xs text-amber-600 mt-1">⚠ Using approximate rates — live data temporarily unavailable.</p>
+            <p className="text-xs text-amber-600 mt-1">⚠ {t("fallbackWarning")}</p>
           )}
           {!isFallback && (
-            <p className="text-xs text-muted-foreground mt-1">Last updated: {data?.updatedAt}</p>
+            <p className="text-xs text-muted-foreground mt-1">{t("lastUpdated", { date: data?.updatedAt ?? "" })}</p>
           )}
         </div>
       </div>
@@ -63,7 +64,7 @@ export default async function CurrencyPage() {
 
         {/* Rate grid */}
         <div>
-          <h2 className="text-base font-semibold text-foreground mb-4">1 SGD equals</h2>
+          <h2 className="text-base font-semibold text-foreground mb-4">{t("oneSgdEquals")}</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {displayCurrencies.map((code) => {
               const meta = CURRENCY_META[code];
@@ -81,7 +82,7 @@ export default async function CurrencyPage() {
                     {rate < 10 ? rate.toFixed(4) : rate.toFixed(2)}
                   </p>
                   <p className="text-xs text-muted-foreground mt-1">
-                    1 {code} = S${(1 / rate).toFixed(4)}
+                    {t("inverseRate", { code, rate: (1 / rate).toFixed(4) })}
                   </p>
                 </div>
               );
@@ -91,7 +92,7 @@ export default async function CurrencyPage() {
 
         {/* Note */}
         <div className="bg-blue-50 border border-blue-200 rounded-2xl p-5 text-sm text-blue-800">
-          <strong>Note:</strong> Exchange rates are indicative only. Actual rates at banks or remittance services may vary. Always confirm with your provider before transferring money.
+          <strong>{t("noteLabel")}:</strong> {t("noteText")}
         </div>
       </div>
     </div>

@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
+import { getTranslations } from "next-intl/server";
 
 const PLACEHOLDER_DUAS = [
   {
@@ -59,7 +60,10 @@ const PLACEHOLDER_DUAS = [
 ];
 
 export default async function DuasPage() {
-  const duas = await prisma.dua.findMany({ orderBy: { createdAt: "asc" } });
+  const [duas, t] = await Promise.all([
+    prisma.dua.findMany({ orderBy: { createdAt: "asc" } }),
+    getTranslations("islamicCenter"),
+  ]);
   const displayList = duas.length > 0 ? duas : PLACEHOLDER_DUAS;
   const isPlaceholder = duas.length === 0;
 
@@ -70,20 +74,22 @@ export default async function DuasPage() {
       <div className="bg-white border-b border-border">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="flex items-center gap-2 text-sm text-muted-foreground mb-4">
-            <Link href="/islamic-center" className="hover:text-brand transition-colors">Islamic Center</Link>
+            <Link href="/islamic-center" className="hover:text-brand transition-colors">{t("badge")}</Link>
             <span>/</span>
-            <span className="text-foreground">Duas</span>
+            <span className="text-foreground">{t("duas")}</span>
           </div>
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-foreground">Daily Duas</h1>
+              <h1 className="text-3xl font-bold text-foreground">{t("duasPageTitle")}</h1>
               <p className="text-muted-foreground mt-1">
-                {duas.length > 0 ? `${duas.length} duas across ${categories.length} categories` : "Everyday duas with Arabic, transliteration, and translation"}
+                {duas.length > 0
+                  ? t("duasCount", { count: duas.length, categories: categories.length })
+                  : t("duasHint")}
               </p>
             </div>
             {isPlaceholder && (
               <span className="text-xs bg-amber-50 text-amber-700 border border-amber-200 font-semibold px-3 py-1 rounded-full">
-                Preview
+                {t("preview")}
               </span>
             )}
           </div>
@@ -104,7 +110,7 @@ export default async function DuasPage() {
           <div key={cat}>
             <h2 className="text-base font-bold text-foreground mb-4 flex items-center gap-2">
               <span className="w-1 h-5 rounded-full bg-brand inline-block" />
-              {cat} Duas
+              {t("duasCategoryHeading", { category: cat })}
             </h2>
             <div className="space-y-4">
               {displayList.filter((d) => d.category === cat).map((dua) => (

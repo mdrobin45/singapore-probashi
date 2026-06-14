@@ -2,11 +2,13 @@
 
 import { useActionState } from "react";
 import { loginAction } from "@/app/actions/auth";
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 import { useSearchParams } from "next/navigation";
 import { Suspense } from "react";
+import { useTranslations } from "next-intl";
 
 function LoginForm() {
+  const t = useTranslations("auth.login");
   const [state, action, pending] = useActionState(loginAction, null);
   const params = useSearchParams();
   const resetSuccess = params.get("reset") === "1";
@@ -19,37 +21,37 @@ function LoginForm() {
         </svg>
       </div>
 
-      <h1 className="text-2xl font-bold text-foreground mb-1">Welcome back</h1>
+      <h1 className="text-2xl font-bold text-foreground mb-1">{t("title")}</h1>
       <p className="text-sm text-muted-foreground mb-7">
-        Sign in to your Singapur Probashi account
+        {t("subtitle")}
       </p>
 
       {resetSuccess && (
         <div className="rounded-lg bg-green-50 border border-green-200 px-4 py-3 text-sm text-green-700 mb-5">
-          Password reset successful! Please sign in with your new password.
+          {t("resetSuccess")}
         </div>
       )}
 
       <form action={action} className="space-y-5">
         <div>
           <label className="block text-sm font-medium text-foreground mb-1.5">
-            NID Number
+            {t("nidNumber")}
           </label>
           <input
             name="nidNumber"
             type="text"
             required
             autoComplete="username"
-            placeholder="Your National ID number"
+            placeholder={t("nidPlaceholder")}
             className="w-full px-3.5 py-2.5 rounded-lg border border-border bg-white text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-brand/30 focus:border-brand text-sm transition-colors"
           />
         </div>
 
         <div>
           <div className="flex items-center justify-between mb-1.5">
-            <label className="block text-sm font-medium text-foreground">Password</label>
+            <label className="block text-sm font-medium text-foreground">{t("password")}</label>
             <Link href="/forgot-password" className="text-xs text-brand hover:underline">
-              Forgot password?
+              {t("forgot")}
             </Link>
           </div>
           <input
@@ -57,7 +59,7 @@ function LoginForm() {
             type="password"
             required
             autoComplete="current-password"
-            placeholder="Your password"
+            placeholder={t("passwordPlaceholder")}
             className="w-full px-3.5 py-2.5 rounded-lg border border-border bg-white text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-brand/30 focus:border-brand text-sm transition-colors"
           />
         </div>
@@ -73,14 +75,14 @@ function LoginForm() {
           disabled={pending}
           className="w-full bg-brand text-white rounded-lg py-2.5 text-sm font-semibold hover:bg-brand-dark transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
         >
-          {pending ? "Signing in…" : "Sign In"}
+          {pending ? t("submitting") : t("submit")}
         </button>
       </form>
 
       <p className="text-center text-sm text-muted-foreground mt-6">
-        Don&apos;t have an account?{" "}
+        {t("noAccount")}{" "}
         <Link href="/register" className="text-brand font-medium hover:underline">
-          Create account
+          {t("register")}
         </Link>
       </p>
     </div>

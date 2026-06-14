@@ -9,6 +9,7 @@ export type SessionPayload = {
   userId: string;
   role: string;
   email: string;
+  fullName: string;
 };
 
 const COOKIE_NAME = "sp_session";

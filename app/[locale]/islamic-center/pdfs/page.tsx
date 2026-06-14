@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
+import { getTranslations } from "next-intl/server";
 
 const PLACEHOLDER_PDFS = [
   {
@@ -62,10 +63,13 @@ const CATEGORY_COLORS: Record<string, string> = {
 };
 
 export default async function PdfsPage() {
-  const pdfs = await prisma.pdfDocument.findMany({
-    where: { status: "PUBLISHED" },
-    orderBy: { createdAt: "desc" },
-  });
+  const [pdfs, t] = await Promise.all([
+    prisma.pdfDocument.findMany({
+      where: { status: "PUBLISHED" },
+      orderBy: { createdAt: "desc" },
+    }),
+    getTranslations("islamicCenter"),
+  ]);
 
   const displayList = pdfs.length > 0 ? pdfs : PLACEHOLDER_PDFS;
   const isPlaceholder = pdfs.length === 0;
@@ -76,20 +80,20 @@ export default async function PdfsPage() {
       <div className="bg-white border-b border-border">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="flex items-center gap-2 text-sm text-muted-foreground mb-4">
-            <Link href="/islamic-center" className="hover:text-brand transition-colors">Islamic Center</Link>
+            <Link href="/islamic-center" className="hover:text-brand transition-colors">{t("badge")}</Link>
             <span>/</span>
-            <span className="text-foreground">PDF Library</span>
+            <span className="text-foreground">{t("pdfLibrary")}</span>
           </div>
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-foreground">PDF Library</h1>
+              <h1 className="text-3xl font-bold text-foreground">{t("pdfLibrary")}</h1>
               <p className="text-muted-foreground mt-1">
-                Downloadable Islamic books, guides, and resources in Bengali & Arabic
+                {t("pdfsPageSubtitle")}
               </p>
             </div>
             {isPlaceholder && (
               <span className="text-xs bg-amber-50 text-amber-700 border border-amber-200 font-semibold px-3 py-1 rounded-full">
-                Preview
+                {t("preview")}
               </span>
             )}
           </div>
@@ -135,10 +139,10 @@ export default async function PdfsPage() {
                           <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                           </svg>
-                          Download
+                          {t("download")}
                         </a>
                       ) : (
-                        <span className="text-xs text-muted-foreground">Coming soon</span>
+                        <span className="text-xs text-muted-foreground">{t("comingSoon")}</span>
                       )}
                     </div>
                   </div>
@@ -150,7 +154,7 @@ export default async function PdfsPage() {
 
         {isPlaceholder && (
           <div className="bg-white rounded-xl border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
-            Admin can upload PDF documents from the admin panel. These are placeholder previews.
+            {t("pdfsPlaceholderNote")}
           </div>
         )}
       </div>

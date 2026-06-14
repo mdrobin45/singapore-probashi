@@ -2,7 +2,8 @@
 
 import { useActionState } from "react";
 import { requestDepositAction } from "@/app/actions/deposits";
-import Link from "next/link";
+import { useTranslations } from "next-intl";
+import { Link } from "@/i18n/navigation";
 
 const METHODS = [
   { value: "BKASH", label: "bKash", account: "01700-000000 (Agent)" },
@@ -13,21 +14,23 @@ const METHODS = [
 
 export default function DepositPage() {
   const [state, action, pending] = useActionState(requestDepositAction, null);
+  const t = useTranslations("deposit");
+  const tNav = useTranslations("nav");
 
   return (
     <div className="min-h-screen bg-muted">
       <div className="max-w-lg mx-auto px-4 py-10">
         <div className="flex items-center gap-2 text-sm text-muted-foreground mb-6">
-          <Link href="/dashboard" className="hover:text-brand transition-colors">Dashboard</Link>
+          <Link href="/dashboard" className="hover:text-brand transition-colors">
+            {tNav("dashboard")}
+          </Link>
           <span>/</span>
-          <span className="text-foreground">Deposit Funds</span>
+          <span className="text-foreground">{t("title")}</span>
         </div>
 
         <div className="bg-white rounded-2xl border border-border p-7">
-          <h1 className="text-xl font-bold text-foreground mb-1">Deposit Funds</h1>
-          <p className="text-sm text-muted-foreground mb-6">
-            Transfer money via any method below, then submit the transaction ID. Your wallet will be credited after admin verification.
-          </p>
+          <h1 className="text-xl font-bold text-foreground mb-1">{t("title")}</h1>
+          <p className="text-sm text-muted-foreground mb-6">{t("subtitle")}</p>
 
           {state?.success ? (
             <div className="text-center py-6">
@@ -36,17 +39,17 @@ export default function DepositPage() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
               </div>
-              <p className="font-semibold text-foreground mb-2">Deposit request submitted!</p>
-              <p className="text-sm text-muted-foreground mb-5">We'll verify your payment and credit your wallet within a few hours.</p>
+              <p className="font-semibold text-foreground mb-2">{t("successTitle")}</p>
+              <p className="text-sm text-muted-foreground mb-5">{t("successMessage")}</p>
               <Link href="/dashboard" className="inline-block bg-brand text-white text-sm font-semibold px-5 py-2.5 rounded-xl hover:bg-brand-dark transition-colors">
-                Back to Dashboard
+                {t("backToDashboard")}
               </Link>
             </div>
           ) : (
             <form action={action} className="space-y-5">
               {/* Payment accounts */}
               <div className="bg-muted rounded-xl p-4 space-y-2">
-                <p className="text-xs font-semibold text-foreground mb-2">Payment Accounts</p>
+                <p className="text-xs font-semibold text-foreground mb-2">{t("paymentAccounts")}</p>
                 {METHODS.map((m) => (
                   <div key={m.value} className="flex items-center justify-between text-xs">
                     <span className="font-medium text-foreground">{m.label}</span>
@@ -56,20 +59,20 @@ export default function DepositPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-foreground mb-1.5">Amount (S$)</label>
+                <label className="block text-sm font-medium text-foreground mb-1.5">{t("amount")}</label>
                 <input
                   name="amount"
                   type="number"
                   required
                   min={10}
                   step={0.01}
-                  placeholder="Minimum S$10"
+                  placeholder={t("amountPlaceholder")}
                   className="w-full px-3.5 py-2.5 rounded-lg border border-border text-foreground focus:outline-none focus:ring-2 focus:ring-brand/30 focus:border-brand text-sm"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-foreground mb-2">Payment Method</label>
+                <label className="block text-sm font-medium text-foreground mb-2">{t("paymentMethod")}</label>
                 <div className="grid grid-cols-2 gap-2">
                   {METHODS.map((m) => (
                     <label key={m.value} className="cursor-pointer">
@@ -83,15 +86,15 @@ export default function DepositPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-foreground mb-1.5">Transaction ID</label>
+                <label className="block text-sm font-medium text-foreground mb-1.5">{t("txId")}</label>
                 <input
                   name="txId"
                   type="text"
                   required
-                  placeholder="Transaction reference number"
+                  placeholder={t("txIdPlaceholder")}
                   className="w-full px-3.5 py-2.5 rounded-lg border border-border text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-brand/30 focus:border-brand text-sm font-mono"
                 />
-                <p className="text-xs text-muted-foreground mt-1">Found in your mobile banking app after transfer</p>
+                <p className="text-xs text-muted-foreground mt-1">{t("txIdHint")}</p>
               </div>
 
               {state?.error && (
@@ -102,7 +105,7 @@ export default function DepositPage() {
 
               <button type="submit" disabled={pending}
                 className="w-full bg-brand text-white rounded-xl py-2.5 text-sm font-semibold hover:bg-brand-dark transition-colors disabled:opacity-60">
-                {pending ? "Submitting…" : "Submit Deposit Request"}
+                {pending ? t("submitting") : t("submit")}
               </button>
             </form>
           )}

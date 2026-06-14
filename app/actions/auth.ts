@@ -97,6 +97,7 @@ export async function verifyOtpAction(
     userId: record.userId,
     role: record.user.role,
     email: record.user.email,
+    fullName: record.user.fullName,
   });
 
   redirect("/dashboard");
@@ -146,7 +147,7 @@ export async function loginAction(
   const user = await prisma.user.findUnique({
     where: { nidNumber },
     select: {
-      id: true, email: true, role: true,
+      id: true, email: true, role: true, fullName: true,
       passwordHash: true, isVerified: true, isActive: true,
     },
   });
@@ -172,7 +173,7 @@ export async function loginAction(
     redirect(`/verify-otp?email=${encodeURIComponent(user.email)}`);
   }
 
-  await createSession({ userId: user.id, role: user.role, email: user.email });
+  await createSession({ userId: user.id, role: user.role, email: user.email, fullName: user.fullName });
 
   redirect("/dashboard");
 }

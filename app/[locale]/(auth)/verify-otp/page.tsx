@@ -3,9 +3,11 @@
 import { useActionState, useRef, Suspense } from "react";
 import { verifyOtpAction, resendOtpAction } from "@/app/actions/auth";
 import { useSearchParams } from "next/navigation";
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
+import { useTranslations } from "next-intl";
 
 function VerifyOtpForm() {
+  const t = useTranslations("auth.verifyOtp");
   const params = useSearchParams();
   const email = params.get("email") ?? "";
   const type = params.get("type") ?? "EMAIL_VERIFICATION";
@@ -48,12 +50,10 @@ function VerifyOtpForm() {
       </div>
 
       <h1 className="text-2xl font-bold text-foreground mb-1">
-        {isForgot ? "Reset Password" : "Verify Email"}
+        {isForgot ? t("titleForgot") : t("title")}
       </h1>
       <p className="text-sm text-muted-foreground mb-2">
-        {isForgot
-          ? "Enter the code sent to"
-          : "We sent a 6-digit verification code to"}
+        {isForgot ? t("subtitleForgot") : t("subtitle")}
       </p>
       <p className="text-sm font-semibold text-brand mb-7 break-all">{email}</p>
 
@@ -98,7 +98,7 @@ function VerifyOtpForm() {
           disabled={verifyPending}
           className="w-full bg-brand text-white rounded-lg py-2.5 text-sm font-semibold hover:bg-brand-dark transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
         >
-          {verifyPending ? "Verifying…" : isForgot ? "Verify & Continue" : "Verify Email"}
+          {verifyPending ? t("submitting") : isForgot ? t("submitForgot") : t("submit")}
         </button>
       </form>
 
@@ -106,16 +106,16 @@ function VerifyOtpForm() {
       <form action={resendAction} className="mt-5 text-center">
         <input type="hidden" name="email" value={email} />
         <input type="hidden" name="type" value={type} />
-        <span className="text-sm text-muted-foreground">Didn&apos;t receive the code? </span>
+        <span className="text-sm text-muted-foreground">{t("noCode")} </span>
         <button
           type="submit"
           disabled={resendPending}
           className="text-sm text-brand font-medium hover:underline disabled:opacity-50"
         >
-          {resendPending ? "Sending…" : "Resend"}
+          {resendPending ? t("resending") : t("resend")}
         </button>
         {resendState?.success && (
-          <p className="text-xs text-green-600 mt-1">A new code has been sent.</p>
+          <p className="text-xs text-green-600 mt-1">{t("resendSuccess")}</p>
         )}
         {resendState?.error && (
           <p className="text-xs text-red-600 mt-1">{resendState.error}</p>
@@ -124,7 +124,7 @@ function VerifyOtpForm() {
 
       <p className="text-center text-sm text-muted-foreground mt-4">
         <Link href="/login" className="text-brand font-medium hover:underline">
-          ← Back to sign in
+          {t("backToLogin")}
         </Link>
       </p>
     </div>

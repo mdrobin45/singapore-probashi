@@ -1,7 +1,8 @@
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/session";
+import { getTranslations } from "next-intl/server";
 import { redirect } from "next/navigation";
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 
 async function getDashboardData(userId: string) {
   const [user, wallet, ownerships, pendingPurchases, recentNotifications, pendingDeposits] =
@@ -40,26 +41,11 @@ async function getDashboardData(userId: string) {
   return { user, wallet, ownerships, pendingPurchases, recentNotifications, pendingDeposits };
 }
 
-const MODULE_LINKS = [
-  { href: "/shares", label: "Share Marketplace", desc: "Browse & invest in community projects", icon: "📈" },
-  { href: "/air-ticket", label: "Air Tickets", desc: "Find flights Bangladesh ↔ Singapore", icon: "✈️" },
-  { href: "/currency", label: "Currency Converter", desc: "Live SGD ↔ BDT exchange rates", icon: "💱" },
-  { href: "/lost-found", label: "Lost & Found", desc: "Post or search for lost items", icon: "🔍" },
-  { href: "/islamic-center", label: "Islamic Center", desc: "Quran, Duas, articles & PDFs", icon: "🕌" },
-  { href: "/blog", label: "Community Blog", desc: "News, tips & community stories", icon: "📝" },
-];
-
-const TX_LABELS: Record<string, string> = {
-  DEPOSIT: "Deposit",
-  WITHDRAWAL: "Withdrawal",
-  SHARE_PURCHASE: "Share Purchase",
-  SHARE_SALE: "Share Sale",
-  REFUND: "Refund",
-};
-
 export default async function DashboardPage() {
   const session = await getSession();
   if (!session) redirect("/login");
+
+  const t = await getTranslations("dashboard");
 
   const { user, wallet, ownerships, pendingPurchases, recentNotifications, pendingDeposits } =
     await getDashboardData(session.userId);
@@ -70,6 +56,23 @@ export default async function DashboardPage() {
   );
   const totalShares = ownerships.reduce((sum, o) => sum + o.quantity, 0);
 
+  const MODULE_LINKS = [
+    { href: "/shares", label: t("moduleShares"), desc: t("moduleSharesDesc"), icon: "📈" },
+    { href: "/air-ticket", label: t("moduleAirTicket"), desc: t("moduleAirTicketDesc"), icon: "✈️" },
+    { href: "/currency", label: t("moduleCurrency"), desc: t("moduleCurrencyDesc"), icon: "💱" },
+    { href: "/lost-found", label: t("moduleLostFound"), desc: t("moduleLostFoundDesc"), icon: "🔍" },
+    { href: "/islamic-center", label: t("moduleIslamicCenter"), desc: t("moduleIslamicCenterDesc"), icon: "🕌" },
+    { href: "/blog", label: t("moduleBlog"), desc: t("moduleBlogDesc"), icon: "📝" },
+  ];
+
+  const TX_LABELS: Record<string, string> = {
+    DEPOSIT: t("txDeposit"),
+    WITHDRAWAL: t("txWithdrawal"),
+    SHARE_PURCHASE: t("txSharePurchase"),
+    SHARE_SALE: t("txShareSale"),
+    REFUND: t("txRefund"),
+  };
+
   return (
     <div className="min-h-screen bg-muted">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -77,10 +80,10 @@ export default async function DashboardPage() {
         {/* Header */}
         <div className="mb-7">
           <h1 className="text-2xl font-bold text-foreground">
-            Welcome back, {user?.fullName ?? session.email.split("@")[0]} 👋
+            {t("welcomeBack", { name: user?.fullName ?? session.email.split("@")[0] })}
           </h1>
           <p className="text-sm text-muted-foreground mt-0.5">
-            Member since{" "}
+            {t("memberSince")}{" "}
             {user?.createdAt.toLocaleDateString("en-GB", { month: "long", year: "numeric" })}
           </p>
         </div>
@@ -91,7 +94,7 @@ export default async function DashboardPage() {
           <div className="bg-white rounded-2xl border border-border p-5">
             <div className="flex items-start justify-between mb-3">
               <div>
-                <p className="text-xs text-muted-foreground">Wallet Balance</p>
+                <p className="text-xs text-muted-foreground">{t("walletBalance")}</p>
                 <p className="text-2xl font-bold text-foreground mt-0.5">
                   S${wallet ? Number(wallet.balance).toFixed(2) : "0.00"}
                 </p>
@@ -103,10 +106,12 @@ export default async function DashboardPage() {
               </div>
             </div>
             {pendingDeposits.length > 0 && (
-              <p className="text-xs text-amber-600 mb-2">{pendingDeposits.length} deposit pending approval</p>
+              <p className="text-xs text-amber-600 mb-2">
+                {t("pendingDepositApproval", { count: pendingDeposits.length })}
+              </p>
             )}
             <Link href="/dashboard/deposit" className="text-xs text-brand font-semibold hover:underline">
-              + Deposit Funds →
+              {t("depositFundsLink")}
             </Link>
           </div>
 
@@ -114,7 +119,7 @@ export default async function DashboardPage() {
           <div className="bg-white rounded-2xl border border-border p-5">
             <div className="flex items-start justify-between mb-3">
               <div>
-                <p className="text-xs text-muted-foreground">Share Portfolio</p>
+                <p className="text-xs text-muted-foreground">{t("sharePortfolio")}</p>
                 <p className="text-2xl font-bold text-foreground mt-0.5">
                   S${portfolioValue.toFixed(2)}
                 </p>
@@ -126,10 +131,10 @@ export default async function DashboardPage() {
               </div>
             </div>
             <p className="text-xs text-muted-foreground mb-2">
-              {totalShares} shares across {ownerships.length} project{ownerships.length !== 1 ? "s" : ""}
+              {t("sharesAcrossProjects", { shares: totalShares, count: ownerships.length })}
             </p>
             <Link href="/shares" className="text-xs text-brand font-semibold hover:underline">
-              Browse Projects →
+              {t("browseProjects")}
             </Link>
           </div>
 
@@ -137,7 +142,7 @@ export default async function DashboardPage() {
           <div className="bg-white rounded-2xl border border-border p-5">
             <div className="flex items-start justify-between mb-3">
               <div>
-                <p className="text-xs text-muted-foreground">Pending Requests</p>
+                <p className="text-xs text-muted-foreground">{t("pendingRequests")}</p>
                 <p className="text-2xl font-bold text-foreground mt-0.5">{pendingPurchases.length}</p>
               </div>
               <div className="w-10 h-10 rounded-xl bg-amber-50 flex items-center justify-center">
@@ -146,7 +151,7 @@ export default async function DashboardPage() {
                 </svg>
               </div>
             </div>
-            <p className="text-xs text-muted-foreground">Awaiting admin approval</p>
+            <p className="text-xs text-muted-foreground">{t("awaitingApproval")}</p>
           </div>
         </div>
 
@@ -154,14 +159,16 @@ export default async function DashboardPage() {
           {/* Share Portfolio */}
           <div className="lg:col-span-2 bg-white rounded-2xl border border-border overflow-hidden">
             <div className="px-6 py-4 border-b border-border flex items-center justify-between">
-              <h2 className="font-semibold text-foreground">My Share Portfolio</h2>
-              <Link href="/shares" className="text-xs text-brand hover:underline font-medium">Browse more →</Link>
+              <h2 className="font-semibold text-foreground">{t("mySharePortfolio")}</h2>
+              <Link href="/shares" className="text-xs text-brand hover:underline font-medium">
+                {t("browseMore")}
+              </Link>
             </div>
             {ownerships.length === 0 ? (
               <div className="px-6 py-10 text-center">
-                <p className="text-muted-foreground text-sm mb-3">You don't own any shares yet.</p>
+                <p className="text-muted-foreground text-sm mb-3">{t("noShares")}</p>
                 <Link href="/shares" className="inline-block bg-brand text-white text-xs font-semibold px-4 py-2 rounded-lg hover:bg-brand-dark transition-colors">
-                  Explore Projects
+                  {t("exploreProjects")}
                 </Link>
               </div>
             ) : (
@@ -170,20 +177,22 @@ export default async function DashboardPage() {
                   <div key={o.id} className="px-6 py-4 flex items-center justify-between gap-4">
                     <div className="flex-1 min-w-0">
                       <p className="font-medium text-foreground text-sm truncate">{o.project.name}</p>
-                      <p className="text-xs text-muted-foreground mt-0.5">{o.quantity} shares · S${Number(o.project.sharePrice).toFixed(0)}/share</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">
+                        {o.quantity} {t("shares")} · S${Number(o.project.sharePrice).toFixed(0)}/{t("share")}
+                      </p>
                     </div>
                     <div className="flex items-center gap-3 shrink-0">
                       <div className="text-right">
                         <p className="font-semibold text-foreground text-sm">
                           S${(o.quantity * Number(o.project.sharePrice)).toFixed(2)}
                         </p>
-                        <p className="text-xs text-muted-foreground">current value</p>
+                        <p className="text-xs text-muted-foreground">{t("currentValue")}</p>
                       </div>
                       <Link
                         href={`/shares/resell?ownershipId=${o.id}`}
                         className="text-[11px] font-semibold text-brand border border-brand/30 px-2.5 py-1 rounded-lg hover:bg-brand hover:text-white transition-colors whitespace-nowrap"
                       >
-                        List for Sale
+                        {t("listForSale")}
                       </Link>
                     </div>
                   </div>
@@ -195,11 +204,11 @@ export default async function DashboardPage() {
           {/* Recent Notifications */}
           <div className="bg-white rounded-2xl border border-border overflow-hidden">
             <div className="px-5 py-4 border-b border-border">
-              <h2 className="font-semibold text-foreground">Notifications</h2>
+              <h2 className="font-semibold text-foreground">{t("notifications")}</h2>
             </div>
             {recentNotifications.length === 0 ? (
               <div className="px-5 py-8 text-center text-sm text-muted-foreground">
-                No notifications yet.
+                {t("noNotifications")}
               </div>
             ) : (
               <div className="divide-y divide-border">
@@ -221,7 +230,7 @@ export default async function DashboardPage() {
         {wallet && wallet.transactions.length > 0 && (
           <div className="bg-white rounded-2xl border border-border overflow-hidden mb-7">
             <div className="px-6 py-4 border-b border-border flex items-center justify-between">
-              <h2 className="font-semibold text-foreground">Recent Transactions</h2>
+              <h2 className="font-semibold text-foreground">{t("recentTransactions")}</h2>
             </div>
             <div className="divide-y divide-border">
               {wallet.transactions.map((tx) => (
@@ -245,7 +254,7 @@ export default async function DashboardPage() {
         )}
 
         {/* Module shortcuts */}
-        <h2 className="text-base font-semibold text-foreground mb-3">Platform Services</h2>
+        <h2 className="text-base font-semibold text-foreground mb-3">{t("platformServices")}</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {MODULE_LINKS.map((m) => (
             <Link key={m.href} href={m.href}>

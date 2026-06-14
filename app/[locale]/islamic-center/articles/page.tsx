@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
+import { getTranslations } from "next-intl/server";
 
 const PLACEHOLDER_ARTICLES = [
   {
@@ -37,11 +38,14 @@ const PLACEHOLDER_ARTICLES = [
 ];
 
 export default async function IslamicArticlesPage() {
-  const articles = await prisma.islamicArticle.findMany({
-    where: { status: "PUBLISHED" },
-    include: { author: { select: { fullName: true } } },
-    orderBy: { createdAt: "desc" },
-  });
+  const [articles, t] = await Promise.all([
+    prisma.islamicArticle.findMany({
+      where: { status: "PUBLISHED" },
+      include: { author: { select: { fullName: true } } },
+      orderBy: { createdAt: "desc" },
+    }),
+    getTranslations("islamicCenter"),
+  ]);
 
   const displayList = articles.length > 0 ? articles : PLACEHOLDER_ARTICLES;
   const isPlaceholder = articles.length === 0;
@@ -51,20 +55,20 @@ export default async function IslamicArticlesPage() {
       <div className="bg-white border-b border-border">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="flex items-center gap-2 text-sm text-muted-foreground mb-4">
-            <Link href="/islamic-center" className="hover:text-brand transition-colors">Islamic Center</Link>
+            <Link href="/islamic-center" className="hover:text-brand transition-colors">{t("badge")}</Link>
             <span>/</span>
-            <span className="text-foreground">Articles</span>
+            <span className="text-foreground">{t("articles")}</span>
           </div>
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-foreground">Islamic Articles</h1>
+              <h1 className="text-3xl font-bold text-foreground">{t("articlesPageTitle")}</h1>
               <p className="text-muted-foreground mt-1">
-                Guidance, knowledge, and Islamic living in Singapore
+                {t("articlesPageSubtitle")}
               </p>
             </div>
             {isPlaceholder && (
               <span className="text-xs bg-amber-50 text-amber-700 border border-amber-200 font-semibold px-3 py-1 rounded-full">
-                Preview
+                {t("preview")}
               </span>
             )}
           </div>
@@ -101,7 +105,7 @@ export default async function IslamicArticlesPage() {
                   </div>
                 </div>
                 <span className="shrink-0 text-xs font-semibold text-brand bg-brand-50 border border-brand/20 px-3 py-1 rounded-full">
-                  Article
+                  {t("articleBadge")}
                 </span>
               </div>
             </div>
@@ -110,7 +114,7 @@ export default async function IslamicArticlesPage() {
 
         {isPlaceholder && (
           <div className="mt-6 bg-white rounded-xl border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
-            Admin can publish full articles from the admin panel. These are preview placeholders.
+            {t("articlesPlaceholderNote")}
           </div>
         )}
       </div>

@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
+import { getTranslations } from "next-intl/server";
 
 export default async function BlogPostPage({
   params,
@@ -9,14 +10,17 @@ export default async function BlogPostPage({
 }) {
   const { slug } = await params;
 
-  const post = await prisma.blog.findUnique({
-    where: { slug, status: "PUBLISHED" },
-    include: {
-      author: { select: { fullName: true } },
-      category: { select: { name: true, slug: true } },
-      tags: { include: { tag: true } },
-    },
-  });
+  const [post, t] = await Promise.all([
+    prisma.blog.findUnique({
+      where: { slug, status: "PUBLISHED" },
+      include: {
+        author: { select: { fullName: true } },
+        category: { select: { name: true, slug: true } },
+        tags: { include: { tag: true } },
+      },
+    }),
+    getTranslations("blog"),
+  ]);
 
   if (!post) notFound();
 
@@ -25,7 +29,7 @@ export default async function BlogPostPage({
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
         {/* Breadcrumb */}
         <div className="flex items-center gap-2 text-sm text-muted-foreground mb-6">
-          <Link href="/blog" className="hover:text-brand transition-colors">Blog</Link>
+          <Link href="/blog" className="hover:text-brand transition-colors">{t("pageTitle")}</Link>
           <span>/</span>
           {post.category && (
             <>
@@ -92,7 +96,7 @@ export default async function BlogPostPage({
 
         <div className="mt-6 text-center">
           <Link href="/blog" className="text-sm text-brand font-medium hover:underline">
-            ← Back to all articles
+            {t("backToAll")}
           </Link>
         </div>
       </div>
