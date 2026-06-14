@@ -235,7 +235,7 @@ export default function HomePage() {
 								Bangladesh Community in Singapore
 							</div>
 
-							<h1 className="text-4xl sm:text-5xl lg:text-[3.5rem] font-bold tracking-tight text-foreground leading-[1.1]">
+							<h1 className="text-4xl sm:text-5xl lg:text-[3.5rem] lg:bn:text-7xl font-bold tracking-tight text-foreground leading-[1.1]">
 								Your Complete
 								<br />
 								<span className="text-brand">Community</span>
@@ -243,7 +243,7 @@ export default function HomePage() {
 								Platform
 							</h1>
 
-							<p className="text-lg text-muted-foreground leading-relaxed max-w-lg">
+							<p className="text-lg bn:text-2xl text-muted-foreground leading-relaxed max-w-lg">
 								Invest in projects, manage your wallet, book air tickets, access
 								Islamic resources — everything you need as a Bangladeshi in
 								Singapore, in one place.

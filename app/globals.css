@@ -1,46 +1,68 @@
 @import "tailwindcss";
 
 @theme {
-  --color-brand: #8133f1;
-  --color-brand-50: #f3ebff;
-  --color-brand-100: #e0ccff;
-  --color-brand-dark: #6920d4;
-  --color-background: #ffffff;
-  --color-foreground: #0a0a0a;
-  --color-muted: #f7f7f7;
-  --color-muted-foreground: #6b6b6b;
-  --color-border: #e8e8e8;
+	--color-brand: #8133f1;
+	--color-brand-50: #f3ebff;
+	--color-brand-100: #e0ccff;
+	--color-brand-dark: #6920d4;
+	--color-background: #ffffff;
+	--color-foreground: #0a0a0a;
+	--color-muted: #f7f7f7;
+	--color-muted-foreground: #6b6b6b;
+	--color-border: #e8e8e8;
 }
 
 @theme inline {
-  --font-sans: var(--font-geist-sans), var(--font-bangla);
-  --font-mono: var(--font-geist-mono);
+	--font-sans: var(--font-geist-sans), var(--font-bangla);
+	--font-mono: var(--font-geist-mono);
 }
 
-/* Bengali text uses the serif font for all Bengali-script characters */
-:lang(bn),
-.translated-ltr {
-  font-family: var(--font-bangla), "Noto Serif Bengali", serif;
-  line-height: 1.85;
-  letter-spacing: 0.01em;
+/* Bengali font — driven solely by lang="bn" which we set in JS.
+   .translated-ltr is NOT used: GT leaves it on <html> even in English mode. */
+:lang(bn) {
+	font-family: var(--font-bangla), "Noto Serif Bengali", serif;
+	line-height: 1.1;
+	letter-spacing: 0.01em;
+}
+
+/* bn: variant — enables lg:bn:text-6xl  sm:bn:text-sm  etc. */
+@variant bn (:lang(bn) &);
+
+/* ── Bengali font size scale ─────────────────────────────────────────────────
+   Overrides every named text-* utility when Bengali is active.
+   Ratio matches the reference:  text-lg → text-2xl  (~1.33×)
+   ─────────────────────────────────────────────────────────────────────────── */
+:lang(bn) {
+  & .text-xs   { font-size: 0.875rem }   /* text-sm   */
+  & .text-sm   { font-size: 1rem     }   /* text-base */
+  & .text-base { font-size: 1.125rem }   /* text-lg   */
+  & .text-lg   { font-size: 1.5rem   }   /* text-2xl  */
+  & .text-xl   { font-size: 1.5rem   }   /* text-2xl  */
+  & .text-2xl  { font-size: 1.875rem }   /* text-3xl  */
+  & .text-3xl  { font-size: 2.25rem  }   /* text-4xl  */
+  & .text-4xl  { font-size: 3rem     }   /* text-5xl  */
+  & .text-5xl  { font-size: 3.75rem  }   /* text-6xl  */
+  & .text-6xl  { font-size: 4.5rem   }   /* text-7xl  */
+  & .text-7xl  { font-size: 6rem     }   /* text-8xl  */
+  & .text-8xl  { font-size: 8rem     }   /* text-9xl  */
 }
 
 body {
-  background: var(--color-background);
-  color: var(--color-foreground);
+	background: var(--color-background);
+	color: var(--color-foreground);
 }
 
 /* ── Suppress Google Translate toolbar ── */
 .goog-te-banner-frame,
 .skiptranslate > iframe {
-  display: none !important;
+	display: none !important;
 }
 body {
-  top: 0 !important;
+	top: 0 !important;
 }
 .goog-te-gadget {
-  display: none !important;
+	display: none !important;
 }
 .goog-logo-link {
-  display: none !important;
+	display: none !important;
 }

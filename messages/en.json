@@ -1,0 +1,262 @@
+{
+  "nav": {
+    "shares": "Shares",
+    "airTicket": "Air Ticket",
+    "currency": "Currency",
+    "blog": "Blog",
+    "islamicCenter": "Islamic Center",
+    "lostFound": "Lost & Found",
+    "login": "Login",
+    "register": "Register Free",
+    "dashboard": "Dashboard",
+    "profile": "Profile",
+    "logout": "Logout"
+  },
+  "common": {
+    "loading": "Loading...",
+    "error": "Something went wrong",
+    "save": "Save",
+    "cancel": "Cancel",
+    "submit": "Submit",
+    "back": "Back",
+    "learnMore": "Learn More",
+    "viewAll": "View All",
+    "loginToBook": "Login to Book",
+    "fullyBooked": "Fully Booked",
+    "perPerson": "per person",
+    "seatsLeft": "Seats left",
+    "pending": "Pending",
+    "approved": "Approved",
+    "rejected": "Rejected",
+    "noData": "No data available"
+  },
+  "home": {
+    "badge": "Bangladesh Community in Singapore",
+    "title": "Your Complete Guide to Life in Singapore",
+    "subtitle": "Trusted by thousands of Bangladeshi expatriates. Share investments, flight bookings, currency exchange, Islamic resources, and community support.",
+    "cta": {
+      "explore": "Explore Platform",
+      "register": "Join Free Today"
+    },
+    "stats": {
+      "members": "Active Members",
+      "shares": "Share Investments",
+      "flights": "Flights Booked",
+      "savings": "Avg. Savings"
+    },
+    "features": {
+      "badge": "Why Choose Us",
+      "title": "Everything You Need in One Place",
+      "subtitle": "Built by the community, for the community",
+      "shareMarket": {
+        "title": "Share Market",
+        "desc": "Invest in Singapore property projects with as little as S$1,000. Earn dividends and grow your wealth together."
+      },
+      "airTicket": {
+        "title": "Air Tickets",
+        "desc": "Book discounted Bangladesh–Singapore flights through trusted community agents. No hidden fees."
+      },
+      "currency": {
+        "title": "Currency Exchange",
+        "desc": "Real-time BDT ↔ SGD rates. Find the best exchange counters near you."
+      },
+      "islamicCenter": {
+        "title": "Islamic Center",
+        "desc": "Prayer times, Quran, duas, and Islamic articles for the Muslim community."
+      },
+      "lostFound": {
+        "title": "Lost & Found",
+        "desc": "Community-driven lost and found board. Post or search for missing items and documents."
+      },
+      "blog": {
+        "title": "Community Blog",
+        "desc": "Tips, guides, and stories from fellow Bangladeshis living in Singapore."
+      }
+    },
+    "howItWorks": {
+      "badge": "Simple Process",
+      "title": "Get Started in Minutes",
+      "step1": { "title": "Create Account", "desc": "Register free with your email. Verification takes under a minute." },
+      "step2": { "title": "Explore Services", "desc": "Browse shares, book flights, check currency rates, and more." },
+      "step3": { "title": "Connect & Grow", "desc": "Join the community, share knowledge, and grow together." }
+    },
+    "cta2": {
+      "title": "Ready to Join the Community?",
+      "subtitle": "Thousands of Bangladeshis in Singapore trust our platform every day.",
+      "register": "Get Started Free",
+      "explore": "Browse Platform"
+    }
+  },
+  "auth": {
+    "login": {
+      "title": "Welcome back",
+      "subtitle": "Sign in to your account",
+      "email": "Email address",
+      "password": "Password",
+      "forgot": "Forgot password?",
+      "submit": "Sign In",
+      "noAccount": "Don't have an account?",
+      "register": "Create account",
+      "error": "Invalid email or password"
+    },
+    "register": {
+      "title": "Create your account",
+      "subtitle": "Join the Singapore Bangladeshi community",
+      "fullName": "Full name",
+      "email": "Email address",
+      "phone": "Phone number",
+      "password": "Password",
+      "submit": "Create Account",
+      "hasAccount": "Already have an account?",
+      "login": "Sign in"
+    },
+    "forgot": {
+      "title": "Reset password",
+      "subtitle": "Enter your email to receive a reset link",
+      "email": "Email address",
+      "submit": "Send Reset Link",
+      "backToLogin": "Back to login"
+    }
+  },
+  "shares": {
+    "badge": "Community Investment",
+    "title": "Share Market",
+    "subtitle": "Invest in community property projects in Singapore",
+    "primaryTab": "Primary Market",
+    "secondaryTab": "Secondary Market",
+    "available": "Available",
+    "minInvestment": "Min. Investment",
+    "expectedReturn": "Expected Return",
+    "investors": "Investors",
+    "buyShares": "Buy Shares",
+    "loginToInvest": "Login to Invest",
+    "noProjects": "No projects available at the moment.",
+    "marketValue": "Market value",
+    "resell": {
+      "title": "List Shares for Sale",
+      "price": "Asking price (S$)",
+      "notes": "Notes (optional)",
+      "submit": "Submit Listing",
+      "success": "Listing submitted for review"
+    }
+  },
+  "airTicket": {
+    "badge": "Air Tickets",
+    "title": "Bangladesh ↔ Singapore Flights",
+    "subtitle": "Book discounted flights arranged by our community. Direct bookings with verified agents — no hidden fees.",
+    "noFlights": "No flights available at the moment. Check back soon.",
+    "depart": "Depart",
+    "return": "Return",
+    "bookings": "Bookings",
+    "howItWorks": {
+      "title": "How it works",
+      "step1": "Submit a booking request with your passenger count",
+      "step2": "Our team confirms availability and contacts you within 24 hours",
+      "step3": "Complete payment to secure your seats",
+      "step4": "Receive your e-ticket via email"
+    },
+    "referrals": {
+      "title": "My Referral Codes",
+      "subtitle": "Share these codes with friends to earn commission on their bookings",
+      "earned": "earned"
+    }
+  },
+  "currency": {
+    "badge": "Live Rates",
+    "title": "Currency Converter",
+    "subtitle": "Real-time BDT ↔ SGD exchange rates"
+  },
+  "blog": {
+    "badge": "Blog",
+    "title": "Community Blog",
+    "subtitle": "Stories, tips, and guides from Bangladeshis in Singapore",
+    "readMore": "Read more",
+    "noPosts": "No posts yet.",
+    "by": "By",
+    "minRead": "min read"
+  },
+  "lostFound": {
+    "badge": "Community Board",
+    "title": "Lost & Found",
+    "subtitle": "Help reunite people with their belongings",
+    "post": "Post Item",
+    "lost": "Lost",
+    "found": "Found",
+    "contact": "Contact",
+    "noPosts": "No posts yet. Be the first to post!",
+    "postedBy": "Posted by",
+    "location": "Location"
+  },
+  "islamicCenter": {
+    "badge": "Islamic Resources",
+    "title": "Islamic Center",
+    "subtitle": "Resources for the Muslim community in Singapore",
+    "quran": "Quran",
+    "duas": "Duas & Prayers",
+    "articles": "Articles",
+    "pdfs": "PDFs & Books"
+  },
+  "dashboard": {
+    "title": "My Dashboard",
+    "subtitle": "Manage your investments and activity",
+    "myShares": "My Shares",
+    "noShares": "You don't own any shares yet.",
+    "listForSale": "List for Sale",
+    "deposit": "Make Deposit",
+    "transactions": "Transactions",
+    "shares": "shares",
+    "value": "value",
+    "project": "Project"
+  },
+  "profile": {
+    "title": "My Profile",
+    "subtitle": "Manage your account information",
+    "fullName": "Full Name",
+    "email": "Email",
+    "phone": "Phone",
+    "role": "Role",
+    "memberSince": "Member since",
+    "saveChanges": "Save Changes"
+  },
+  "wallet": {
+    "title": "My Wallet",
+    "subtitle": "Manage your funds and transactions",
+    "balance": "Balance",
+    "deposit": "Deposit",
+    "withdraw": "Withdraw",
+    "history": "Transaction History"
+  },
+  "contact": {
+    "badge": "Support",
+    "title": "Contact Us",
+    "subtitle": "Get in touch with the Singapore Probashi team",
+    "name": "Your name",
+    "email": "Email address",
+    "message": "Message",
+    "submit": "Send Message"
+  },
+  "taxi": {
+    "badge": "Transport",
+    "title": "Taxi Service",
+    "subtitle": "Book a reliable taxi in Singapore",
+    "pickup": "Pickup location",
+    "dropoff": "Drop-off location",
+    "date": "Date & time",
+    "submit": "Request Taxi"
+  },
+  "privacy": {
+    "badge": "Legal",
+    "title": "Privacy Policy",
+    "subtitle": "How we handle your data"
+  },
+  "terms": {
+    "badge": "Legal",
+    "title": "Terms of Service",
+    "subtitle": "Terms and conditions for using our platform"
+  },
+  "notFound": {
+    "title": "Page Not Found",
+    "subtitle": "The page you're looking for doesn't exist or has been moved.",
+    "home": "Go Home"
+  }
+}
