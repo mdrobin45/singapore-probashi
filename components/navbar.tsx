@@ -123,6 +123,7 @@ function AvatarDropdown({ user }: { user: SessionPayload }) {
 export function Navbar({ user }: { user: SessionPayload | null }) {
   const t = useTranslations("nav");
   const [open, setOpen] = useState(false);
+  const isAdmin = user ? ADMIN_ROLES.includes(user.role) : false;
 
   const navLinks = [
     { href: "/shares", label: t("shares") },
@@ -162,13 +163,24 @@ export function Navbar({ user }: { user: SessionPayload | null }) {
             ))}
           </nav>
 
-          {/* Mobile right: lang toggle only (bottom nav handles everything else) */}
+          {/* Mobile right: lang toggle + tappable avatar */}
           <div className="flex lg:hidden items-center gap-2">
             <LanguageToggle />
             {user && (
-              <span className="w-8 h-8 rounded-full bg-brand text-white text-xs font-bold flex items-center justify-center shrink-0">
+              <Link
+                href={isAdmin ? "/admin" : "/dashboard"}
+                className="w-8 h-8 rounded-full bg-brand text-white text-xs font-bold flex items-center justify-center shrink-0 active:scale-90 transition-transform"
+              >
                 {getInitials(user.fullName)}
-              </span>
+              </Link>
+            )}
+            {!user && (
+              <Link
+                href="/login"
+                className="text-xs font-semibold text-brand border border-brand px-3 py-1.5 rounded-full"
+              >
+                Login
+              </Link>
             )}
           </div>
 
