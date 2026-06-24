@@ -123,6 +123,7 @@ function AvatarDropdown({ user }: { user: SessionPayload }) {
 export function Navbar({ user }: { user: SessionPayload | null }) {
   const t = useTranslations("nav");
   const [open, setOpen] = useState(false);
+  const isAdmin = user ? ADMIN_ROLES.includes(user.role) : false;
 
   const navLinks = [
     { href: "/shares", label: t("shares") },
@@ -136,7 +137,7 @@ export function Navbar({ user }: { user: SessionPayload | null }) {
   return (
     <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-sm border-b border-border">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
+        <div className="flex items-center justify-between h-14 lg:h-16">
           {/* Logo */}
           <Link href="/" className="shrink-0">
             <Image
@@ -144,7 +145,7 @@ export function Navbar({ user }: { user: SessionPayload | null }) {
               alt="Singapur Probashi"
               width={160}
               height={40}
-              className="h-9 w-auto"
+              className="h-8 lg:h-9 w-auto"
               priority
             />
           </Link>
@@ -162,7 +163,28 @@ export function Navbar({ user }: { user: SessionPayload | null }) {
             ))}
           </nav>
 
-          {/* Right side */}
+          {/* Mobile right: lang toggle + tappable avatar */}
+          <div className="flex lg:hidden items-center gap-2">
+            <LanguageToggle />
+            {user && (
+              <Link
+                href={isAdmin ? "/admin" : "/dashboard"}
+                className="w-8 h-8 rounded-full bg-brand text-white text-xs font-bold flex items-center justify-center shrink-0 active:scale-90 transition-transform"
+              >
+                {getInitials(user.fullName)}
+              </Link>
+            )}
+            {!user && (
+              <Link
+                href="/login"
+                className="text-xs font-semibold text-brand border border-brand px-3 py-1.5 rounded-full"
+              >
+                Login
+              </Link>
+            )}
+          </div>
+
+          {/* Desktop right side */}
           <div className="hidden lg:flex items-center gap-3">
             <LanguageToggle />
             {user ? (
@@ -185,9 +207,9 @@ export function Navbar({ user }: { user: SessionPayload | null }) {
             )}
           </div>
 
-          {/* Mobile toggle */}
+          {/* Desktop mobile toggle (hidden since bottom nav handles mobile) */}
           <button
-            className="lg:hidden p-2 rounded-lg text-foreground hover:bg-muted transition-colors"
+            className="hidden"
             onClick={() => setOpen(!open)}
             aria-label="Toggle navigation"
           >
@@ -203,74 +225,7 @@ export function Navbar({ user }: { user: SessionPayload | null }) {
           </button>
         </div>
 
-        {/* Mobile menu */}
-        {open && (
-          <div className="lg:hidden pb-4 pt-2 border-t border-border">
-            <div className="flex flex-col gap-0.5">
-              {navLinks.map((link) => (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  className="px-3 py-2.5 text-sm font-medium text-foreground hover:text-brand hover:bg-brand-50 rounded-lg transition-colors"
-                  onClick={() => setOpen(false)}
-                >
-                  {link.label}
-                </Link>
-              ))}
-              <div className="pt-3 mt-2 border-t border-border pb-1">
-                <LanguageToggle />
-              </div>
-
-              {user ? (
-                <div className="pt-2 space-y-1">
-                  {/* User info row */}
-                  <div className="flex items-center gap-3 px-3 py-2">
-                    <span className="w-9 h-9 rounded-full bg-brand text-white text-sm font-bold flex items-center justify-center shrink-0">
-                      {getInitials(user.fullName)}
-                    </span>
-                    <div className="min-w-0">
-                      <p className="text-sm font-semibold truncate">{user.fullName}</p>
-                      <p className="text-xs text-muted-foreground truncate">{user.email}</p>
-                    </div>
-                  </div>
-                  {ADMIN_ROLES.includes(user.role) && (
-                    <Link href="/admin" onClick={() => setOpen(false)} className="block px-3 py-2 text-sm font-medium text-foreground hover:text-brand hover:bg-brand-50 rounded-lg transition-colors">
-                      Admin Panel
-                    </Link>
-                  )}
-                  <Link href="/dashboard" onClick={() => setOpen(false)} className="block px-3 py-2 text-sm font-medium text-foreground hover:text-brand hover:bg-brand-50 rounded-lg transition-colors">
-                    {t("dashboard")}
-                  </Link>
-                  <Link href="/profile" onClick={() => setOpen(false)} className="block px-3 py-2 text-sm font-medium text-foreground hover:text-brand hover:bg-brand-50 rounded-lg transition-colors">
-                    {t("profile")}
-                  </Link>
-                  <form action="/api/logout" method="POST">
-                    <button type="submit" className="w-full text-left px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-50 rounded-lg transition-colors">
-                      {t("logout")}
-                    </button>
-                  </form>
-                </div>
-              ) : (
-                <div className="flex gap-3 pt-2">
-                  <Link
-                    href="/login"
-                    className="flex-1 text-center py-2.5 text-sm font-semibold text-brand border border-brand rounded-full hover:bg-brand-50 transition-colors"
-                    onClick={() => setOpen(false)}
-                  >
-                    {t("login")}
-                  </Link>
-                  <Link
-                    href="/register"
-                    className="flex-1 text-center py-2.5 text-sm font-semibold text-white bg-brand rounded-full hover:bg-brand-dark transition-colors"
-                    onClick={() => setOpen(false)}
-                  >
-                    {t("register")}
-                  </Link>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
+        {/* Mobile menu removed — bottom nav handles mobile navigation */}
       </div>
     </header>
   );

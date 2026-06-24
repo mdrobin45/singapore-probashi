@@ -3,31 +3,14 @@
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
 
-type NavItem = {
-  label: string;
-  href: string;
-  icon: React.ReactNode;
-};
-
-type NavGroup = {
-  title: string;
-  items: NavItem[];
-};
-
-const nav: NavGroup[] = [
+const nav = [
   {
     title: "Overview",
     items: [
       {
-        label: "Dashboard",
-        href: "/admin",
-        icon: (
-          <svg className="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-          </svg>
-        ),
+        label: "Dashboard", href: "/admin",
+        icon: <svg className="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>,
       },
     ],
   },
@@ -35,40 +18,20 @@ const nav: NavGroup[] = [
     title: "Management",
     items: [
       {
-        label: "Users",
-        href: "/admin/users",
-        icon: (
-          <svg className="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
-          </svg>
-        ),
+        label: "Users", href: "/admin/users",
+        icon: <svg className="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" /></svg>,
       },
       {
-        label: "Share Projects",
-        href: "/admin/shares",
-        icon: (
-          <svg className="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-          </svg>
-        ),
+        label: "Share Projects", href: "/admin/shares",
+        icon: <svg className="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg>,
       },
       {
-        label: "Purchase Requests",
-        href: "/admin/purchases",
-        icon: (
-          <svg className="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-          </svg>
-        ),
+        label: "Purchase Requests", href: "/admin/purchases",
+        icon: <svg className="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>,
       },
       {
-        label: "Deposits",
-        href: "/admin/deposits",
-        icon: (
-          <svg className="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
-          </svg>
-        ),
+        label: "Deposits", href: "/admin/deposits",
+        icon: <svg className="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" /></svg>,
       },
     ],
   },
@@ -76,22 +39,12 @@ const nav: NavGroup[] = [
     title: "Transport",
     items: [
       {
-        label: "Air Tickets",
-        href: "/admin/tickets",
-        icon: (
-          <svg className="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
-          </svg>
-        ),
+        label: "Air Tickets", href: "/admin/tickets",
+        icon: <svg className="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" /></svg>,
       },
       {
-        label: "Taxi Requests",
-        href: "/admin/taxi",
-        icon: (
-          <svg className="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
-          </svg>
-        ),
+        label: "Taxi Requests", href: "/admin/taxi",
+        icon: <svg className="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" /></svg>,
       },
     ],
   },
@@ -99,53 +52,34 @@ const nav: NavGroup[] = [
     title: "Content",
     items: [
       {
-        label: "Blog",
-        href: "/admin/blog",
-        icon: (
-          <svg className="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
-          </svg>
-        ),
+        label: "Blog", href: "/admin/blog",
+        icon: <svg className="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" /></svg>,
       },
       {
-        label: "Islamic Center",
-        href: "/admin/islamic",
-        icon: (
-          <svg className="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-          </svg>
-        ),
+        label: "Islamic Center", href: "/admin/islamic",
+        icon: <svg className="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>,
       },
       {
-        label: "Lost & Found",
-        href: "/admin/lost-found",
-        icon: (
-          <svg className="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-          </svg>
-        ),
+        label: "Lost & Found", href: "/admin/lost-found",
+        icon: <svg className="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>,
       },
     ],
   },
 ];
 
-type Props = {
-  userName: string;
-  userRole: string;
-  userEmail: string;
-};
+type Props = { userName: string; userRole: string; userEmail: string };
 
 export function AdminSidebar({ userName, userRole, userEmail }: Props) {
   const pathname = usePathname();
-  const [open, setOpen] = useState(false);
 
   function isActive(href: string) {
-    if (href === "/admin") return pathname === "/admin";
+    if (href === "/admin") return pathname === "/admin" || pathname === "/admin/";
     return pathname.startsWith(href);
   }
 
-  const sidebar = (
-    <aside className="flex flex-col h-full bg-white border-r border-border w-60 shrink-0">
+  return (
+    // Desktop only — mobile navigation is handled by AdminBottomNav
+    <aside className="hidden lg:flex flex-col h-screen sticky top-0 bg-white border-r border-border w-60 shrink-0">
       {/* Logo */}
       <div className="flex items-center gap-2.5 px-5 py-4 border-b border-border">
         <Image src="/logo.png" alt="Logo" width={32} height={32} />
@@ -167,7 +101,6 @@ export function AdminSidebar({ userName, userRole, userEmail }: Props) {
                 <Link
                   key={item.href}
                   href={item.href}
-                  onClick={() => setOpen(false)}
                   className={`flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-sm transition-colors ${
                     isActive(item.href)
                       ? "bg-brand-50 text-brand font-medium"
@@ -185,13 +118,11 @@ export function AdminSidebar({ userName, userRole, userEmail }: Props) {
         ))}
       </nav>
 
-      {/* User info + logout */}
+      {/* User info + actions */}
       <div className="border-t border-border p-4">
         <div className="flex items-start gap-2.5 mb-3">
-          <div className="w-8 h-8 rounded-full bg-brand-50 flex items-center justify-center shrink-0">
-            <span className="text-xs font-bold text-brand">
-              {userName.charAt(0).toUpperCase()}
-            </span>
+          <div className="w-8 h-8 rounded-full bg-brand flex items-center justify-center shrink-0">
+            <span className="text-xs font-bold text-white">{userName.charAt(0).toUpperCase()}</span>
           </div>
           <div className="min-w-0">
             <p className="text-sm font-medium text-foreground truncate">{userName}</p>
@@ -202,52 +133,16 @@ export function AdminSidebar({ userName, userRole, userEmail }: Props) {
           </div>
         </div>
         <div className="flex gap-2">
-          <Link
-            href="/"
-            className="flex-1 text-center text-xs text-muted-foreground hover:text-foreground py-1.5 rounded-lg hover:bg-muted transition-colors"
-          >
+          <Link href="/" className="flex-1 text-center text-xs text-muted-foreground hover:text-foreground py-1.5 rounded-lg hover:bg-muted transition-colors">
             ← Site
           </Link>
           <form action="/api/logout" method="POST" className="flex-1">
-            <button
-              type="submit"
-              className="w-full text-xs text-red-500 hover:text-red-600 py-1.5 rounded-lg hover:bg-red-50 transition-colors"
-            >
+            <button type="submit" className="w-full text-xs text-red-500 hover:text-red-600 py-1.5 rounded-lg hover:bg-red-50 transition-colors">
               Logout
             </button>
           </form>
         </div>
       </div>
     </aside>
-  );
-
-  return (
-    <>
-      {/* Mobile toggle button */}
-      <button
-        onClick={() => setOpen(true)}
-        className="lg:hidden fixed top-4 left-4 z-50 p-2 bg-white rounded-lg border border-border shadow-sm"
-        aria-label="Open menu"
-      >
-        <svg className="w-5 h-5 text-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-        </svg>
-      </button>
-
-      {/* Desktop sidebar */}
-      <div className="hidden lg:flex lg:flex-col lg:h-screen lg:sticky lg:top-0">
-        {sidebar}
-      </div>
-
-      {/* Mobile drawer */}
-      {open && (
-        <div className="lg:hidden fixed inset-0 z-50 flex">
-          <div className="fixed inset-0 bg-black/40" onClick={() => setOpen(false)} />
-          <div className="relative flex flex-col h-full">
-            {sidebar}
-          </div>
-        </div>
-      )}
-    </>
   );
 }

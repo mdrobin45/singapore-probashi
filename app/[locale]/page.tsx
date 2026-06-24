@@ -63,16 +63,16 @@ export default async function HomePage() {
           <div className="absolute bottom-0 -left-32 size-120 rounded-full bg-brand-100 blur-3xl opacity-30" />
         </div>
 
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 lg:py-36">
-          <div className="grid lg:grid-cols-2 gap-14 items-center">
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-16 lg:py-36">
+          <div className="grid lg:grid-cols-2 gap-8 lg:gap-14 items-center">
             {/* Left */}
-            <div className="space-y-8">
-              <div className="inline-flex items-center gap-2 bg-brand-50 text-brand text-sm font-medium px-4 py-1.5 rounded-full border border-brand/20">
+            <div className="space-y-5 lg:space-y-8">
+              <div className="inline-flex items-center gap-2 bg-brand-50 text-brand text-xs sm:text-sm font-medium px-3 py-1.5 rounded-full border border-brand/20">
                 <span className="w-2 h-2 rounded-full bg-brand animate-pulse" />
                 {t("heroBadge")}
               </div>
 
-              <h1 className="text-4xl sm:text-5xl lg:text-[3.5rem] lg:bn:text-7xl font-bold tracking-tight text-foreground leading-[1.1]">
+              <h1 className="text-3xl sm:text-5xl lg:text-[3.5rem] lg:bn:text-7xl font-bold tracking-tight text-foreground leading-[1.1]">
                 {t("heroTitle1")}
                 <br />
                 <span className="text-brand">{t("heroTitle2")}</span>
@@ -80,30 +80,30 @@ export default async function HomePage() {
                 {t("heroTitle3")}
               </h1>
 
-              <p className="text-lg bn:text-2xl text-muted-foreground leading-relaxed max-w-lg">
+              <p className="text-base sm:text-lg bn:text-2xl text-muted-foreground leading-relaxed max-w-lg">
                 {t("heroSubtitle")}
               </p>
 
-              <div className="flex flex-wrap gap-4">
+              <div className="flex flex-col sm:flex-row gap-3">
                 <Link
                   href="/register"
-                  className="inline-flex items-center gap-2 px-7 py-3.5 text-base font-semibold text-white bg-brand rounded-full hover:bg-brand-dark transition-colors shadow-lg"
+                  className="inline-flex items-center justify-center gap-2 px-7 py-3.5 text-base font-semibold text-white bg-brand rounded-full hover:bg-brand-dark transition-colors shadow-lg"
                 >
                   {t("heroCta1")}
                   {ICONS.arrow}
                 </Link>
                 <Link
                   href="#services"
-                  className="inline-flex items-center gap-2 px-7 py-3.5 text-base font-semibold text-foreground border border-border rounded-full hover:border-brand hover:text-brand transition-colors"
+                  className="inline-flex items-center justify-center gap-2 px-7 py-3.5 text-base font-semibold text-foreground border border-border rounded-full hover:border-brand hover:text-brand transition-colors"
                 >
                   {t("heroCta2")}
                 </Link>
               </div>
 
-              <div className="flex items-center gap-4 pt-2">
+              <div className="flex items-center gap-4 pt-1">
                 <div className="flex -space-x-2">
                   {["R", "M", "K", "S"].map((letter) => (
-                    <div key={letter} className="w-9 h-9 rounded-full bg-brand-100 border-2 border-white flex items-center justify-center text-xs font-bold text-brand">
+                    <div key={letter} className="w-8 h-8 lg:w-9 lg:h-9 rounded-full bg-brand-100 border-2 border-white flex items-center justify-center text-xs font-bold text-brand">
                       {letter}
                     </div>
                   ))}
@@ -152,13 +152,13 @@ export default async function HomePage() {
       </section>
 
       {/* ─── Stats bar ─── */}
-      <section className="bg-brand py-12">
+      <section className="bg-brand py-8 lg:py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 text-white text-center">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-5 lg:gap-8 text-white text-center">
             {stats.map((s) => (
               <div key={s.labelKey}>
-                <p className="text-3xl sm:text-4xl font-bold">{s.value}</p>
-                <p className="text-sm text-white/70 mt-1.5">{t(s.labelKey)}</p>
+                <p className="text-2xl sm:text-4xl font-bold">{s.value}</p>
+                <p className="text-xs sm:text-sm text-white/70 mt-1">{t(s.labelKey)}</p>
               </div>
             ))}
           </div>
@@ -166,29 +166,30 @@ export default async function HomePage() {
       </section>
 
       {/* ─── Services grid ─── */}
-      <section id="services" className="py-24 bg-white">
+      <section id="services" className="py-12 lg:py-24 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center space-y-4 mb-16">
-            <h2 className="text-3xl sm:text-4xl font-bold text-foreground">{t("servicesTitle")}</h2>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">{t("servicesSubtitle")}</p>
+          <div className="text-center space-y-3 mb-8 lg:mb-16">
+            <h2 className="text-2xl sm:text-4xl font-bold text-foreground">{t("servicesTitle")}</h2>
+            <p className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto">{t("servicesSubtitle")}</p>
           </div>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+          {/* Mobile: icon grid (3 cols). Desktop: card grid (3 cols) */}
+          <div className="grid grid-cols-3 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-5">
             {services.map((svc) => (
               <Link
                 key={svc.key}
                 href={svc.href}
-                className="group p-6 rounded-2xl border border-border bg-white hover:border-brand hover:shadow-lg transition-all duration-200"
+                className="group flex flex-col items-center text-center p-4 sm:p-6 rounded-2xl border border-border bg-white hover:border-brand hover:shadow-lg transition-all duration-200 active:scale-95"
               >
-                <div className={`w-12 h-12 rounded-xl ${svc.bg} flex items-center justify-center text-white mb-4`}>
+                <div className={`w-12 h-12 sm:w-14 sm:h-14 rounded-xl sm:rounded-2xl ${svc.bg} flex items-center justify-center text-white mb-3`}>
                   {svc.icon}
                 </div>
-                <h3 className="font-semibold text-foreground mb-2 group-hover:text-brand transition-colors">
+                <h3 className="text-xs sm:text-base font-semibold text-foreground sm:mb-2 group-hover:text-brand transition-colors leading-tight">
                   {t(`${svc.key}Title`)}
                 </h3>
-                <p className="text-sm text-muted-foreground leading-relaxed">
+                <p className="hidden sm:block text-sm text-muted-foreground leading-relaxed">
                   {t(`${svc.key}Desc`)}
                 </p>
-                <div className="flex items-center gap-1 mt-4 text-sm font-medium text-brand opacity-0 group-hover:opacity-100 transition-opacity">
+                <div className="hidden sm:flex items-center gap-1 mt-4 text-sm font-medium text-brand opacity-0 group-hover:opacity-100 transition-opacity">
                   {t("learnMore")}
                   {ICONS.arrowSm}
                 </div>
