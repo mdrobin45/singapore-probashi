@@ -51,6 +51,21 @@ body {
 	color: var(--color-foreground);
 }
 
+/* ── Mobile app-like safe area ─────────────────────────────────────────────── */
+.safe-area-pb {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* ── Footer: hide on mobile (bottom nav replaces it) ───────────────────────── */
+footer {
+  display: none;
+}
+@media (min-width: 1024px) {
+  footer {
+    display: block;
+  }
+}
+
 /* ── Suppress Google Translate toolbar ── */
 .goog-te-banner-frame,
 .skiptranslate > iframe {
