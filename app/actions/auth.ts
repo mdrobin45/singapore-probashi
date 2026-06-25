@@ -64,7 +64,12 @@ export async function registerAction(
     },
   });
 
-  await sendOTPEmail(email, otp, "verification");
+  try {
+    await sendOTPEmail(email, otp, "verification");
+  } catch (err) {
+    console.error("[OTP] Failed to send verification email:", err);
+    return { error: "Account created but failed to send OTP email. Please use Resend OTP on the next page." };
+  }
 
   redirect(`/verify-otp?email=${encodeURIComponent(email)}`);
 }
@@ -128,7 +133,12 @@ export async function resendOtpAction(
     },
   });
 
-  await sendOTPEmail(email, otp, type === "FORGOT_PASSWORD" ? "reset" : "verification");
+  try {
+    await sendOTPEmail(email, otp, type === "FORGOT_PASSWORD" ? "reset" : "verification");
+  } catch (err) {
+    console.error("[OTP] Failed to resend email:", err);
+    return { error: "Failed to send OTP email. Please try again." };
+  }
 
   return { success: true };
 }
@@ -169,7 +179,11 @@ export async function loginAction(
         expiresAt: new Date(Date.now() + 10 * 60 * 1000),
       },
     });
-    await sendOTPEmail(user.email, otp, "verification");
+    try {
+      await sendOTPEmail(user.email, otp, "verification");
+    } catch (err) {
+      console.error("[OTP] Failed to send verification email on login:", err);
+    }
     redirect(`/verify-otp?email=${encodeURIComponent(user.email)}`);
   }
 
@@ -203,10 +217,14 @@ export async function forgotPasswordAction(
         expiresAt: new Date(Date.now() + 10 * 60 * 1000),
       },
     });
-    await sendOTPEmail(email, otp, "reset");
+    try {
+      await sendOTPEmail(email, otp, "reset");
+    } catch (err) {
+      console.error("[OTP] Failed to send password reset email:", err);
+    }
   }
 
-  // Always return success to avoid email enumeration
+  // Always redirect to avoid email enumeration
   redirect(`/verify-otp?email=${encodeURIComponent(email)}&type=FORGOT_PASSWORD`);
 }
 
