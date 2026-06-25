@@ -1,313 +1,650 @@
-import { getTranslations } from "next-intl/server";
+import { MRTMapButton } from "@/components/mrt-map-button";
 import { Link } from "@/i18n/navigation";
+import { getTranslations } from "next-intl/server";
 
 // SVG icons — purely visual, not translated
 const ICONS = {
-  shares: <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17" /><polyline points="16 7 22 7 22 13" /></svg>,
-  wallet: <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" /><line x1="1" y1="10" x2="23" y2="10" /></svg>,
-  plane:  <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="22" y1="2" x2="11" y2="13" /><polygon points="22 2 15 22 11 13 2 9 22 2" /></svg>,
-  taxi:   <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="1" y="3" width="15" height="13" rx="1" /><polygon points="16 8 20 8 23 11 23 16 16 16 16 8" /><circle cx="5.5" cy="18.5" r="2.5" /><circle cx="18.5" cy="18.5" r="2.5" /></svg>,
-  currency:<svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="17 1 21 5 17 9" /><path d="M3 11V9a4 4 0 014-4h14" /><polyline points="7 23 3 19 7 15" /><path d="M21 13v2a4 4 0 01-4 4H3" /></svg>,
-  blog:   <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z" /><path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z" /></svg>,
-  islamic:<svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z" /></svg>,
-  lost:   <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg>,
-  support:<svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" /></svg>,
-  arrow:  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M5 12h14M12 5l7 7-7 7" /></svg>,
-  arrowSm:<svg className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M5 12h14M12 5l7 7-7 7" /></svg>,
-  check:  <svg className="w-3 h-3 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round"><polyline points="20 6 9 17 4 12" /></svg>,
+	shares: (
+		<svg
+			className="w-6 h-6"
+			viewBox="0 0 24 24"
+			fill="none"
+			stroke="currentColor"
+			strokeWidth="2"
+			strokeLinecap="round"
+			strokeLinejoin="round"
+		>
+			<polyline points="22 7 13.5 15.5 8.5 10.5 2 17" />
+			<polyline points="16 7 22 7 22 13" />
+		</svg>
+	),
+	wallet: (
+		<svg
+			className="w-6 h-6"
+			viewBox="0 0 24 24"
+			fill="none"
+			stroke="currentColor"
+			strokeWidth="2"
+			strokeLinecap="round"
+			strokeLinejoin="round"
+		>
+			<rect x="1" y="4" width="22" height="16" rx="2" />
+			<line x1="1" y1="10" x2="23" y2="10" />
+		</svg>
+	),
+	plane: (
+		<svg
+			className="w-6 h-6"
+			viewBox="0 0 24 24"
+			fill="none"
+			stroke="currentColor"
+			strokeWidth="2"
+			strokeLinecap="round"
+			strokeLinejoin="round"
+		>
+			<line x1="22" y1="2" x2="11" y2="13" />
+			<polygon points="22 2 15 22 11 13 2 9 22 2" />
+		</svg>
+	),
+	taxi: (
+		<svg
+			className="w-6 h-6"
+			viewBox="0 0 24 24"
+			fill="none"
+			stroke="currentColor"
+			strokeWidth="2"
+			strokeLinecap="round"
+			strokeLinejoin="round"
+		>
+			<rect x="1" y="3" width="15" height="13" rx="1" />
+			<polygon points="16 8 20 8 23 11 23 16 16 16 16 8" />
+			<circle cx="5.5" cy="18.5" r="2.5" />
+			<circle cx="18.5" cy="18.5" r="2.5" />
+		</svg>
+	),
+	currency: (
+		<svg
+			className="w-6 h-6"
+			viewBox="0 0 24 24"
+			fill="none"
+			stroke="currentColor"
+			strokeWidth="2"
+			strokeLinecap="round"
+			strokeLinejoin="round"
+		>
+			<polyline points="17 1 21 5 17 9" />
+			<path d="M3 11V9a4 4 0 014-4h14" />
+			<polyline points="7 23 3 19 7 15" />
+			<path d="M21 13v2a4 4 0 01-4 4H3" />
+		</svg>
+	),
+	blog: (
+		<svg
+			className="w-6 h-6"
+			viewBox="0 0 24 24"
+			fill="none"
+			stroke="currentColor"
+			strokeWidth="2"
+			strokeLinecap="round"
+			strokeLinejoin="round"
+		>
+			<path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z" />
+			<path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z" />
+		</svg>
+	),
+	islamic: (
+		<svg
+			className="w-6 h-6"
+			viewBox="0 0 24 24"
+			fill="none"
+			stroke="currentColor"
+			strokeWidth="2"
+			strokeLinecap="round"
+			strokeLinejoin="round"
+		>
+			<path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z" />
+		</svg>
+	),
+	lost: (
+		<svg
+			className="w-6 h-6"
+			viewBox="0 0 24 24"
+			fill="none"
+			stroke="currentColor"
+			strokeWidth="2"
+			strokeLinecap="round"
+			strokeLinejoin="round"
+		>
+			<circle cx="11" cy="11" r="8" />
+			<line x1="21" y1="21" x2="16.65" y2="16.65" />
+		</svg>
+	),
+	support: (
+		<svg
+			className="w-6 h-6"
+			viewBox="0 0 24 24"
+			fill="none"
+			stroke="currentColor"
+			strokeWidth="2"
+			strokeLinecap="round"
+			strokeLinejoin="round"
+		>
+			<path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" />
+		</svg>
+	),
+	arrow: (
+		<svg
+			className="w-4 h-4"
+			viewBox="0 0 24 24"
+			fill="none"
+			stroke="currentColor"
+			strokeWidth="2.5"
+			strokeLinecap="round"
+		>
+			<path d="M5 12h14M12 5l7 7-7 7" />
+		</svg>
+	),
+	arrowSm: (
+		<svg
+			className="w-4 h-4 group-hover:translate-x-0.5 transition-transform"
+			viewBox="0 0 24 24"
+			fill="none"
+			stroke="currentColor"
+			strokeWidth="2"
+			strokeLinecap="round"
+		>
+			<path d="M5 12h14M12 5l7 7-7 7" />
+		</svg>
+	),
+	check: (
+		<svg
+			className="w-3 h-3 text-white"
+			viewBox="0 0 24 24"
+			fill="none"
+			stroke="currentColor"
+			strokeWidth="3"
+			strokeLinecap="round"
+		>
+			<polyline points="20 6 9 17 4 12" />
+		</svg>
+	),
 };
 
 export default async function HomePage() {
-  const t = await getTranslations("home");
+	const t = await getTranslations("home");
 
-  const services = [
-    { key: "svc1", icon: ICONS.shares,   href: "/shares",         bg: "bg-violet-600" },
-    { key: "svc2", icon: ICONS.wallet,   href: "/wallet",         bg: "bg-blue-600" },
-    { key: "svc3", icon: ICONS.plane,    href: "/air-ticket",     bg: "bg-sky-600" },
-    { key: "svc4", icon: ICONS.taxi,     href: "/taxi",           bg: "bg-amber-600" },
-    { key: "svc5", icon: ICONS.currency, href: "/currency",       bg: "bg-emerald-600" },
-    { key: "svc6", icon: ICONS.blog,     href: "/blog",           bg: "bg-orange-600" },
-    { key: "svc7", icon: ICONS.islamic,  href: "/islamic-center", bg: "bg-teal-600" },
-    { key: "svc8", icon: ICONS.lost,     href: "/lost-found",     bg: "bg-rose-600" },
-    { key: "svc9", icon: ICONS.support,  href: "/contact",        bg: "bg-green-600" },
-  ] as const;
+	const services = [
+		{ key: "svc1", icon: ICONS.shares, href: "/shares", bg: "bg-violet-600" },
+		{ key: "svc2", icon: ICONS.wallet, href: "/wallet", bg: "bg-blue-600" },
+		{ key: "svc3", icon: ICONS.plane, href: "/air-ticket", bg: "bg-sky-600" },
+		{ key: "svc4", icon: ICONS.taxi, href: "/taxi", bg: "bg-amber-600" },
+		{
+			key: "svc5",
+			icon: ICONS.currency,
+			href: "/currency",
+			bg: "bg-emerald-600",
+		},
+		{ key: "svc6", icon: ICONS.blog, href: "/blog", bg: "bg-orange-600" },
+		{
+			key: "svc7",
+			icon: ICONS.islamic,
+			href: "/islamic-center",
+			bg: "bg-teal-600",
+		},
+		{ key: "svc8", icon: ICONS.lost, href: "/lost-found", bg: "bg-rose-600" },
+		{ key: "svc9", icon: ICONS.support, href: "/contact", bg: "bg-green-600" },
+	] as const;
 
-  const steps = [
-    { number: "01", titleKey: "step1Title", descKey: "step1Desc" },
-    { number: "02", titleKey: "step2Title", descKey: "step2Desc" },
-    { number: "03", titleKey: "step3Title", descKey: "step3Desc" },
-  ] as const;
+	const steps = [
+		{ number: "01", titleKey: "step1Title", descKey: "step1Desc" },
+		{ number: "02", titleKey: "step2Title", descKey: "step2Desc" },
+		{ number: "03", titleKey: "step3Title", descKey: "step3Desc" },
+	] as const;
 
-  const stats = [
-    { value: "5,200+", labelKey: "stat1Label" },
-    { value: "24",     labelKey: "stat2Label" },
-    { value: "12,000+",labelKey: "stat3Label" },
-    { value: "9",      labelKey: "stat4Label" },
-  ] as const;
+	const stats = [
+		{ value: "5,200+", labelKey: "stat1Label" },
+		{ value: "24", labelKey: "stat2Label" },
+		{ value: "12,000+", labelKey: "stat3Label" },
+		{ value: "9", labelKey: "stat4Label" },
+	] as const;
 
-  const mktPoints = ["mktPoint1","mktPoint2","mktPoint3","mktPoint4","mktPoint5"] as const;
+	const mktPoints = [
+		"mktPoint1",
+		"mktPoint2",
+		"mktPoint3",
+		"mktPoint4",
+		"mktPoint5",
+	] as const;
 
-  const platformItems = [
-    { labelKey: "platformShareMarket",  statusKey: "platformActive",    color: "bg-emerald-500" },
-    { labelKey: "platformWallet",       statusKey: "platformOpen",      color: "bg-brand" },
-    { labelKey: "platformAirTicket",    statusKey: "platformAvailable", color: "bg-sky-500" },
-    { labelKey: "platformIslamicCenter",statusKey: "platformActive",    color: "bg-teal-500" },
-  ] as const;
+	const platformItems = [
+		{
+			labelKey: "platformShareMarket",
+			statusKey: "platformActive",
+			color: "bg-emerald-500",
+		},
+		{
+			labelKey: "platformWallet",
+			statusKey: "platformOpen",
+			color: "bg-brand",
+		},
+		{
+			labelKey: "platformAirTicket",
+			statusKey: "platformAvailable",
+			color: "bg-sky-500",
+		},
+		{
+			labelKey: "platformIslamicCenter",
+			statusKey: "platformActive",
+			color: "bg-teal-500",
+		},
+	] as const;
 
-  return (
-    <>
-      {/* ─── Hero ─── */}
-      <section className="relative overflow-hidden bg-white">
-        <div className="absolute inset-0 pointer-events-none overflow-hidden">
-          <div className="absolute -top-48 -right-48 size-160 rounded-full bg-brand-50 blur-3xl opacity-70" />
-          <div className="absolute bottom-0 -left-32 size-120 rounded-full bg-brand-100 blur-3xl opacity-30" />
-        </div>
+	return (
+		<>
+			{/* ─── Hero ─── */}
+			<section className="relative overflow-hidden bg-white">
+				<div className="absolute inset-0 pointer-events-none overflow-hidden">
+					<div className="absolute -top-48 -right-48 size-160 rounded-full bg-brand-50 blur-3xl opacity-70" />
+					<div className="absolute bottom-0 -left-32 size-120 rounded-full bg-brand-100 blur-3xl opacity-30" />
+				</div>
 
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-16 lg:py-36">
-          <div className="grid lg:grid-cols-2 gap-8 lg:gap-14 items-center">
-            {/* Left */}
-            <div className="space-y-5 lg:space-y-8">
-              <div className="inline-flex items-center gap-2 bg-brand-50 text-brand text-xs sm:text-sm font-medium px-3 py-1.5 rounded-full border border-brand/20">
-                <span className="w-2 h-2 rounded-full bg-brand animate-pulse" />
-                {t("heroBadge")}
-              </div>
+				<div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-16 lg:py-36">
+					<div className="grid lg:grid-cols-2 gap-8 lg:gap-14 items-center">
+						{/* MRT map card — first in DOM → top on mobile, right column on desktop */}
+						<div className="lg:order-last">
+							<div className="bg-white rounded-3xl shadow-2xl border border-border overflow-hidden">
+								{/* Card header */}
+								<div className="flex items-center justify-between px-3 md:px-5 py-3 md:py-4 border-b border-border">
+									<div className="flex items-center gap-2.5">
+										<div className="w-8 h-8 rounded-lg bg-brand flex items-center justify-center text-white shrink-0">
+											<svg
+												className="w-4.5 h-4.5"
+												viewBox="0 0 24 24"
+												fill="none"
+												stroke="currentColor"
+												strokeWidth={2}
+												strokeLinecap="round"
+												strokeLinejoin="round"
+											>
+												<rect x="5" y="2" width="14" height="20" rx="2" />
+												<line x1="5" y1="9" x2="19" y2="9" />
+												<line x1="5" y1="15" x2="19" y2="15" />
+												<circle cx="8.5" cy="18" r="1" />
+												<circle cx="15.5" cy="18" r="1" />
+											</svg>
+										</div>
+										<div>
+											<p className="text-sm font-semibold text-foreground leading-tight">
+												Singapore MRT Map
+											</p>
+											<p className="text-[11px] text-muted-foreground leading-tight">
+												Mass Rapid Transit Network
+											</p>
+										</div>
+									</div>
+									<span className="text-[10px] font-bold uppercase tracking-wider text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200">
+										Live
+									</span>
+								</div>
 
-              <h1 className="text-3xl sm:text-5xl lg:text-[3.5rem] lg:bn:text-7xl font-bold tracking-tight text-foreground leading-[1.1]">
-                {t("heroTitle1")}
-                <br />
-                <span className="text-brand">{t("heroTitle2")}</span>
-                <br />
-                {t("heroTitle3")}
-              </h1>
+								{/* Inline PDF preview */}
+								<div className="relative h-80 sm:h-96 lg:h-112 bg-muted">
+									<iframe
+										src="/mrt-map.pdf#toolbar=0&navpanes=0&scrollbar=0&view=FitH"
+										className="w-full h-full border-0"
+										title="Singapore MRT Map preview"
+									/>
+									<div className="absolute bottom-0 inset-x-0 h-10 bg-linear-to-t from-white/60 to-transparent pointer-events-none" />
+								</div>
 
-              <p className="text-base sm:text-lg bn:text-2xl text-muted-foreground leading-relaxed max-w-lg">
-                {t("heroSubtitle")}
-              </p>
+								{/* Actions */}
+								<div className="flex justify-center items-center gap-2.5 px-3 md:px-5  py-2 md:py-4 border-t border-border">
+									<MRTMapButton />
+								</div>
+							</div>
+						</div>
 
-              <div className="flex flex-col sm:flex-row gap-3">
-                <Link
-                  href="/register"
-                  className="inline-flex items-center justify-center gap-2 px-7 py-3.5 text-base font-semibold text-white bg-brand rounded-full hover:bg-brand-dark transition-colors shadow-lg"
-                >
-                  {t("heroCta1")}
-                  {ICONS.arrow}
-                </Link>
-                <Link
-                  href="#services"
-                  className="inline-flex items-center justify-center gap-2 px-7 py-3.5 text-base font-semibold text-foreground border border-border rounded-full hover:border-brand hover:text-brand transition-colors"
-                >
-                  {t("heroCta2")}
-                </Link>
-              </div>
+						{/* Text — second in DOM → below card on mobile, left column on desktop */}
+						<div className="space-y-5 lg:space-y-8 lg:order-first">
+							<div className="inline-flex items-center gap-2 bg-brand-50 text-brand text-xs sm:text-sm font-medium px-3 py-1.5 rounded-full border border-brand/20">
+								<span className="w-2 h-2 rounded-full bg-brand animate-pulse" />
+								{t("heroBadge")}
+							</div>
 
-              <div className="flex items-center gap-4 pt-1">
-                <div className="flex -space-x-2">
-                  {["R", "M", "K", "S"].map((letter) => (
-                    <div key={letter} className="w-8 h-8 lg:w-9 lg:h-9 rounded-full bg-brand-100 border-2 border-white flex items-center justify-center text-xs font-bold text-brand">
-                      {letter}
-                    </div>
-                  ))}
-                </div>
-                <p className="text-sm text-muted-foreground">
-                  <span className="font-semibold text-foreground">5,000+</span>{" "}
-                  {t("heroMembers")}
-                </p>
-              </div>
-            </div>
+							<h1 className="text-3xl sm:text-5xl lg:text-[3.5rem] lg:bn:text-7xl font-bold tracking-tight text-foreground leading-[1.1]">
+								{t("heroTitle1")}
+								<br />
+								<span className="text-brand">{t("heroTitle2")}</span>
+								<br />
+								{t("heroTitle3")}
+							</h1>
 
-            {/* Right — platform preview card */}
-            <div className="hidden lg:flex justify-end">
-              <div className="w-95 bg-white rounded-3xl shadow-2xl border border-border p-6 space-y-5">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-semibold text-foreground">{t("platformOverview")}</span>
-                  <span className="text-xs font-medium text-brand bg-brand-50 px-2.5 py-1 rounded-full">{t("platformLive")}</span>
-                </div>
-                <div className="grid grid-cols-3 gap-3">
-                  {[
-                    { value: "5,200+", labelKey: "platformMembers" },
-                    { value: "24",     labelKey: "platformProjects" },
-                    { value: "12K+",   labelKey: "platformShares" },
-                  ].map((s) => (
-                    <div key={s.labelKey} className="bg-muted rounded-2xl p-3 text-center">
-                      <p className="text-lg font-bold text-foreground">{s.value}</p>
-                      <p className="text-xs text-muted-foreground mt-0.5">{t(s.labelKey)}</p>
-                    </div>
-                  ))}
-                </div>
-                <div className="space-y-2">
-                  {platformItems.map((item) => (
-                    <div key={item.labelKey} className="flex items-center justify-between px-4 py-3 bg-muted rounded-xl">
-                      <span className="text-sm font-medium text-foreground">{t(item.labelKey)}</span>
-                      <span className={`flex items-center gap-1.5 text-xs font-semibold text-white ${item.color} px-2.5 py-1 rounded-full`}>
-                        <span className="w-1.5 h-1.5 rounded-full bg-white/70" />
-                        {t(item.statusKey)}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
+							<p className="text-base sm:text-lg bn:text-2xl text-muted-foreground leading-relaxed max-w-lg">
+								{t("heroSubtitle")}
+							</p>
 
-      {/* ─── Stats bar ─── */}
-      <section className="bg-brand py-8 lg:py-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-5 lg:gap-8 text-white text-center">
-            {stats.map((s) => (
-              <div key={s.labelKey}>
-                <p className="text-2xl sm:text-4xl font-bold">{s.value}</p>
-                <p className="text-xs sm:text-sm text-white/70 mt-1">{t(s.labelKey)}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+							<div className="flex flex-col sm:flex-row gap-3">
+								<Link
+									href="/register"
+									className="inline-flex items-center justify-center gap-2 px-7 py-3.5 text-base font-semibold text-white bg-brand rounded-full hover:bg-brand-dark transition-colors shadow-lg"
+								>
+									{t("heroCta1")}
+									{ICONS.arrow}
+								</Link>
+								<Link
+									href="#services"
+									className="inline-flex items-center justify-center gap-2 px-7 py-3.5 text-base font-semibold text-foreground border border-border rounded-full hover:border-brand hover:text-brand transition-colors"
+								>
+									{t("heroCta2")}
+								</Link>
+							</div>
 
-      {/* ─── Services grid ─── */}
-      <section id="services" className="py-12 lg:py-24 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center space-y-3 mb-8 lg:mb-16">
-            <h2 className="text-2xl sm:text-4xl font-bold text-foreground">{t("servicesTitle")}</h2>
-            <p className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto">{t("servicesSubtitle")}</p>
-          </div>
-          {/* Mobile: icon grid (3 cols). Desktop: card grid (3 cols) */}
-          <div className="grid grid-cols-3 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-5">
-            {services.map((svc) => (
-              <Link
-                key={svc.key}
-                href={svc.href}
-                className="group flex flex-col items-center text-center p-4 sm:p-6 rounded-2xl border border-border bg-white hover:border-brand hover:shadow-lg transition-all duration-200 active:scale-95"
-              >
-                <div className={`w-12 h-12 sm:w-14 sm:h-14 rounded-xl sm:rounded-2xl ${svc.bg} flex items-center justify-center text-white mb-3`}>
-                  {svc.icon}
-                </div>
-                <h3 className="text-xs sm:text-base font-semibold text-foreground sm:mb-2 group-hover:text-brand transition-colors leading-tight">
-                  {t(`${svc.key}Title`)}
-                </h3>
-                <p className="hidden sm:block text-sm text-muted-foreground leading-relaxed">
-                  {t(`${svc.key}Desc`)}
-                </p>
-                <div className="hidden sm:flex items-center gap-1 mt-4 text-sm font-medium text-brand opacity-0 group-hover:opacity-100 transition-opacity">
-                  {t("learnMore")}
-                  {ICONS.arrowSm}
-                </div>
-              </Link>
-            ))}
-          </div>
-        </div>
-      </section>
+							<div className="flex items-center gap-4 pt-1">
+								<div className="flex -space-x-2">
+									{["R", "M", "K", "S"].map((letter) => (
+										<div
+											key={letter}
+											className="w-8 h-8 lg:w-9 lg:h-9 rounded-full bg-brand-100 border-2 border-white flex items-center justify-center text-xs font-bold text-brand"
+										>
+											{letter}
+										</div>
+									))}
+								</div>
+								<p className="text-sm text-muted-foreground">
+									<span className="font-semibold text-foreground">5,000+</span>{" "}
+									{t("heroMembers")}
+								</p>
+							</div>
+						</div>
+					</div>
+				</div>
+			</section>
 
-      {/* ─── Marketplace highlight ─── */}
-      <section className="py-24 bg-muted">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid lg:grid-cols-2 gap-16 items-center">
-            <div className="space-y-6">
-              <div className="inline-flex items-center gap-2 bg-brand-50 text-brand text-sm font-medium px-4 py-1.5 rounded-full border border-brand/20">
-                {t("mktBadge")}
-              </div>
-              <h2 className="text-3xl sm:text-4xl font-bold text-foreground leading-tight">{t("mktTitle")}</h2>
-              <p className="text-lg text-muted-foreground leading-relaxed">{t("mktSubtitle")}</p>
-              <ul className="space-y-3">
-                {mktPoints.map((key) => (
-                  <li key={key} className="flex items-start gap-3 text-sm text-foreground">
-                    <span className="mt-0.5 w-5 h-5 rounded-full bg-brand flex items-center justify-center shrink-0">
-                      {ICONS.check}
-                    </span>
-                    {t(key)}
-                  </li>
-                ))}
-              </ul>
-              <Link
-                href="/shares"
-                className="inline-flex items-center gap-2 px-6 py-3 text-sm font-semibold text-white bg-brand rounded-full hover:bg-brand-dark transition-colors"
-              >
-                {t("mktCta")}
-                {ICONS.arrow}
-              </Link>
-            </div>
+			{/* ─── Stats bar ─── */}
+			<section className="bg-brand py-8 lg:py-12">
+				<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+					<div className="grid grid-cols-2 lg:grid-cols-4 gap-5 lg:gap-8 text-white text-center">
+						{stats.map((s) => (
+							<div key={s.labelKey}>
+								<p className="text-2xl sm:text-4xl font-bold">{s.value}</p>
+								<p className="text-xs sm:text-sm text-white/70 mt-1">
+									{t(s.labelKey)}
+								</p>
+							</div>
+						))}
+					</div>
+				</div>
+			</section>
 
-            {/* Preview card */}
-            <div className="bg-white rounded-3xl border border-border p-6 shadow-xl space-y-4">
-              <div className="flex items-center justify-between pb-4 border-b border-border">
-                <span className="font-semibold text-foreground">{t("mktAvailable")}</span>
-                <span className="text-xs text-muted-foreground">{t("mktUpdated")}</span>
-              </div>
-              {[
-                { name: "Project Alpha", available: 124, price: "S$12.50", change: "+8.2%" },
-                { name: "Project Beta",  available: 280, price: "S$8.00",  change: "+3.1%" },
-                { name: "Project Gamma", available: 50,  price: "S$15.00", change: "+12.5%" },
-              ].map((project) => (
-                <div key={project.name} className="flex items-center justify-between p-4 bg-muted rounded-xl">
-                  <div>
-                    <p className="font-semibold text-sm text-foreground">{project.name}</p>
-                    <p className="text-xs text-muted-foreground mt-0.5">
-                      {project.available} {t("mktSharesAvailable")}
-                    </p>
-                  </div>
-                  <div className="text-right">
-                    <p className="font-bold text-sm text-foreground">{project.price}</p>
-                    <p className="text-xs text-emerald-600 font-semibold">{project.change}</p>
-                  </div>
-                </div>
-              ))}
-              <Link
-                href="/register"
-                className="block text-center py-3 text-sm font-semibold text-brand border border-brand rounded-xl hover:bg-brand-50 transition-colors"
-              >
-                {t("mktRegister")}
-              </Link>
-            </div>
-          </div>
-        </div>
-      </section>
+			{/* ─── MRT Map banner ─── */}
+			<section className="bg-white border-b border-border">
+				<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-10">
+					<div className="flex flex-col sm:flex-row sm:items-center gap-5 bg-linear-to-br from-slate-800 to-slate-900 rounded-2xl lg:rounded-3xl px-5 py-5 lg:px-8 lg:py-7 overflow-hidden relative">
+						{/* Background decoration */}
+						<div className="absolute inset-0 opacity-10 pointer-events-none">
+							<div className="absolute top-0 right-0 w-64 h-64 rounded-full bg-brand blur-3xl" />
+							<div className="absolute -bottom-8 left-16 w-40 h-40 rounded-full bg-sky-400 blur-2xl" />
+						</div>
 
-      {/* ─── How it works ─── */}
-      <section className="py-24 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center space-y-4 mb-16">
-            <h2 className="text-3xl sm:text-4xl font-bold text-foreground">{t("howTitle")}</h2>
-            <p className="text-lg text-muted-foreground max-w-xl mx-auto">{t("howSubtitle")}</p>
-          </div>
-          <div className="grid md:grid-cols-3 gap-10">
-            {steps.map((step, index) => (
-              <div key={step.number} className="relative text-center space-y-4">
-                {index < steps.length - 1 && (
-                  <div className="hidden md:block absolute top-8 left-[calc(50%+3.5rem)] right-0 h-px bg-brand/20" />
-                )}
-                <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-brand-50 border-2 border-brand/20 mx-auto">
-                  <span className="text-2xl font-bold text-brand">{step.number}</span>
-                </div>
-                <h3 className="text-lg font-semibold text-foreground">{t(step.titleKey)}</h3>
-                <p className="text-sm text-muted-foreground leading-relaxed max-w-xs mx-auto">{t(step.descKey)}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+						{/* MRT line dots decoration */}
+						<div className="absolute right-6 top-1/2 -translate-y-1/2 hidden lg:flex flex-col gap-2.5 opacity-20">
+							{[
+								"bg-red-400",
+								"bg-yellow-400",
+								"bg-green-400",
+								"bg-purple-400",
+								"bg-blue-400",
+								"bg-orange-400",
+							].map((c) => (
+								<div key={c} className="flex items-center gap-1.5">
+									<div className={`w-2.5 h-2.5 rounded-full ${c}`} />
+									<div className="w-16 h-0.5 bg-white/30 rounded" />
+									<div className={`w-2.5 h-2.5 rounded-full ${c}`} />
+								</div>
+							))}
+						</div>
 
-      {/* ─── CTA banner ─── */}
-      <section className="py-20 bg-brand">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-8">
-          <h2 className="text-3xl sm:text-4xl font-bold text-white">{t("ctaTitle")}</h2>
-          <p className="text-lg text-white/80 max-w-xl mx-auto">{t("ctaSubtitle")}</p>
-          <div className="flex flex-wrap justify-center gap-4">
-            <Link
-              href="/register"
-              className="px-8 py-3.5 text-base font-semibold text-brand bg-white rounded-full hover:bg-brand-50 transition-colors shadow-lg"
-            >
-              {t("ctaRegister")}
-            </Link>
-            <Link
-              href="/contact"
-              className="px-8 py-3.5 text-base font-semibold text-white border-2 border-white/40 rounded-full hover:border-white/80 hover:bg-white/10 transition-colors"
-            >
-              {t("ctaContact")}
-            </Link>
-          </div>
-        </div>
-      </section>
-    </>
-  );
+						{/* Icon */}
+						<div className="w-14 h-14 lg:w-16 lg:h-16 rounded-2xl bg-white/10 border border-white/20 flex items-center justify-center text-white shrink-0">
+							<svg
+								className="w-7 h-7 lg:w-8 lg:h-8"
+								viewBox="0 0 24 24"
+								fill="none"
+								stroke="currentColor"
+								strokeWidth={1.8}
+								strokeLinecap="round"
+								strokeLinejoin="round"
+							>
+								<rect x="5" y="2" width="14" height="20" rx="2" />
+								<line x1="5" y1="9" x2="19" y2="9" />
+								<line x1="5" y1="15" x2="19" y2="15" />
+								<circle cx="8.5" cy="18" r="1" />
+								<circle cx="15.5" cy="18" r="1" />
+							</svg>
+						</div>
+
+						{/* Text */}
+						<div className="flex-1 min-w-0 relative">
+							<div className="flex items-center gap-2 mb-1">
+								<p className="text-[10px] font-bold uppercase tracking-widest text-brand-300 text-sky-400">
+									Singapore Transit
+								</p>
+							</div>
+							<h3 className="text-lg lg:text-xl font-bold text-white leading-tight">
+								Singapore MRT Network Map
+							</h3>
+							<p className="text-sm text-white/60 mt-1 max-w-md">
+								Navigate all MRT, LRT lines and interchange stations across
+								Singapore — always handy for new arrivals.
+							</p>
+						</div>
+
+						{/* Buttons */}
+						<div className="flex items-center gap-2.5 shrink-0 relative">
+							<MRTMapButton />
+						</div>
+					</div>
+				</div>
+			</section>
+
+			{/* ─── Services grid ─── */}
+			<section id="services" className="py-12 lg:py-24 bg-white">
+				<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+					<div className="text-center space-y-3 mb-8 lg:mb-16">
+						<h2 className="text-2xl sm:text-4xl font-bold text-foreground">
+							{t("servicesTitle")}
+						</h2>
+						<p className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto">
+							{t("servicesSubtitle")}
+						</p>
+					</div>
+					{/* Mobile: icon grid (3 cols). Desktop: card grid (3 cols) */}
+					<div className="grid grid-cols-3 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-5">
+						{services.map((svc) => (
+							<Link
+								key={svc.key}
+								href={svc.href}
+								className="group flex flex-col items-center text-center p-4 sm:p-6 rounded-2xl border border-border bg-white hover:border-brand hover:shadow-lg transition-all duration-200 active:scale-95"
+							>
+								<div
+									className={`w-12 h-12 sm:w-14 sm:h-14 rounded-xl sm:rounded-2xl ${svc.bg} flex items-center justify-center text-white mb-3`}
+								>
+									{svc.icon}
+								</div>
+								<h3 className="text-xs sm:text-base font-semibold text-foreground sm:mb-2 group-hover:text-brand transition-colors leading-tight">
+									{t(`${svc.key}Title`)}
+								</h3>
+								<p className="hidden sm:block text-sm text-muted-foreground leading-relaxed">
+									{t(`${svc.key}Desc`)}
+								</p>
+								<div className="hidden sm:flex items-center gap-1 mt-4 text-sm font-medium text-brand opacity-0 group-hover:opacity-100 transition-opacity">
+									{t("learnMore")}
+									{ICONS.arrowSm}
+								</div>
+							</Link>
+						))}
+					</div>
+				</div>
+			</section>
+
+			{/* ─── Marketplace highlight ─── */}
+			<section className="py-24 bg-muted">
+				<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+					<div className="grid lg:grid-cols-2 gap-16 items-center">
+						<div className="space-y-6">
+							<div className="inline-flex items-center gap-2 bg-brand-50 text-brand text-sm font-medium px-4 py-1.5 rounded-full border border-brand/20">
+								{t("mktBadge")}
+							</div>
+							<h2 className="text-3xl sm:text-4xl font-bold text-foreground leading-tight">
+								{t("mktTitle")}
+							</h2>
+							<p className="text-lg text-muted-foreground leading-relaxed">
+								{t("mktSubtitle")}
+							</p>
+							<ul className="space-y-3">
+								{mktPoints.map((key) => (
+									<li
+										key={key}
+										className="flex items-start gap-3 text-sm text-foreground"
+									>
+										<span className="mt-0.5 w-5 h-5 rounded-full bg-brand flex items-center justify-center shrink-0">
+											{ICONS.check}
+										</span>
+										{t(key)}
+									</li>
+								))}
+							</ul>
+							<Link
+								href="/shares"
+								className="inline-flex items-center gap-2 px-6 py-3 text-sm font-semibold text-white bg-brand rounded-full hover:bg-brand-dark transition-colors"
+							>
+								{t("mktCta")}
+								{ICONS.arrow}
+							</Link>
+						</div>
+
+						{/* Preview card */}
+						<div className="bg-white rounded-3xl border border-border p-6 shadow-xl space-y-4">
+							<div className="flex items-center justify-between pb-4 border-b border-border">
+								<span className="font-semibold text-foreground">
+									{t("mktAvailable")}
+								</span>
+								<span className="text-xs text-muted-foreground">
+									{t("mktUpdated")}
+								</span>
+							</div>
+							{[
+								{
+									name: "Project Alpha",
+									available: 124,
+									price: "S$12.50",
+									change: "+8.2%",
+								},
+								{
+									name: "Project Beta",
+									available: 280,
+									price: "S$8.00",
+									change: "+3.1%",
+								},
+								{
+									name: "Project Gamma",
+									available: 50,
+									price: "S$15.00",
+									change: "+12.5%",
+								},
+							].map((project) => (
+								<div
+									key={project.name}
+									className="flex items-center justify-between p-4 bg-muted rounded-xl"
+								>
+									<div>
+										<p className="font-semibold text-sm text-foreground">
+											{project.name}
+										</p>
+										<p className="text-xs text-muted-foreground mt-0.5">
+											{project.available} {t("mktSharesAvailable")}
+										</p>
+									</div>
+									<div className="text-right">
+										<p className="font-bold text-sm text-foreground">
+											{project.price}
+										</p>
+										<p className="text-xs text-emerald-600 font-semibold">
+											{project.change}
+										</p>
+									</div>
+								</div>
+							))}
+							<Link
+								href="/register"
+								className="block text-center py-3 text-sm font-semibold text-brand border border-brand rounded-xl hover:bg-brand-50 transition-colors"
+							>
+								{t("mktRegister")}
+							</Link>
+						</div>
+					</div>
+				</div>
+			</section>
+
+			{/* ─── How it works ─── */}
+			<section className="py-24 bg-white">
+				<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+					<div className="text-center space-y-4 mb-16">
+						<h2 className="text-3xl sm:text-4xl font-bold text-foreground">
+							{t("howTitle")}
+						</h2>
+						<p className="text-lg text-muted-foreground max-w-xl mx-auto">
+							{t("howSubtitle")}
+						</p>
+					</div>
+					<div className="grid md:grid-cols-3 gap-10">
+						{steps.map((step, index) => (
+							<div key={step.number} className="relative text-center space-y-4">
+								{index < steps.length - 1 && (
+									<div className="hidden md:block absolute top-8 left-[calc(50%+3.5rem)] right-0 h-px bg-brand/20" />
+								)}
+								<div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-brand-50 border-2 border-brand/20 mx-auto">
+									<span className="text-2xl font-bold text-brand">
+										{step.number}
+									</span>
+								</div>
+								<h3 className="text-lg font-semibold text-foreground">
+									{t(step.titleKey)}
+								</h3>
+								<p className="text-sm text-muted-foreground leading-relaxed max-w-xs mx-auto">
+									{t(step.descKey)}
+								</p>
+							</div>
+						))}
+					</div>
+				</div>
+			</section>
+
+			{/* ─── CTA banner ─── */}
+			<section className="py-20 bg-brand">
+				<div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-8">
+					<h2 className="text-3xl sm:text-4xl font-bold text-white">
+						{t("ctaTitle")}
+					</h2>
+					<p className="text-lg text-white/80 max-w-xl mx-auto">
+						{t("ctaSubtitle")}
+					</p>
+					<div className="flex flex-wrap justify-center gap-4">
+						<Link
+							href="/register"
+							className="px-8 py-3.5 text-base font-semibold text-brand bg-white rounded-full hover:bg-brand-50 transition-colors shadow-lg"
+						>
+							{t("ctaRegister")}
+						</Link>
+						<Link
+							href="/contact"
+							className="px-8 py-3.5 text-base font-semibold text-white border-2 border-white/40 rounded-full hover:border-white/80 hover:bg-white/10 transition-colors"
+						>
+							{t("ctaContact")}
+						</Link>
+					</div>
+				</div>
+			</section>
+		</>
+	);
 }
