@@ -65,7 +65,7 @@ export default async function SharesPage({
               </div>
               <div className="w-px bg-border" />
               <div>
-                <p className="text-2xl font-bold text-foreground">S${(totalValue / 1000).toFixed(0)}K</p>
+                <p className="text-2xl font-bold text-foreground">৳{(totalValue / 1000).toFixed(0)}K</p>
                 <p className="text-xs text-muted-foreground">{t("totalValue")}</p>
               </div>
               <div className="w-px bg-border" />
@@ -139,7 +139,7 @@ export default async function SharesPage({
 
                       <div className="px-6 py-4 border-b border-border grid grid-cols-3 gap-3 text-center">
                         <div>
-                          <p className="text-base font-bold text-foreground">S${Number(project.sharePrice).toFixed(0)}</p>
+                          <p className="text-base font-bold text-foreground">৳{Number(project.sharePrice).toFixed(0)}</p>
                           <p className="text-[11px] text-muted-foreground">{t("perShare")}</p>
                         </div>
                         <div>
@@ -147,7 +147,7 @@ export default async function SharesPage({
                           <p className="text-[11px] text-muted-foreground">{t("available")}</p>
                         </div>
                         <div>
-                          <p className="text-base font-bold text-foreground">S${(totalProjectValue / 1000).toFixed(0)}K</p>
+                          <p className="text-base font-bold text-foreground">৳{(totalProjectValue / 1000).toFixed(0)}K</p>
                           <p className="text-[11px] text-muted-foreground">{t("totalFund")}</p>
                         </div>
                       </div>

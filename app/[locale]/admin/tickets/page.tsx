@@ -66,7 +66,7 @@ export default async function AdminTicketsPage() {
                   </p>
                 </div>
                 <div className="text-right shrink-0">
-                  <p className="font-semibold text-foreground">{b.passengers} pax · S${Number(b.totalPrice).toFixed(2)}</p>
+                  <p className="font-semibold text-foreground">{b.passengers} pax · ৳{Number(b.totalPrice).toFixed(2)}</p>
                   {b.referralCode && (
                     <p className="text-xs text-brand font-semibold">Ref: {b.referralCode}</p>
                   )}
@@ -85,7 +85,7 @@ export default async function AdminTicketsPage() {
           <div>
             <h2 className="font-semibold text-foreground">Referral Agents</h2>
             <p className="text-xs text-muted-foreground mt-0.5">
-              {referrals.length} agents · S${totalReferralEarnings.toFixed(2)} total earnings
+              {referrals.length} agents · ৳{totalReferralEarnings.toFixed(2)} total earnings
             </p>
           </div>
         </div>
@@ -127,7 +127,7 @@ export default async function AdminTicketsPage() {
                       </span>
                     </td>
                     <td className="px-4 py-3 font-semibold text-foreground text-xs">
-                      S${Number(r.totalEarnings).toFixed(2)}
+                      ৳{Number(r.totalEarnings).toFixed(2)}
                     </td>
                   </tr>
                 ))}
@@ -153,7 +153,7 @@ export default async function AdminTicketsPage() {
                 </span>
               </div>
               <div className="grid grid-cols-5 gap-2 text-center text-xs mt-3">
-                <div><p className="font-bold text-foreground">S${Number(l.price).toFixed(0)}</p><p className="text-muted-foreground">Price</p></div>
+                <div><p className="font-bold text-foreground">৳{Number(l.price).toFixed(0)}</p><p className="text-muted-foreground">Price</p></div>
                 <div><p className="font-bold text-foreground">{l.seats}</p><p className="text-muted-foreground">Seats</p></div>
                 <div><p className="font-bold text-foreground">{l._count.bookings}</p><p className="text-muted-foreground">Bookings</p></div>
                 <div><p className="font-bold text-foreground">{l._count.referrals}</p><p className="text-muted-foreground">Referrals</p></div>

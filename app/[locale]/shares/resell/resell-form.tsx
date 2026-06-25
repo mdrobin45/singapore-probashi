@@ -65,8 +65,8 @@ export function ResellForm({
         </select>
         {selected && (
           <p className="text-xs text-muted-foreground mt-1">
-            {t("marketPriceLabel")}: <span className="font-semibold text-foreground">S${marketPrice.toFixed(2)}</span> {t("perShareLabel")} ·
-            {t("boughtAtLabel")}: <span className="font-semibold text-foreground">S${Number(selected.purchasePrice).toFixed(2)}</span>
+            {t("marketPriceLabel")}: <span className="font-semibold text-foreground">৳{marketPrice.toFixed(2)}</span> {t("perShareLabel")} ·
+            {t("boughtAtLabel")}: <span className="font-semibold text-foreground">৳{Number(selected.purchasePrice).toFixed(2)}</span>
           </p>
         )}
       </div>
@@ -105,7 +105,7 @@ export function ResellForm({
         {price && Number(price) > 0 && (
           <div className="mt-1.5 flex items-center justify-between text-xs">
             <span className="text-muted-foreground">
-              {t("totalListingValue")}: <span className="font-bold text-foreground">S${total.toFixed(2)}</span>
+              {t("totalListingValue")}: <span className="font-bold text-foreground">৳{total.toFixed(2)}</span>
             </span>
             {Number(price) !== marketPrice && (
               <span className={`font-semibold ${Number(price) > marketPrice ? "text-red-500" : "text-green-600"}`}>

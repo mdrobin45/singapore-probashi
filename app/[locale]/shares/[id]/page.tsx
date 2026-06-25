@@ -91,10 +91,10 @@ export default async function ShareDetailPage({
               {/* Stats row */}
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-px bg-border">
                 {[
-                  { label: t("sharePrice"), value: `S$${Number(project.sharePrice).toFixed(2)}` },
+                  { label: t("sharePrice"), value: `৳{Number(project.sharePrice).toFixed(2)}` },
                   { label: t("totalShares"), value: project.totalShares.toLocaleString() },
                   { label: t("available"), value: project.availableShares.toLocaleString() },
-                  { label: t("totalFund"), value: `S$${(totalValue / 1000).toFixed(1)}K` },
+                  { label: t("totalFund"), value: `৳{(totalValue / 1000).toFixed(1)}K` },
                 ].map((stat) => (
                   <div key={stat.label} className="bg-white px-5 py-4 text-center">
                     <p className="text-lg font-bold text-foreground">{stat.value}</p>
@@ -138,13 +138,13 @@ export default async function ShareDetailPage({
                   </div>
                   <div>
                     <p className="text-xl font-bold text-green-700">
-                      S${(ownership.quantity * Number(ownership.purchasePrice)).toFixed(2)}
+                      ৳{(ownership.quantity * Number(ownership.purchasePrice)).toFixed(2)}
                     </p>
                     <p className="text-xs text-green-600">{t("totalInvested")}</p>
                   </div>
                   <div>
                     <p className="text-xl font-bold text-green-700">
-                      S${(ownership.quantity * Number(project.sharePrice)).toFixed(2)}
+                      ৳{(ownership.quantity * Number(project.sharePrice)).toFixed(2)}
                     </p>
                     <p className="text-xs text-green-600">{t("currentValue")}</p>
                   </div>

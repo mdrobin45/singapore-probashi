@@ -35,7 +35,7 @@ export function CreateTicketForm() {
               className="w-full px-3 py-2 rounded-lg border border-border text-sm focus:outline-none focus:border-brand" />
           </div>
           <div>
-            <label className="block text-xs font-medium text-foreground mb-1">Price (S$)</label>
+            <label className="block text-xs font-medium text-foreground mb-1">Price (৳)</label>
             <input name="price" type="number" required min={1} step={0.01} placeholder="450"
               className="w-full px-3 py-2 rounded-lg border border-border text-sm focus:outline-none focus:border-brand" />
           </div>

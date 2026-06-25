@@ -105,7 +105,7 @@ export function PurchaseForm({ projectId, sharePrice, availableShares, hasPendin
         {/* Total */}
         <div className="bg-brand-50 rounded-xl px-4 py-3 flex items-center justify-between">
           <span className="text-sm text-brand font-medium">{t("totalAmount")}</span>
-          <span className="text-xl font-bold text-brand">S${total.toFixed(2)}</span>
+          <span className="text-xl font-bold text-brand">৳{total.toFixed(2)}</span>
         </div>
 
         {/* Payment method */}

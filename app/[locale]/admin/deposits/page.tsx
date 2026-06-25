@@ -53,7 +53,7 @@ export default async function AdminDepositsPage() {
                     <p className="font-medium text-foreground">{d.user.fullName}</p>
                     <p className="text-xs text-muted-foreground">{d.user.email}</p>
                   </td>
-                  <td className="px-4 py-3.5 font-bold text-foreground">S${Number(d.amount).toFixed(2)}</td>
+                  <td className="px-4 py-3.5 font-bold text-foreground">৳{Number(d.amount).toFixed(2)}</td>
                   <td className="px-4 py-3.5 text-muted-foreground">{METHOD_LABELS[d.paymentMethod] ?? d.paymentMethod}</td>
                   <td className="px-4 py-3.5 font-mono text-xs text-muted-foreground">{d.txId}</td>
                   <td className="px-4 py-3.5">

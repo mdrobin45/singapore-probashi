@@ -75,7 +75,7 @@ export default async function ProfilePage() {
               { label: t("emailAddress"), value: user.email },
               { label: t("phoneNumber"), value: user.phone },
               { label: t("memberSince"), value: user.createdAt.toLocaleDateString("en-GB", { day: "2-digit", month: "long", year: "numeric" }) },
-              { label: t("walletBalance"), value: `S$${Number(user.wallet?.balance ?? 0).toFixed(2)}` },
+              { label: t("walletBalance"), value: `৳{Number(user.wallet?.balance ?? 0).toFixed(2)}` },
             ].map((f) => (
               <div key={f.label}>
                 <p className="text-xs text-muted-foreground font-medium mb-0.5">{f.label}</p>

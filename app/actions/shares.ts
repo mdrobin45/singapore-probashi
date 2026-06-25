@@ -56,7 +56,7 @@ export async function requestSharePurchaseAction(
       select: { id: true, balance: true },
     });
     if (!wallet || Number(wallet.balance) < totalAmount) {
-      return { error: `Insufficient wallet balance. Need S$${totalAmount.toFixed(2)}.` };
+      return { error: `Insufficient wallet balance. Need ৳{totalAmount.toFixed(2)}.` };
     }
   }
 

@@ -108,7 +108,7 @@ export default async function AirTicketPage() {
                     {/* Price & book */}
                     <div className="flex flex-col items-end gap-3 shrink-0">
                       <div className="text-right">
-                        <p className="text-3xl font-bold text-brand">S${Number(l.price).toFixed(0)}</p>
+                        <p className="text-3xl font-bold text-brand">৳{Number(l.price).toFixed(0)}</p>
                         <p className="text-xs text-muted-foreground">{t("perPerson")}</p>
                       </div>
                       {session ? (
@@ -154,13 +154,13 @@ export default async function AirTicketPage() {
                   <div>
                     <p className="text-sm font-medium text-foreground">{r.listing.airline} → {r.listing.destination}</p>
                     <p className="text-xs text-muted-foreground">
-                      {t("depart")} {formatDate(r.listing.departDate)} · S${Number(r.listing.price).toFixed(0)}/{t("perPerson")}
+                      {t("depart")} {formatDate(r.listing.departDate)} · ৳{Number(r.listing.price).toFixed(0)}/{t("perPerson")}
                     </p>
                   </div>
                   <div className="flex items-center gap-4">
                     <div className="text-right">
                       <p className="text-xs text-muted-foreground">{r.bookingCount} {t("bookings")}</p>
-                      <p className="text-xs font-semibold text-green-600">S${Number(r.totalEarnings).toFixed(2)} {t("referrals.earned")}</p>
+                      <p className="text-xs font-semibold text-green-600">৳{Number(r.totalEarnings).toFixed(2)} {t("referrals.earned")}</p>
                     </div>
                     <code className="text-sm font-mono font-bold text-brand bg-brand-50 border border-brand/20 px-3 py-1.5 rounded-lg">
                       {r.referralCode}

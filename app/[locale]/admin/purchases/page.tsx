@@ -65,10 +65,10 @@ export default async function AdminPurchasesPage() {
                   </td>
                   <td className="px-4 py-3.5">
                     <p className="font-medium text-foreground max-w-40 truncate">{r.project.name}</p>
-                    <p className="text-xs text-muted-foreground">S${Number(r.project.sharePrice).toFixed(2)}/share</p>
+                    <p className="text-xs text-muted-foreground">৳{Number(r.project.sharePrice).toFixed(2)}/share</p>
                   </td>
                   <td className="px-4 py-3.5 font-medium text-foreground">{r.quantity}</td>
-                  <td className="px-4 py-3.5 font-semibold text-foreground">S${Number(r.totalAmount).toFixed(2)}</td>
+                  <td className="px-4 py-3.5 font-semibold text-foreground">৳{Number(r.totalAmount).toFixed(2)}</td>
                   <td className="px-4 py-3.5">
                     <span className="text-xs font-medium text-muted-foreground">{METHOD_LABELS[r.paymentMethod] ?? r.paymentMethod}</span>
                     {r.txId && (

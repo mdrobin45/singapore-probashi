@@ -76,7 +76,7 @@ export function BookingForm({ listingId, price, airline, destination }: Props) {
         </div>
         <div className="bg-brand-50 rounded-lg px-3 py-2 flex justify-between text-xs">
           <span className="text-muted-foreground">{t("estimatedTotal")}</span>
-          <span className="font-bold text-brand">S${(price * passengers).toFixed(2)}</span>
+          <span className="font-bold text-brand">৳{(price * passengers).toFixed(2)}</span>
         </div>
         {state?.error && <p className="text-xs text-red-600">{state.error}</p>}
         <div className="flex gap-2">

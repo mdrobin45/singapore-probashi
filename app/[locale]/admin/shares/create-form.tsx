@@ -45,7 +45,7 @@ export function CreateProjectForm() {
             />
           </div>
           <div>
-            <label className="block text-xs font-medium text-foreground mb-1">Price (S$)</label>
+            <label className="block text-xs font-medium text-foreground mb-1">Price (৳)</label>
             <input
               name="sharePrice"
               type="number"

@@ -83,7 +83,7 @@ export default async function AdminUsersPage() {
                     </span>
                   </td>
                   <td className="px-4 py-3.5 font-medium text-foreground hidden sm:table-cell">
-                    S${u.wallet ? Number(u.wallet.balance).toFixed(2) : "0.00"}
+                    ৳{u.wallet ? Number(u.wallet.balance).toFixed(2) : "0.00"}
                   </td>
                   <td className="px-4 py-3.5">
                     <div className="flex flex-col gap-1">

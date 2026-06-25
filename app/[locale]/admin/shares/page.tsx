@@ -74,9 +74,9 @@ export default async function AdminSharesPage() {
                     </p>
                     <div className="flex gap-4 mt-2 text-xs">
                       <span>Qty: <strong className="text-foreground">{l.quantity}</strong></span>
-                      <span>Asking: <strong className="text-foreground">S${Number(l.askingPrice).toFixed(2)}</strong></span>
-                      <span>Market: <strong className="text-foreground">S${Number(l.project.sharePrice).toFixed(2)}</strong></span>
-                      <span>Total: <strong className="text-foreground">S${(l.quantity * Number(l.askingPrice)).toFixed(2)}</strong></span>
+                      <span>Asking: <strong className="text-foreground">৳{Number(l.askingPrice).toFixed(2)}</strong></span>
+                      <span>Market: <strong className="text-foreground">৳{Number(l.project.sharePrice).toFixed(2)}</strong></span>
+                      <span>Total: <strong className="text-foreground">৳{(l.quantity * Number(l.askingPrice)).toFixed(2)}</strong></span>
                     </div>
                   </div>
                   <ResellActions listingId={l.id} type="listing" />
@@ -110,7 +110,7 @@ export default async function AdminSharesPage() {
                     </p>
                     <div className="flex flex-wrap gap-4 mt-2 text-xs">
                       <span>Qty: <strong className="text-foreground">{t.quantity}</strong></span>
-                      <span>Total: <strong className="text-foreground">S${Number(t.totalAmount).toFixed(2)}</strong></span>
+                      <span>Total: <strong className="text-foreground">৳{Number(t.totalAmount).toFixed(2)}</strong></span>
                       <span>Method: <strong className="text-foreground">{t.paymentMethod}</strong></span>
                       {t.txId && <span>TXN: <strong className="text-foreground font-mono">{t.txId}</strong></span>}
                     </div>
@@ -142,7 +142,7 @@ export default async function AdminSharesPage() {
                 </div>
                 <div className="grid grid-cols-4 gap-3 text-center mb-3">
                   <div>
-                    <p className="font-bold text-foreground">S${Number(p.sharePrice).toFixed(0)}</p>
+                    <p className="font-bold text-foreground">৳{Number(p.sharePrice).toFixed(0)}</p>
                     <p className="text-[11px] text-muted-foreground">Price</p>
                   </div>
                   <div>

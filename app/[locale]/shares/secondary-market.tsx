@@ -64,7 +64,7 @@ function TradeForm({ listing }: { listing: Listing }) {
           className="w-full px-3 py-2 rounded-lg border border-border text-sm focus:outline-none focus:ring-2 focus:ring-brand/30 focus:border-brand"
         />
         <p className="text-xs text-muted-foreground mt-0.5">
-          {t("total")}: <span className="font-bold text-foreground">S${(qty * askingPrice).toFixed(2)}</span>
+          {t("total")}: <span className="font-bold text-foreground">৳{(qty * askingPrice).toFixed(2)}</span>
         </p>
       </div>
 
@@ -136,7 +136,7 @@ function ListingCard({ listing, session }: { listing: Listing; session: SessionP
           </div>
 
           <div className="text-right shrink-0">
-            <p className="text-2xl font-bold text-foreground">S${askingPrice.toFixed(0)}</p>
+            <p className="text-2xl font-bold text-foreground">৳{askingPrice.toFixed(0)}</p>
             <p className="text-xs text-muted-foreground">{t("perShareLabel")}</p>
             <p className={`text-[11px] font-semibold mt-0.5 ${diff > 0 ? "text-red-500" : diff < 0 ? "text-green-600" : "text-muted-foreground"}`}>
               {diff > 0
@@ -150,7 +150,7 @@ function ListingCard({ listing, session }: { listing: Listing; session: SessionP
 
         <div className="flex items-center justify-between mt-4">
           <div className="text-xs text-muted-foreground">
-            {t("totalValue")}: <span className="font-semibold text-foreground">S${(listing.quantity * askingPrice).toFixed(2)}</span>
+            {t("totalValue")}: <span className="font-semibold text-foreground">৳{(listing.quantity * askingPrice).toFixed(2)}</span>
           </div>
           {session ? (
             <button

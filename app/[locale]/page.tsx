@@ -537,19 +537,19 @@ export default async function HomePage() {
 								{
 									name: "Project Alpha",
 									available: 124,
-									price: "S$12.50",
+									price: "৳12.50",
 									change: "+8.2%",
 								},
 								{
 									name: "Project Beta",
 									available: 280,
-									price: "S$8.00",
+									price: "৳8.00",
 									change: "+3.1%",
 								},
 								{
 									name: "Project Gamma",
 									available: 50,
-									price: "S$15.00",
+									price: "৳15.00",
 									change: "+12.5%",
 								},
 							].map((project) => (

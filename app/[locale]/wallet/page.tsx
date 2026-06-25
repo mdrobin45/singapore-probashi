@@ -62,7 +62,7 @@ export default async function WalletPage() {
         {/* Balance card */}
         <div className="bg-linear-to-br from-brand to-brand-dark rounded-2xl p-7 mb-6 text-white">
           <p className="text-sm font-medium text-white/70 mb-1">{t("availableBalance")}</p>
-          <p className="text-4xl font-bold">S${balance.toFixed(2)}</p>
+          <p className="text-4xl font-bold">৳{balance.toFixed(2)}</p>
           <p className="text-xs text-white/60 mt-1">{t("singaporeDollar")}</p>
           <Link
             href="/dashboard/deposit"
@@ -111,7 +111,7 @@ export default async function WalletPage() {
                     </div>
                     <div className="text-right">
                       <p className={`text-sm font-bold ${CREDIT_TYPES.has(tx.type) ? "text-green-600" : "text-red-600"}`}>
-                        {CREDIT_TYPES.has(tx.type) ? "+" : "−"}S${Number(tx.amount).toFixed(2)}
+                        {CREDIT_TYPES.has(tx.type) ? "+" : "−"}৳{Number(tx.amount).toFixed(2)}
                       </p>
                       <p className="text-xs text-muted-foreground">
                         {tx.createdAt.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })}
@@ -150,7 +150,7 @@ export default async function WalletPage() {
                   <tbody className="divide-y divide-border">
                     {deposits.map((d) => (
                       <tr key={d.id} className="hover:bg-muted/30">
-                        <td className="px-6 py-3 font-bold text-foreground">S${Number(d.amount).toFixed(2)}</td>
+                        <td className="px-6 py-3 font-bold text-foreground">৳{Number(d.amount).toFixed(2)}</td>
                         <td className="px-4 py-3 text-muted-foreground text-xs">{d.paymentMethod.replace("_", " ")}</td>
                         <td className="px-4 py-3 font-mono text-xs text-muted-foreground">{d.txId}</td>
                         <td className="px-4 py-3">

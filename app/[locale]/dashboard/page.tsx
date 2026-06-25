@@ -96,7 +96,7 @@ export default async function DashboardPage() {
               <div>
                 <p className="text-xs text-muted-foreground">{t("walletBalance")}</p>
                 <p className="text-2xl font-bold text-foreground mt-0.5">
-                  S${wallet ? Number(wallet.balance).toFixed(2) : "0.00"}
+                  ৳{wallet ? Number(wallet.balance).toFixed(2) : "0.00"}
                 </p>
               </div>
               <div className="w-10 h-10 rounded-xl bg-green-50 flex items-center justify-center">
@@ -121,7 +121,7 @@ export default async function DashboardPage() {
               <div>
                 <p className="text-xs text-muted-foreground">{t("sharePortfolio")}</p>
                 <p className="text-2xl font-bold text-foreground mt-0.5">
-                  S${portfolioValue.toFixed(2)}
+                  ৳{portfolioValue.toFixed(2)}
                 </p>
               </div>
               <div className="w-10 h-10 rounded-xl bg-brand-50 flex items-center justify-center">
@@ -178,13 +178,13 @@ export default async function DashboardPage() {
                     <div className="flex-1 min-w-0">
                       <p className="font-medium text-foreground text-sm truncate">{o.project.name}</p>
                       <p className="text-xs text-muted-foreground mt-0.5">
-                        {o.quantity} {t("shares")} · S${Number(o.project.sharePrice).toFixed(0)}/{t("share")}
+                        {o.quantity} {t("shares")} · ৳{Number(o.project.sharePrice).toFixed(0)}/{t("share")}
                       </p>
                     </div>
                     <div className="flex items-center gap-3 shrink-0">
                       <div className="text-right">
                         <p className="font-semibold text-foreground text-sm">
-                          S${(o.quantity * Number(o.project.sharePrice)).toFixed(2)}
+                          ৳{(o.quantity * Number(o.project.sharePrice)).toFixed(2)}
                         </p>
                         <p className="text-xs text-muted-foreground">{t("currentValue")}</p>
                       </div>
@@ -241,7 +241,7 @@ export default async function DashboardPage() {
                   </div>
                   <div className="text-right">
                     <p className={`text-sm font-semibold ${["DEPOSIT", "SHARE_SALE", "REFUND"].includes(tx.type) ? "text-green-600" : "text-red-600"}`}>
-                      {["DEPOSIT", "SHARE_SALE", "REFUND"].includes(tx.type) ? "+" : "-"}S${Number(tx.amount).toFixed(2)}
+                      {["DEPOSIT", "SHARE_SALE", "REFUND"].includes(tx.type) ? "+" : "-"}৳{Number(tx.amount).toFixed(2)}
                     </p>
                     <p className="text-[11px] text-muted-foreground">
                       {tx.createdAt.toLocaleDateString("en-GB", { day: "2-digit", month: "short" })}

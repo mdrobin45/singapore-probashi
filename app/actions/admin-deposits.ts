@@ -59,7 +59,7 @@ export async function processDepositAction(
         data: {
           userId: request.userId,
           title: "Deposit approved",
-          message: `S$${Number(request.amount).toFixed(2)} has been added to your wallet.`,
+          message: `৳{Number(request.amount).toFixed(2)} has been added to your wallet.`,
           type: "WALLET",
         },
       });
@@ -74,7 +74,7 @@ export async function processDepositAction(
       data: {
         userId: request.userId,
         title: "Deposit rejected",
-        message: `Your deposit of S$${Number(request.amount).toFixed(2)} was rejected.${adminNote ? ` Reason: ${adminNote}` : ""}`,
+        message: `Your deposit of ৳{Number(request.amount).toFixed(2)} was rejected.${adminNote ? ` Reason: ${adminNote}` : ""}`,
         type: "WALLET",
       },
     });
