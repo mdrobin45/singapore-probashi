@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/session";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { Role } from "../../generated/prisma/enums";
 
 type ActionState = { error?: string; success?: string } | null;
 
@@ -118,8 +119,8 @@ export async function changeUserRoleAction(
 
   const userId = formData.get("userId") as string;
   const newRole = formData.get("role") as string;
-  const validRoles = ["USER", "MODERATOR", "ADMIN", "SUPER_ADMIN"];
-  if (!validRoles.includes(newRole)) return { error: "Invalid role." };
+  const validRoles = Object.values(Role);
+  if (!validRoles.includes(newRole as Role)) return { error: "Invalid role." };
 
   const target = await prisma.user.findUnique({
     where: { id: userId },
@@ -134,7 +135,7 @@ export async function changeUserRoleAction(
     if (count <= 1) return { error: "Cannot demote the last Super Admin." };
   }
 
-  await prisma.user.update({ where: { id: userId }, data: { role: newRole } });
+  await prisma.user.update({ where: { id: userId }, data: { role: newRole as Role } });
   revalidatePath("/admin/users");
   return { success: `Role changed to ${newRole.replace("_", " ")}.` };
 }
