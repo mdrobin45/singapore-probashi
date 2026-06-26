@@ -52,7 +52,7 @@ export async function deleteUserAction(
   }
 
   await prisma.user.delete({ where: { id: userId } });
-  revalidatePath("/admin/users");
+  revalidatePath("/", "layout");
   return { success: "User deleted." };
 }
 
@@ -79,7 +79,7 @@ export async function toggleUserActiveAction(
     where: { id: userId },
     data: { isActive: !currentlyActive },
   });
-  revalidatePath("/admin/users");
+  revalidatePath("/", "layout");
   return { success: currentlyActive ? "User banned." : "User activated." };
 }
 
@@ -102,7 +102,7 @@ export async function verifyUserAction(
     return { error: "You don't have permission to verify this user." };
 
   await prisma.user.update({ where: { id: userId }, data: { isVerified: true } });
-  revalidatePath("/admin/users");
+  revalidatePath("/", "layout");
   return { success: "User verified." };
 }
 
@@ -136,6 +136,6 @@ export async function changeUserRoleAction(
   }
 
   await prisma.user.update({ where: { id: userId }, data: { role: newRole as Role } });
-  revalidatePath("/admin/users");
+  revalidatePath("/", "layout");
   return { success: `Role changed to ${newRole.replace("_", " ")}.` };
 }

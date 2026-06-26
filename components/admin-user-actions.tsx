@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState, useState, useRef, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import {
   deleteUserAction,
   toggleUserActiveAction,
@@ -27,6 +28,7 @@ const ROLE_RANK: Record<string, number> = {
 const ALL_ROLES = ["USER", "MODERATOR", "ADMIN", "SUPER_ADMIN"];
 
 export function UserActionsMenu({ user, actorRole }: Props) {
+  const router = useRouter();
   const [open, setOpen] = useState(false);
   const [showRoleSelect, setShowRoleSelect] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -40,6 +42,11 @@ export function UserActionsMenu({ user, actorRole }: Props) {
   const [roleState, roleAction, rolePending] = useActionState(changeUserRoleAction, null);
 
   const feedback = deleteState ?? toggleState ?? verifyState ?? roleState;
+
+  // Refresh server component data whenever an action succeeds
+  useEffect(() => {
+    if (feedback?.success) router.refresh();
+  }, [feedback?.success, router]);
 
   useEffect(() => {
     function handleClick(e: MouseEvent) {
