@@ -7,7 +7,11 @@ import bcrypt from "bcryptjs";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 
-type ActionState = { error?: string; success?: boolean } | null;
+type ActionState = {
+  error?: string;
+  success?: boolean;
+  fieldErrors?: Record<string, string>;
+} | null;
 
 // ─── Register ────────────────────────────────────────────────────────────────
 
@@ -32,7 +36,12 @@ export async function registerAction(
   });
 
   if (!parse.success) {
-    return { error: parse.error.issues[0].message };
+    const fieldErrors: Record<string, string> = {};
+    for (const issue of parse.error.issues) {
+      const field = issue.path[0] as string;
+      if (!fieldErrors[field]) fieldErrors[field] = issue.message;
+    }
+    return { fieldErrors };
   }
 
   const { fullName, nidNumber, email, phone, password } = parse.data;

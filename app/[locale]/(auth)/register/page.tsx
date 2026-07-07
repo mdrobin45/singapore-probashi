@@ -6,11 +6,55 @@ import Image from "next/image";
 import { Link } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
 
+function EyeIcon({ open }: { open: boolean }) {
+  return open ? (
+    <svg className="w-4.5 h-4.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+      <circle cx="12" cy="12" r="3" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  ) : (
+    <svg className="w-4.5 h-4.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24" />
+      <line x1="1" y1="1" x2="23" y2="23" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function FieldError({ message }: { message?: string }) {
+  if (!message) return null;
+  return <p className="text-xs text-red-600 mt-1">{message}</p>;
+}
+
+function inputClass(error?: string) {
+  return `w-full px-3.5 py-2.5 rounded-lg border text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 text-sm transition-colors bg-white ${
+    error
+      ? "border-red-400 focus:ring-red-200 focus:border-red-500"
+      : "border-border focus:ring-brand/30 focus:border-brand"
+  }`;
+}
+
 export default function RegisterPage() {
   const t = useTranslations("auth.register");
   const [state, action, pending] = useActionState(registerAction, null);
   const fileRef = useRef<HTMLInputElement>(null);
   const [preview, setPreview] = useState<string | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
+
+  // Controlled field values — preserved on validation error
+  const [fields, setFields] = useState({
+    fullName: "",
+    nidNumber: "",
+    email: "",
+    phone: "",
+    password: "",
+  });
+
+  function set(key: keyof typeof fields) {
+    return (e: React.ChangeEvent<HTMLInputElement>) =>
+      setFields((prev) => ({ ...prev, [key]: e.target.value }));
+  }
+
+  const fe = state?.fieldErrors ?? {};
 
   function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -23,9 +67,7 @@ export default function RegisterPage() {
   return (
     <div className="bg-white rounded-2xl shadow-sm border border-border p-8">
       <h1 className="text-2xl font-bold text-foreground mb-1">{t("title")}</h1>
-      <p className="text-sm text-muted-foreground mb-7">
-        {t("subtitle")}
-      </p>
+      <p className="text-sm text-muted-foreground mb-7">{t("subtitle")}</p>
 
       <form action={action} className="space-y-5">
         {/* Profile Photo */}
@@ -51,67 +93,97 @@ export default function RegisterPage() {
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+          {/* Full Name */}
           <div className="sm:col-span-2">
             <label className="block text-sm font-medium text-foreground mb-1.5">{t("fullName")}</label>
             <input
               name="fullName"
               type="text"
-              required
               autoComplete="name"
               placeholder={t("fullNamePlaceholder")}
-              className="w-full px-3.5 py-2.5 rounded-lg border border-border bg-white text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-brand/30 focus:border-brand text-sm transition-colors"
+              value={fields.fullName}
+              onChange={set("fullName")}
+              className={inputClass(fe.fullName)}
             />
+            <FieldError message={fe.fullName} />
           </div>
 
+          {/* NID */}
           <div className="sm:col-span-2">
             <label className="block text-sm font-medium text-foreground mb-1.5">{t("nidNumber")}</label>
             <input
               name="nidNumber"
               type="text"
-              required
               placeholder={t("nidPlaceholder")}
-              className="w-full px-3.5 py-2.5 rounded-lg border border-border bg-white text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-brand/30 focus:border-brand text-sm transition-colors"
+              value={fields.nidNumber}
+              onChange={set("nidNumber")}
+              className={inputClass(fe.nidNumber)}
             />
-            <p className="text-xs text-muted-foreground mt-1">{t("nidHint")}</p>
+            {fe.nidNumber ? (
+              <FieldError message={fe.nidNumber} />
+            ) : (
+              <p className="text-xs text-muted-foreground mt-1">{t("nidHint")}</p>
+            )}
           </div>
 
+          {/* Email */}
           <div>
             <label className="block text-sm font-medium text-foreground mb-1.5">{t("email")}</label>
             <input
               name="email"
               type="email"
-              required
               autoComplete="email"
               placeholder={t("emailPlaceholder")}
-              className="w-full px-3.5 py-2.5 rounded-lg border border-border bg-white text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-brand/30 focus:border-brand text-sm transition-colors"
+              value={fields.email}
+              onChange={set("email")}
+              className={inputClass(fe.email)}
             />
+            <FieldError message={fe.email} />
           </div>
 
+          {/* Phone */}
           <div>
             <label className="block text-sm font-medium text-foreground mb-1.5">{t("phone")}</label>
             <input
               name="phone"
               type="tel"
-              required
               autoComplete="tel"
               placeholder={t("phonePlaceholder")}
-              className="w-full px-3.5 py-2.5 rounded-lg border border-border bg-white text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-brand/30 focus:border-brand text-sm transition-colors"
+              value={fields.phone}
+              onChange={set("phone")}
+              className={inputClass(fe.phone)}
             />
+            <FieldError message={fe.phone} />
           </div>
 
+          {/* Password */}
           <div className="sm:col-span-2">
             <label className="block text-sm font-medium text-foreground mb-1.5">{t("password")}</label>
-            <input
-              name="password"
-              type="password"
-              required
-              autoComplete="new-password"
-              placeholder={t("passwordPlaceholder")}
-              className="w-full px-3.5 py-2.5 rounded-lg border border-border bg-white text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-brand/30 focus:border-brand text-sm transition-colors"
-            />
+            <div className="relative">
+              <input
+                name="password"
+                type={showPassword ? "text" : "password"}
+                autoComplete="new-password"
+                placeholder={t("passwordPlaceholder")}
+                value={fields.password}
+                onChange={set("password")}
+                className={inputClass(fe.password) + " pr-10"}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword((v) => !v)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                tabIndex={-1}
+                aria-label={showPassword ? "Hide password" : "Show password"}
+              >
+                <EyeIcon open={showPassword} />
+              </button>
+            </div>
+            <FieldError message={fe.password} />
           </div>
         </div>
 
+        {/* General server error (e.g. email already registered) */}
         {state?.error && (
           <div className="rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700">
             {state.error}
