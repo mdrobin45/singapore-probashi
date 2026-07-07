@@ -82,9 +82,22 @@ export async function verifyOtpAction(
 ): Promise<ActionState> {
   const email = formData.get("email") as string;
   const otp = formData.get("otp") as string;
+  const isForgot = formData.get("type") === "FORGOT_PASSWORD";
 
   if (!email || !otp) return { error: "Invalid request." };
 
+  if (isForgot) {
+    // For password reset — validate the OTP then redirect to reset page
+    const record = await prisma.otpToken.findFirst({
+      where: { email, token: otp, type: "FORGOT_PASSWORD", usedAt: null },
+    });
+    if (!record) return { error: "Invalid OTP. Please check and try again." };
+    if (record.expiresAt < new Date()) return { error: "OTP expired. Request a new one." };
+    // Don't mark as used here — resetPasswordAction does that
+    redirect(`/reset-password?email=${encodeURIComponent(email)}&otp=${encodeURIComponent(otp)}`);
+  }
+
+  // Email verification flow
   const record = await prisma.otpToken.findFirst({
     where: { email, token: otp, type: "EMAIL_VERIFICATION", usedAt: null },
     include: { user: true },

@@ -1,10 +1,12 @@
 "use client";
 
-import { useActionState, useRef, Suspense } from "react";
+import { useActionState, useRef, useEffect, useState, Suspense } from "react";
 import { verifyOtpAction, resendOtpAction } from "@/app/actions/auth";
 import { useSearchParams } from "next/navigation";
 import { Link } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
+
+const RESEND_COOLDOWN = 120; // seconds
 
 function VerifyOtpForm() {
   const t = useTranslations("auth.verifyOtp");
@@ -16,29 +18,61 @@ function VerifyOtpForm() {
   const [verifyState, verifyAction, verifyPending] = useActionState(verifyOtpAction, null);
   const [resendState, resendAction, resendPending] = useActionState(resendOtpAction, null);
 
-  const inputs = useRef<(HTMLInputElement | null)[]>([]);
+  // Resend cooldown timer
+  const [cooldown, setCooldown] = useState(RESEND_COOLDOWN);
+  useEffect(() => {
+    if (cooldown <= 0) return;
+    const t = setTimeout(() => setCooldown((c) => c - 1), 1000);
+    return () => clearTimeout(t);
+  }, [cooldown]);
 
-  function handleDigitInput(index: number, e: React.ChangeEvent<HTMLInputElement>) {
-    const val = e.target.value.replace(/\D/g, "").slice(-1);
-    e.target.value = val;
+  // Reset cooldown when resend succeeds
+  useEffect(() => {
+    if (resendState?.success) setCooldown(RESEND_COOLDOWN);
+  }, [resendState?.success]);
+
+  const inputs = useRef<(HTMLInputElement | null)[]>([]);
+  const hiddenOtp = useRef<HTMLInputElement | null>(null);
+
+  function syncHidden() {
+    if (hiddenOtp.current) {
+      hiddenOtp.current.value = inputs.current.map((el) => el?.value ?? "").join("");
+    }
+  }
+
+  function handleInput(index: number, e: React.FormEvent<HTMLInputElement>) {
+    const input = e.currentTarget;
+    // Keep only the last digit typed
+    const val = input.value.replace(/\D/g, "").slice(-1);
+    input.value = val;
+    syncHidden();
     if (val && index < 5) {
       inputs.current[index + 1]?.focus();
     }
   }
 
   function handleKeyDown(index: number, e: React.KeyboardEvent<HTMLInputElement>) {
-    if (e.key === "Backspace" && !e.currentTarget.value && index > 0) {
-      inputs.current[index - 1]?.focus();
+    if (e.key === "Backspace") {
+      if (e.currentTarget.value) {
+        e.currentTarget.value = "";
+        syncHidden();
+      } else if (index > 0) {
+        const prev = inputs.current[index - 1];
+        if (prev) { prev.value = ""; prev.focus(); }
+        syncHidden();
+      }
+      e.preventDefault();
     }
   }
 
-  function handlePaste(e: React.ClipboardEvent<HTMLInputElement>) {
-    const text = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, 6);
-    text.split("").forEach((char, i) => {
+  function handlePaste(e: React.ClipboardEvent) {
+    e.preventDefault();
+    const digits = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, 6);
+    digits.split("").forEach((char, i) => {
       if (inputs.current[i]) inputs.current[i]!.value = char;
     });
-    inputs.current[Math.min(text.length, 5)]?.focus();
-    e.preventDefault();
+    inputs.current[Math.min(digits.length, 5)]?.focus();
+    syncHidden();
   }
 
   return (
@@ -57,32 +91,25 @@ function VerifyOtpForm() {
       </p>
       <p className="text-sm font-semibold text-brand mb-7 break-all">{email}</p>
 
-      <form
-        action={verifyAction}
-        className="space-y-6"
-        onSubmit={(e) => {
-          const otp = inputs.current.map((el) => el?.value ?? "").join("");
-          const hidden = (e.currentTarget as HTMLFormElement).querySelector<HTMLInputElement>("input[name='otp']");
-          if (hidden) hidden.value = otp;
-        }}
-      >
+      <form action={verifyAction} className="space-y-6">
         <input type="hidden" name="email" value={email} />
-        <input type="hidden" name="otp" value="" />
+        <input type="hidden" name="otp" ref={hiddenOtp} defaultValue="" />
         {isForgot && <input type="hidden" name="type" value="FORGOT_PASSWORD" />}
 
-        <div className="flex justify-center gap-3">
+        {/* OTP boxes */}
+        <div className="flex justify-center gap-2 sm:gap-3" onPaste={handlePaste}>
           {Array.from({ length: 6 }).map((_, i) => (
             <input
               key={i}
               ref={(el) => { inputs.current[i] = el; }}
               type="text"
               inputMode="numeric"
+              pattern="[0-9]*"
               maxLength={1}
-              onChange={(e) => handleDigitInput(i, e)}
+              autoComplete={i === 0 ? "one-time-code" : "off"}
+              onInput={(e) => handleInput(i, e)}
               onKeyDown={(e) => handleKeyDown(i, e)}
-              onPaste={handlePaste}
-              className="w-11 h-13 text-center text-xl font-bold rounded-lg border border-border bg-white text-foreground focus:outline-none focus:ring-2 focus:ring-brand/30 focus:border-brand transition-colors"
-              style={{ height: "3.25rem" }}
+              className="w-11 h-14 text-center text-2xl font-bold rounded-xl border-2 border-border bg-white text-foreground focus:outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 transition-colors caret-transparent"
             />
           ))}
         </div>
@@ -96,31 +123,42 @@ function VerifyOtpForm() {
         <button
           type="submit"
           disabled={verifyPending}
-          className="w-full bg-brand text-white rounded-lg py-2.5 text-sm font-semibold hover:bg-brand-dark transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+          className="w-full bg-brand text-white rounded-lg py-3 text-sm font-semibold hover:bg-brand-dark transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
         >
           {verifyPending ? t("submitting") : isForgot ? t("submitForgot") : t("submit")}
         </button>
       </form>
 
-      {/* Resend */}
-      <form action={resendAction} className="mt-5 text-center">
-        <input type="hidden" name="email" value={email} />
-        <input type="hidden" name="type" value={type} />
-        <span className="text-sm text-muted-foreground">{t("noCode")} </span>
-        <button
-          type="submit"
-          disabled={resendPending}
-          className="text-sm text-brand font-medium hover:underline disabled:opacity-50"
-        >
-          {resendPending ? t("resending") : t("resend")}
-        </button>
+      {/* Resend with cooldown */}
+      <div className="mt-5 text-center">
+        <p className="text-sm text-muted-foreground mb-2">{t("noCode")}</p>
+        {cooldown > 0 ? (
+          <p className="text-sm text-muted-foreground">
+            Resend in{" "}
+            <span className="font-semibold text-foreground tabular-nums">
+              {Math.floor(cooldown / 60)}:{String(cooldown % 60).padStart(2, "0")}
+            </span>
+          </p>
+        ) : (
+          <form action={resendAction}>
+            <input type="hidden" name="email" value={email} />
+            <input type="hidden" name="type" value={type} />
+            <button
+              type="submit"
+              disabled={resendPending}
+              className="text-sm text-brand font-semibold hover:underline disabled:opacity-50"
+            >
+              {resendPending ? t("resending") : t("resend")}
+            </button>
+          </form>
+        )}
         {resendState?.success && (
           <p className="text-xs text-green-600 mt-1">{t("resendSuccess")}</p>
         )}
         {resendState?.error && (
           <p className="text-xs text-red-600 mt-1">{resendState.error}</p>
         )}
-      </form>
+      </div>
 
       <p className="text-center text-sm text-muted-foreground mt-4">
         <Link href="/login" className="text-brand font-medium hover:underline">
