@@ -31,36 +31,30 @@ function VerifyOtpForm() {
     if (resendState?.success) setCooldown(RESEND_COOLDOWN);
   }, [resendState?.success]);
 
+  const [otpValue, setOtpValue] = useState("");
   const inputs = useRef<(HTMLInputElement | null)[]>([]);
-  const hiddenOtp = useRef<HTMLInputElement | null>(null);
 
-  function syncHidden() {
-    if (hiddenOtp.current) {
-      hiddenOtp.current.value = inputs.current.map((el) => el?.value ?? "").join("");
-    }
+  function readBoxes() {
+    return inputs.current.map((el) => el?.value ?? "").join("");
   }
 
   function handleInput(index: number, e: React.FormEvent<HTMLInputElement>) {
     const input = e.currentTarget;
-    // Keep only the last digit typed
     const val = input.value.replace(/\D/g, "").slice(-1);
     input.value = val;
-    syncHidden();
-    if (val && index < 5) {
-      inputs.current[index + 1]?.focus();
-    }
+    setOtpValue(readBoxes());
+    if (val && index < 5) inputs.current[index + 1]?.focus();
   }
 
   function handleKeyDown(index: number, e: React.KeyboardEvent<HTMLInputElement>) {
     if (e.key === "Backspace") {
       if (e.currentTarget.value) {
         e.currentTarget.value = "";
-        syncHidden();
       } else if (index > 0) {
         const prev = inputs.current[index - 1];
         if (prev) { prev.value = ""; prev.focus(); }
-        syncHidden();
       }
+      setOtpValue(readBoxes());
       e.preventDefault();
     }
   }
@@ -72,7 +66,7 @@ function VerifyOtpForm() {
       if (inputs.current[i]) inputs.current[i]!.value = char;
     });
     inputs.current[Math.min(digits.length, 5)]?.focus();
-    syncHidden();
+    setOtpValue(readBoxes());
   }
 
   return (
@@ -93,7 +87,7 @@ function VerifyOtpForm() {
 
       <form action={verifyAction} className="space-y-6">
         <input type="hidden" name="email" value={email} />
-        <input type="hidden" name="otp" ref={hiddenOtp} defaultValue="" />
+        <input type="hidden" name="otp" value={otpValue} />
         {isForgot && <input type="hidden" name="type" value="FORGOT_PASSWORD" />}
 
         {/* OTP boxes */}
