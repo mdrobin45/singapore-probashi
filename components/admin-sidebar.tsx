@@ -65,6 +65,15 @@ const nav = [
       },
     ],
   },
+  {
+    title: "System",
+    items: [
+      {
+        label: "Settings", href: "/admin/settings",
+        icon: <svg className="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>,
+      },
+    ],
+  },
 ];
 
 type Props = { userName: string; userRole: string; userEmail: string };
@@ -118,6 +127,19 @@ export function AdminSidebar({ userName, userRole, userEmail }: Props) {
         ))}
       </nav>
 
+      {/* Visit website */}
+      <div className="px-3 pb-2">
+        <Link
+          href="/"
+          className="flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-sm text-muted-foreground hover:bg-muted hover:text-foreground transition-colors group"
+        >
+          <svg className="w-4.5 h-4.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+          </svg>
+          <span>Visit Website</span>
+        </Link>
+      </div>
+
       {/* User info + actions */}
       <div className="border-t border-border p-4">
         <div className="flex items-start gap-2.5 mb-3">
@@ -132,16 +154,11 @@ export function AdminSidebar({ userName, userRole, userEmail }: Props) {
             </span>
           </div>
         </div>
-        <div className="flex gap-2">
-          <Link href="/" className="flex-1 text-center text-xs text-muted-foreground hover:text-foreground py-1.5 rounded-lg hover:bg-muted transition-colors">
-            ← Site
-          </Link>
-          <form action="/api/logout" method="POST" className="flex-1">
-            <button type="submit" className="w-full text-xs text-red-500 hover:text-red-600 py-1.5 rounded-lg hover:bg-red-50 transition-colors">
-              Logout
-            </button>
-          </form>
-        </div>
+        <form action="/api/logout" method="POST">
+          <button type="submit" className="w-full text-xs text-red-500 hover:text-red-600 py-1.5 rounded-lg hover:bg-red-50 transition-colors">
+            Logout
+          </button>
+        </form>
       </div>
     </aside>
   );

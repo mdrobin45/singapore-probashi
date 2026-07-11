@@ -1,41 +1,37 @@
 import { getTranslations } from "next-intl/server";
-import { CurrencyCalculator } from "./calculator";
+import { getCurrencySettings, getLiveBdtRate } from "@/lib/currency";
+import { prisma } from "@/lib/prisma";
+import { BankCalculator } from "./calculator";
 
-const CURRENCY_META: Record<string, { name: string; symbol: string }> = {
-  BDT: { name: "Bangladeshi Taka", symbol: "৳" },
-  USD: { name: "US Dollar", symbol: "$" },
-  EUR: { name: "Euro", symbol: "€" },
-  GBP: { name: "British Pound", symbol: "£" },
-  MYR: { name: "Malaysian Ringgit", symbol: "RM" },
-  SAR: { name: "Saudi Riyal", symbol: "﷼" },
-  AED: { name: "UAE Dirham", symbol: "د.إ" },
-  INR: { name: "Indian Rupee", symbol: "₹" },
-};
-
-async function getRates(): Promise<{ rates: Record<string, number>; updatedAt: string } | null> {
+async function getBankRates() {
   try {
-    const res = await fetch(
-      "https://api.exchangerate-api.com/v4/latest/SGD",
-      { next: { revalidate: 3600 } }
-    );
-    if (!res.ok) throw new Error("fetch failed");
-    const data = await res.json();
-    return { rates: data.rates as Record<string, number>, updatedAt: data.date ?? "unknown" };
+    const rows = await prisma.bankRate.findMany({
+      where: { isActive: true },
+      orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
+    });
+    return rows.map((r) => ({ id: r.id, bankName: r.bankName, rate: Number(r.rate) }));
   } catch {
-    // Fallback rates (approximate — displayed with a warning)
-    return {
-      rates: { BDT: 83.5, USD: 0.74, EUR: 0.69, GBP: 0.59, MYR: 3.47, SAR: 2.77, AED: 2.72, INR: 61.8 },
-      updatedAt: "fallback",
-    };
+    return [];
   }
 }
 
 export default async function CurrencyPage() {
-  const [data, t] = await Promise.all([getRates(), getTranslations("currency")]);
-  const rates = data?.rates ?? {};
-  const isFallback = data?.updatedAt === "fallback";
+  const [t, settings, liveRate, banks] = await Promise.all([
+    getTranslations("currency"),
+    getCurrencySettings(),
+    getLiveBdtRate(),
+    getBankRates(),
+  ]);
 
-  const displayCurrencies = Object.keys(CURRENCY_META).filter((c) => rates[c]);
+  // Effective rate for the calculator and top bar
+  const effectiveRate =
+    settings.source === "manual"
+      ? settings.manualRate
+      : (liveRate ?? settings.manualRate);
+
+  const isManual = settings.source === "manual";
+
+  const maxRate = banks.length > 0 ? Math.max(...banks.map((b) => b.rate)) : 0;
 
   return (
     <div className="min-h-screen bg-muted">
@@ -46,49 +42,73 @@ export default async function CurrencyPage() {
             {t("badge")}
           </span>
           <h1 className="text-3xl font-bold text-foreground">{t("sgdRatesTitle")}</h1>
-          <p className="text-muted-foreground mt-2">
-            {t("sgdRatesSubtitle")}
-          </p>
-          {isFallback && (
-            <p className="text-xs text-amber-600 mt-1">⚠ {t("fallbackWarning")}</p>
-          )}
-          {!isFallback && (
-            <p className="text-xs text-muted-foreground mt-1">{t("lastUpdated", { date: data?.updatedAt ?? "" })}</p>
-          )}
+          <p className="text-muted-foreground mt-2">{t("sgdRatesSubtitle")}</p>
+          <div className="flex items-center gap-2 mt-2">
+            <span
+              className={`w-2 h-2 rounded-full ${isManual ? "bg-blue-400" : "bg-green-400 animate-pulse"}`}
+            />
+            <p className="text-xs text-muted-foreground">
+              Reference rate: 1 SGD = <strong className="text-foreground">{effectiveRate.toFixed(2)} ৳ BDT</strong>
+              {" · "}{isManual ? "Admin rate" : "Live"}
+            </p>
+          </div>
         </div>
       </div>
 
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8">
-        {/* Interactive calculator */}
-        <CurrencyCalculator rates={rates} />
+        {/* Calculator */}
+        <BankCalculator
+          banks={banks}
+          defaultRate={effectiveRate}
+          isManual={isManual}
+        />
 
-        {/* Rate grid */}
-        <div>
-          <h2 className="text-base font-semibold text-foreground mb-4">{t("oneSgdEquals")}</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {displayCurrencies.map((code) => {
-              const meta = CURRENCY_META[code];
-              const rate = rates[code];
-              return (
-                <div key={code} className="bg-white rounded-2xl border border-border p-5">
-                  <div className="flex items-start justify-between mb-2">
-                    <div>
-                      <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">{code}</p>
-                      <p className="text-xs text-muted-foreground">{meta.name}</p>
+        {/* Bank rate cards */}
+        {banks.length > 0 ? (
+          <div>
+            <h2 className="text-base font-semibold text-foreground mb-4">
+              Bank Rates · 1 SGD = ? ৳ BDT
+            </h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {banks.map((bank) => {
+                const isBest = bank.rate === maxRate;
+                return (
+                  <div
+                    key={bank.id}
+                    className={`bg-white rounded-2xl border p-5 relative overflow-hidden transition-shadow hover:shadow-sm ${
+                      isBest ? "border-green-300 ring-1 ring-green-200" : "border-border"
+                    }`}
+                  >
+                    {isBest && (
+                      <span className="absolute top-3 right-3 text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-green-100 text-green-700">
+                        Best Rate
+                      </span>
+                    )}
+                    <div className="flex items-center gap-2.5 mb-3">
+                      <div className="w-8 h-8 rounded-lg bg-brand-50 flex items-center justify-center shrink-0">
+                        <svg className="w-4 h-4 text-brand" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 14v3m4-3v3m4-3v3M3 21h18M3 10h18M3 7l9-4 9 4M4 10h16v11H4V10z" />
+                        </svg>
+                      </div>
+                      <p className="text-sm font-semibold text-foreground leading-tight">{bank.bankName}</p>
                     </div>
-                    <span className="text-lg text-muted-foreground">{meta.symbol}</span>
+                    <p className="text-3xl font-bold text-foreground">
+                      {bank.rate.toFixed(2)}
+                      <span className="text-lg font-normal text-muted-foreground ml-1">৳</span>
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-1.5">
+                      1 SGD · {(1 / bank.rate).toFixed(6)} BDT per ৳
+                    </p>
                   </div>
-                  <p className="text-2xl font-bold text-foreground">
-                    {rate < 10 ? rate.toFixed(4) : rate.toFixed(2)}
-                  </p>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    {t("inverseRate", { code, rate: (1 / rate).toFixed(4) })}
-                  </p>
-                </div>
-              );
-            })}
+                );
+              })}
+            </div>
           </div>
-        </div>
+        ) : (
+          <div className="bg-white rounded-2xl border border-dashed border-border p-10 text-center text-muted-foreground text-sm">
+            No bank rates configured yet. Admin will add them shortly.
+          </div>
+        )}
 
         {/* Note */}
         <div className="bg-blue-50 border border-blue-200 rounded-2xl p-5 text-sm text-blue-800">

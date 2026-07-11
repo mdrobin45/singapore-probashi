@@ -18,6 +18,7 @@ const MORE_LINKS = [
   { href: "/admin/blog",      label: "Blog",             icon: <svg className="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg> },
   { href: "/admin/islamic",   label: "Islamic Center",   icon: <svg className="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg> },
   { href: "/admin/lost-found",label: "Lost & Found",     icon: <svg className="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg> },
+  { href: "/admin/settings", label: "Settings",          icon: <svg className="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg> },
 ];
 
 export function AdminBottomNav({ pendingPurchases, pendingDeposits, userName, userRole }: Props) {
@@ -108,7 +109,7 @@ export function AdminBottomNav({ pendingPurchases, pendingDeposits, userName, us
 
         <div className="overflow-y-auto flex-1 px-4 pb-6 pt-2">
           {/* User info */}
-          <div className="flex items-center gap-3 mb-5 p-3 bg-muted rounded-xl">
+          <div className="flex items-center gap-3 mb-4 p-3 bg-muted rounded-xl">
             <span className="w-10 h-10 rounded-full bg-brand text-white font-bold text-sm flex items-center justify-center shrink-0">
               {userName.charAt(0).toUpperCase()}
             </span>
@@ -118,10 +119,18 @@ export function AdminBottomNav({ pendingPurchases, pendingDeposits, userName, us
                 {userRole.replace("_", " ")}
               </span>
             </div>
-            <Link href="/" className="ml-auto text-xs text-muted-foreground bg-white border border-border px-3 py-1.5 rounded-lg shrink-0">
-              ← Site
-            </Link>
           </div>
+
+          {/* Visit website */}
+          <Link
+            href="/"
+            className="flex items-center gap-3 w-full px-4 py-3 mb-4 rounded-xl bg-brand-50 text-brand font-medium text-sm active:scale-95 transition-transform"
+          >
+            <svg className="w-4.5 h-4.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+            </svg>
+            Visit Website
+          </Link>
 
           {/* More nav links */}
           <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground mb-2 px-0.5">

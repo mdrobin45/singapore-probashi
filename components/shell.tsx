@@ -8,7 +8,13 @@ import type { SessionPayload } from "@/lib/session";
 
 const AUTH_PATHS = ["/login", "/register", "/verify-otp", "/forgot-password", "/reset-password", "/admin"];
 
-export function Shell({ children, user }: { children: React.ReactNode; user: SessionPayload | null }) {
+type ShellProps = {
+  children: React.ReactNode;
+  user: SessionPayload | null;
+  rateBar?: React.ReactNode;
+};
+
+export function Shell({ children, user, rateBar }: ShellProps) {
   const pathname = usePathname();
 
   const isAuth = AUTH_PATHS.some((p) => pathname.startsWith(p));
@@ -18,6 +24,7 @@ export function Shell({ children, user }: { children: React.ReactNode; user: Ses
   return (
     <>
       <Navbar user={user} />
+      {rateBar}
       <main className="flex-1 pb-16 lg:pb-0">{children}</main>
       <Footer />
       <BottomNav user={user} />

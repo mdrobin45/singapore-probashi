@@ -560,3 +560,27 @@ model AuditLog {
   @@index([userId])
   @@index([entity, entityId])
 }
+
+// ─────────────────────────────────────────────
+// SITE SETTINGS
+// ─────────────────────────────────────────────
+
+model SiteSetting {
+  key       String   @id
+  value     String
+  updatedAt DateTime @updatedAt
+}
+
+// ─────────────────────────────────────────────
+// BANK RATES
+// ─────────────────────────────────────────────
+
+model BankRate {
+  id        String   @id @default(cuid())
+  bankName  String
+  rate      Decimal  @db.Decimal(10, 4)
+  isActive  Boolean  @default(true)
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
