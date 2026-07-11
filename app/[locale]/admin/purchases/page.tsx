@@ -74,6 +74,9 @@ export default async function AdminPurchasesPage() {
                     {r.txId && (
                       <p className="text-[11px] font-mono text-muted-foreground truncate max-w-28">{r.txId}</p>
                     )}
+                    {r.screenshotUrl && (
+                      <p className="text-[11px] text-brand font-medium mt-0.5">📎 Screenshot</p>
+                    )}
                   </td>
                   <td className="px-4 py-3.5">
                     <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${STATUS_STYLES[r.status]}`}>
@@ -88,7 +91,11 @@ export default async function AdminPurchasesPage() {
                   </td>
                   <td className="px-4 py-3.5">
                     {r.status === "PENDING" && (
-                      <ProcessPurchaseForm requestId={r.id} />
+                      <ProcessPurchaseForm
+                        requestId={r.id}
+                        txId={r.txId ?? null}
+                        screenshotUrl={r.screenshotUrl ?? null}
+                      />
                     )}
                   </td>
                 </tr>

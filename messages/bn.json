@@ -252,6 +252,7 @@
     "aboveMarket": "+{pct}% বাজারের উপরে",
     "belowMarket": "{pct}% বাজারের নিচে",
     "shareMarketplace": "শেয়ার মার্কেটপ্লেস",
+    "createdBy": "তৈরি করেছেন",
     "activeProject": "সক্রিয় প্রকল্প",
     "sharePrice": "শেয়ারের মূল্য",
     "totalShares": "মোট শেয়ার",

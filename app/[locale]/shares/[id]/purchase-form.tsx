@@ -26,6 +26,8 @@ export function PurchaseForm({ projectId, sharePrice, availableShares, hasPendin
   const [method, setMethod] = useState("BKASH");
   const [proofMode, setProofMode] = useState<"txid" | "screenshot">("txid");
   const [screenshotName, setScreenshotName] = useState<string | null>(null);
+  const [screenshotError, setScreenshotError] = useState<string | null>(null);
+  const [screenshotBase64, setScreenshotBase64] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
   const total = qty * sharePrice;
@@ -175,14 +177,28 @@ export function PurchaseForm({ projectId, sharePrice, availableShares, hasPendin
               />
             ) : (
               <div>
+                {/* Hidden base64 value submitted with form */}
+                <input type="hidden" name="screenshotUrl" value={screenshotBase64 ?? ""} />
                 <input
                   ref={fileRef}
-                  name="screenshot"
                   type="file"
                   accept="image/*"
-                  required
                   className="hidden"
-                  onChange={(e) => setScreenshotName(e.target.files?.[0]?.name ?? null)}
+                  onChange={(e) => {
+                    setScreenshotError(null);
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+                    if (file.size > 3 * 1024 * 1024) {
+                      setScreenshotError("Image must be under 3 MB.");
+                      return;
+                    }
+                    const reader = new FileReader();
+                    reader.onload = () => {
+                      setScreenshotBase64(reader.result as string);
+                      setScreenshotName(file.name);
+                    };
+                    reader.readAsDataURL(file);
+                  }}
                 />
                 <button
                   type="button"
@@ -200,6 +216,9 @@ export function PurchaseForm({ projectId, sharePrice, availableShares, hasPendin
                     {screenshotName ?? "Tap to upload payment screenshot"}
                   </span>
                 </button>
+                {screenshotError && (
+                  <p className="text-xs text-red-600 mt-1">{screenshotError}</p>
+                )}
               </div>
             )}
           </div>

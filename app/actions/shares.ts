@@ -34,8 +34,8 @@ export async function requestSharePurchaseAction(
 
   const { projectId, quantity, paymentMethod, txId, screenshotUrl } = parse.data;
 
-  if (paymentMethod !== "WALLET" && !txId) {
-    return { error: "Transaction ID is required for this payment method." };
+  if (paymentMethod !== "WALLET" && !txId && !screenshotUrl) {
+    return { error: "Please provide a transaction ID or upload a payment screenshot." };
   }
 
   const project = await prisma.project.findUnique({
@@ -56,7 +56,7 @@ export async function requestSharePurchaseAction(
       select: { id: true, balance: true },
     });
     if (!wallet || Number(wallet.balance) < totalAmount) {
-      return { error: `Insufficient wallet balance. Need ৳{totalAmount.toFixed(2)}.` };
+      return { error: `Insufficient wallet balance. Need ৳${totalAmount.toFixed(2)}.` };
     }
   }
 
