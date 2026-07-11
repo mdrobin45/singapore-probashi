@@ -91,10 +91,10 @@ export default async function ShareDetailPage({
               {/* Stats row */}
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-px bg-border">
                 {[
-                  { label: t("sharePrice"), value: `৳{Number(project.sharePrice).toFixed(2)}` },
+                  { label: t("sharePrice"), value: `৳${Number(project.sharePrice).toFixed(2)}` },
                   { label: t("totalShares"), value: project.totalShares.toLocaleString() },
                   { label: t("available"), value: project.availableShares.toLocaleString() },
-                  { label: t("totalFund"), value: `৳{(totalValue / 1000).toFixed(1)}K` },
+                  { label: t("totalFund"), value: `৳${totalValue.toLocaleString()}` },
                 ].map((stat) => (
                   <div key={stat.label} className="bg-white px-5 py-4 text-center">
                     <p className="text-lg font-bold text-foreground">{stat.value}</p>

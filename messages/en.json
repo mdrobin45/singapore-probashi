@@ -272,8 +272,8 @@
     "numberOfShares": "Number of Shares",
     "sharesAvailableCount": "{count} shares available",
     "totalAmount": "Total Amount",
-    "perSharePrice": "S${price} per share",
-    "buySharesButton": "Buy {qty} Share{plural} · S${total}",
+    "perSharePrice": "৳{price} per share",
+    "buySharesButton": "Buy {qty} Share{plural} · ৳{total}",
     "purchaseReviewNotice": "Your request will be reviewed by an admin before shares are transferred."
   },
   "airTicket": {
