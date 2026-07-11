@@ -10,12 +10,12 @@ async function main() {
   console.log("🌱  Seeding database…\n");
 
   const SEED_EMAILS = [
-    "superadmin@probashi.com",
-    "admin@probashi.com",
-    "mod@probashi.com",
-    "user@probashi.com",
-    "user2@probashi.com",
-    "user3@probashi.com",
+    "superadmin@mail.com",
+    "admin@mail.com",
+    "mod@mail.com",
+    "user@mail.com",
+    "user2@mail.com",
+    "user3@mail.com",
   ];
 
   // ── Clean previous seed data (safe dependency order) ─────────────────────
@@ -39,19 +39,19 @@ async function main() {
 
   // ── Users ─────────────────────────────────────────────────────────────────
   const [h1, h2, h3, h4, h5, h6] = await Promise.all([
-    bcrypt.hash("SuperAdmin@123", 12),
-    bcrypt.hash("Admin@1234", 12),
-    bcrypt.hash("Mod@12345", 12),
-    bcrypt.hash("User@1234", 12),
-    bcrypt.hash("User2@1234", 12),
-    bcrypt.hash("User3@1234", 12),
+    bcrypt.hash("password", 12),
+    bcrypt.hash("password", 12),
+    bcrypt.hash("password", 12),
+    bcrypt.hash("password", 12),
+    bcrypt.hash("password", 12),
+    bcrypt.hash("password", 12),
   ]);
 
   const superAdmin = await prisma.user.create({
     data: {
       fullName: "Rahman Kabir",
       nidNumber: "1000000000",
-      email: "superadmin@probashi.com",
+      email: "superadmin@mail.com",
       phone: "+65 9000 0001",
       passwordHash: h1,
       role: "SUPER_ADMIN",
@@ -63,7 +63,7 @@ async function main() {
     data: {
       fullName: "Moshiur Ahmed",
       nidNumber: "2000000000",
-      email: "admin@probashi.com",
+      email: "admin@mail.com",
       phone: "+65 9000 0002",
       passwordHash: h2,
       role: "ADMIN",
@@ -75,7 +75,7 @@ async function main() {
     data: {
       fullName: "Tasnim Hossain",
       nidNumber: "3000000000",
-      email: "mod@probashi.com",
+      email: "mod@mail.com",
       phone: "+65 9000 0003",
       passwordHash: h3,
       role: "MODERATOR",
@@ -88,7 +88,7 @@ async function main() {
     data: {
       fullName: "Jakaria Islam",
       nidNumber: "4000000000",
-      email: "user@probashi.com",
+      email: "user@mail.com",
       phone: "+65 9001 0001",
       passwordHash: h4,
       role: "USER",
@@ -100,7 +100,7 @@ async function main() {
     data: {
       fullName: "Mahbubur Rahman",
       nidNumber: "5000000000",
-      email: "user2@probashi.com",
+      email: "user2@mail.com",
       phone: "+65 9001 0002",
       passwordHash: h5,
       role: "USER",
@@ -112,7 +112,7 @@ async function main() {
     data: {
       fullName: "Sumaiya Begum",
       nidNumber: "6000000000",
-      email: "user3@probashi.com",
+      email: "user3@mail.com",
       phone: "+65 9001 0003",
       passwordHash: h6,
       role: "USER",
@@ -578,18 +578,18 @@ async function main() {
 
   // ── Done ──────────────────────────────────────────────────────────────────
   console.log("\n✅  Seed complete!\n");
-  console.log("┌──────────────────────────────────────────────────────────────┐");
-  console.log("│                    TEST CREDENTIALS                          │");
-  console.log("├───────────────┬────────────────┬──────────────────────────── │");
-  console.log("│ Role          │ NID            │ Password                    │");
-  console.log("├───────────────┼────────────────┼─────────────────────────────┤");
-  console.log("│ SUPER_ADMIN   │ 1000000000     │ SuperAdmin@123              │");
-  console.log("│ ADMIN         │ 2000000000     │ Admin@1234                  │");
-  console.log("│ MODERATOR     │ 3000000000     │ Mod@12345                   │");
-  console.log("│ USER (Jakaria)│ 4000000000     │ User@1234                   │");
-  console.log("│ USER (Mahbub) │ 5000000000     │ User2@1234                  │");
-  console.log("│ USER (Sumaiya)│ 6000000000     │ User3@1234                  │");
-  console.log("└───────────────┴────────────────┴─────────────────────────────┘");
+  console.log("┌───────────────────────────────────────────────────────┐");
+  console.log("│                  TEST CREDENTIALS                    │");
+  console.log("├─────────────┬────────────────────────┬───────────────┤");
+  console.log("│ Role        │ Email                  │ Password      │");
+  console.log("├─────────────┼────────────────────────┼───────────────┤");
+  console.log("│ SUPER_ADMIN │ superadmin@mail.com    │ password      │");
+  console.log("│ ADMIN       │ admin@mail.com         │ password      │");
+  console.log("│ MODERATOR   │ mod@mail.com           │ password      │");
+  console.log("│ USER        │ user@mail.com          │ password      │");
+  console.log("│ USER        │ user2@mail.com         │ password      │");
+  console.log("│ USER        │ user3@mail.com         │ password      │");
+  console.log("└─────────────┴────────────────────────┴───────────────┘");
   console.log("\n  Seeded:  3 projects  |  5 share ownerships");
   console.log("           3 purchase requests  |  2 resell listings  |  1 trade");
   console.log("           3 air tickets  |  3 referral codes  |  3 bookings");

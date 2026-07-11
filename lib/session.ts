@@ -13,13 +13,15 @@ export type SessionPayload = {
 };
 
 const COOKIE_NAME = "sp_session";
-const COOKIE_MAX_AGE = 60 * 60 * 24 * 30; // 30 days
 
-export async function createSession(payload: SessionPayload) {
+export async function createSession(payload: SessionPayload, rememberMe = true) {
+  const maxAge = rememberMe ? 60 * 60 * 24 * 30 : 60 * 60 * 24; // 30d or 1d
+  const expiry = rememberMe ? "30d" : "1d";
+
   const token = await new SignJWT({ ...payload })
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()
-    .setExpirationTime("30d")
+    .setExpirationTime(expiry)
     .sign(SECRET);
 
   const jar = await cookies();
@@ -27,7 +29,7 @@ export async function createSession(payload: SessionPayload) {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "lax",
-    maxAge: COOKIE_MAX_AGE,
+    maxAge,
     path: "/",
   });
 }

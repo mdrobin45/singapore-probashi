@@ -108,10 +108,11 @@ enum NotificationType {
 model User {
   id           String   @id @default(cuid())
   fullName     String
-  nidNumber    String   @unique
+  nidNumber    String?  @unique
   email        String   @unique
-  phone        String
-  passwordHash String
+  phone        String?
+  passwordHash String?
+  googleId     String?  @unique
   profilePhoto String?
   role         Role     @default(USER)
   isVerified   Boolean  @default(false)
@@ -157,6 +158,19 @@ model OtpToken {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([email, token])
+}
+
+model PendingRegistration {
+  id           String   @id @default(cuid())
+  fullName     String
+  email        String   @unique
+  phone        String
+  passwordHash String
+  otp          String
+  expiresAt    DateTime
+  createdAt    DateTime @default(now())
+
+  @@index([email])
 }
 
 // ─────────────────────────────────────────────
