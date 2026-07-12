@@ -179,13 +179,13 @@ async function main() {
   // user2 : 10 shares in project2, 5 in project3
   // user3 : 5 shares in project1
 
-  const ownership1 = await prisma.shareOwnership.create({
+  await prisma.shareOwnership.create({
     data: { projectId: project1.id, ownerId: user.id,  quantity: 10, purchasePrice: 500.00 },
   });
   await prisma.shareOwnership.create({
     data: { projectId: project2.id, ownerId: user.id,  quantity: 5,  purchasePrice: 200.00 },
   });
-  const ownership2 = await prisma.shareOwnership.create({
+  await prisma.shareOwnership.create({
     data: { projectId: project2.id, ownerId: user2.id, quantity: 10, purchasePrice: 200.00 },
   });
   await prisma.shareOwnership.create({
@@ -502,6 +502,366 @@ async function main() {
       },
     ],
   });
+
+  // ── Islamic Content (Duas & Articles) ────────────────────────────────────
+  // Only seed if empty so re-running seed doesn't duplicate
+  const existingDuas = await prisma.dua.count();
+  if (existingDuas === 0) {
+    await prisma.dua.createMany({
+      data: [
+        // ── Prayer (Salah) ──────────────────────────────────────────────────
+        {
+          title: "Dua before entering prayer (Iftitah)",
+          arabic: "سُبْحَانَكَ اللَّهُمَّ وَبِحَمْدِكَ وَتَبَارَكَ اسْمُكَ وَتَعَالَى جَدُّكَ وَلَا إِلَهَ غَيْرُكَ",
+          transliteration: "Subhānaka Allāhumma wa bi-ḥamdika wa tabāraka ismuka wa ta'ālā jadduka wa lā ilāha ghayruk",
+          translation: "Glory be to You, O Allah, and all praises are due unto You, and blessed is Your name and high is Your majesty and none is worthy of worship but You.",
+          category: "Prayer",
+          source: "Abu Dawud, Tirmidhi",
+        },
+        {
+          title: "Dua after completing prayer (Tasleem)",
+          arabic: "اللَّهُمَّ أَنْتَ السَّلَامُ وَمِنْكَ السَّلَامُ تَبَارَكْتَ يَا ذَا الْجَلَالِ وَالْإِكْرَامِ",
+          transliteration: "Allāhumma anta as-salāmu wa minka as-salāmu tabārakta yā dhal-jalāli wal-ikrām",
+          translation: "O Allah, You are Peace and from You is peace. Blessed are You, O Owner of majesty and honour.",
+          category: "Prayer",
+          source: "Muslim",
+        },
+        {
+          title: "Dua going to the Masjid",
+          arabic: "اللَّهُمَّ اجْعَلْ فِي قَلْبِي نُورًا وَفِي لِسَانِي نُورًا وَفِي بَصَرِي نُورًا",
+          transliteration: "Allāhummaj'al fī qalbī nūrā wa fī lisānī nūrā wa fī baṣarī nūrā",
+          translation: "O Allah, place light in my heart, light on my tongue, and light in my sight.",
+          category: "Prayer",
+          source: "Bukhari, Muslim",
+        },
+        {
+          title: "Dua entering the Masjid",
+          arabic: "اللَّهُمَّ افْتَحْ لِي أَبْوَابَ رَحْمَتِكَ",
+          transliteration: "Allāhumma iftaḥ lī abwāba raḥmatik",
+          translation: "O Allah, open the gates of Your mercy for me.",
+          category: "Prayer",
+          source: "Muslim",
+        },
+        {
+          title: "Dua leaving the Masjid",
+          arabic: "اللَّهُمَّ إِنِّي أَسْأَلُكَ مِنْ فَضْلِكَ",
+          transliteration: "Allāhumma innī as'aluka min faḍlik",
+          translation: "O Allah, I ask You of Your bounty.",
+          category: "Prayer",
+          source: "Muslim",
+        },
+        // ── Jumma (Friday) ──────────────────────────────────────────────────
+        {
+          title: "Salawat on the Prophet (for Jumma)",
+          arabic: "اللَّهُمَّ صَلِّ عَلَى مُحَمَّدٍ وَعَلَى آلِ مُحَمَّدٍ كَمَا صَلَّيْتَ عَلَى إِبْرَاهِيمَ وَعَلَى آلِ إِبْرَاهِيمَ إِنَّكَ حَمِيدٌ مَجِيدٌ",
+          transliteration: "Allāhumma ṣalli 'alā Muḥammadin wa 'alā āli Muḥammadin kamā ṣallayta 'alā Ibrāhīma wa 'alā āli Ibrāhīma innaka Ḥamīdun Majīd",
+          translation: "O Allah, bestow Your prayers upon Muhammad and upon the family of Muhammad, as You bestowed Your prayers upon Ibrahim and upon the family of Ibrahim. Indeed, You are Praiseworthy, Glorious.",
+          category: "Jumma",
+          source: "Bukhari, Muslim",
+        },
+        {
+          title: "Dua during the last hour of Jumma",
+          arabic: "اللَّهُمَّ إِنِّي أَسْأَلُكَ بِأَنَّكَ أَنْتَ اللَّهُ لَا إِلَهَ إِلَّا أَنْتَ الْأَحَدُ الصَّمَدُ الَّذِي لَمْ يَلِدْ وَلَمْ يُولَدْ وَلَمْ يَكُنْ لَهُ كُفُوًا أَحَدٌ",
+          transliteration: "Allāhumma innī as'aluka bi-annaka anta Allāhu lā ilāha illā anta al-Aḥadu aṣ-Ṣamadu alladhī lam yalid wa lam yūlad wa lam yakun lahu kufuwan aḥad",
+          translation: "O Allah, I ask You by the fact that You are Allah, there is no god but You, the One, the Self-Sufficient, Who did not beget and was not begotten, and none is comparable to Him.",
+          category: "Jumma",
+          source: "Abu Dawud, Ibn Majah",
+        },
+        {
+          title: "Recite Surah Al-Kahf on Jumma",
+          arabic: "مَنْ قَرَأَ سُورَةَ الْكَهْفِ فِي يَوْمِ الْجُمُعَةِ أَضَاءَ لَهُ مِنَ النُّورِ مَا بَيْنَ الْجُمُعَتَيْنِ",
+          transliteration: "Man qara'a Sūratal-Kahfi fī yawmil-Jumu'ati aḍā'a lahu minan-nūri mā baynal-Jumu'atayn",
+          translation: "Whoever reads Surah Al-Kahf on Friday, a light will shine for him between the two Fridays. (Reminder to recite Surah Al-Kahf every Friday.)",
+          category: "Jumma",
+          source: "Al-Hakim (authenticated)",
+        },
+        {
+          title: "Dua for the last hour of Friday afternoon",
+          arabic: "رَبَّنَا آتِنَا فِي الدُّنْيَا حَسَنَةً وَفِي الْآخِرَةِ حَسَنَةً وَقِنَا عَذَابَ النَّارِ",
+          transliteration: "Rabbanā ātinā fid-dunyā ḥasanatan wa fil-ākhirati ḥasanatan wa qinā 'adhāban-nār",
+          translation: "Our Lord, give us good in this world and good in the Hereafter, and protect us from the punishment of the Fire.",
+          category: "Jumma",
+          source: "Quran 2:201",
+        },
+        // ── Morning ──────────────────────────────────────────────────────────
+        {
+          title: "Morning Remembrance — waking up",
+          arabic: "الْحَمْدُ لِلَّهِ الَّذِي أَحْيَانَا بَعْدَ مَا أَمَاتَنَا وَإِلَيْهِ النُّشُورُ",
+          transliteration: "Alḥamdulillāhil-ladhī aḥyānā ba'da mā amātanā wa ilayhin-nushūr",
+          translation: "All praise is for Allah who gave us life after having taken it from us, and unto Him is the resurrection.",
+          category: "Morning",
+          source: "Bukhari",
+        },
+        {
+          title: "Morning Remembrance (Sabah)",
+          arabic: "أَصْبَحْنَا وَأَصْبَحَ الْمُلْكُ لِلَّهِ وَالْحَمْدُ لِلَّهِ لَا إِلَهَ إِلَّا اللَّهُ وَحْدَهُ لَا شَرِيكَ لَهُ",
+          transliteration: "Aṣbaḥnā wa aṣbaḥal-mulku lillāhi wal-ḥamdu lillāhi lā ilāha illallāhu waḥdahu lā sharīka lah",
+          translation: "We have entered a new morning and all sovereignty belongs to Allah. All praise is for Allah. None has the right to be worshipped except Allah, alone, without partner.",
+          category: "Morning",
+          source: "Muslim",
+        },
+        {
+          title: "Ayatul Kursi (morning protection)",
+          arabic: "اللَّهُ لَا إِلَهَ إِلَّا هُوَ الْحَيُّ الْقَيُّومُ لَا تَأْخُذُهُ سِنَةٌ وَلَا نَوْمٌ",
+          transliteration: "Allāhu lā ilāha illā huwal-Ḥayyul-Qayyūm lā ta'khudhuhu sinatun wa lā nawm",
+          translation: "Allah — there is no deity except Him, the Ever-Living, the Sustainer of existence. Neither drowsiness overtakes Him nor sleep.",
+          category: "Morning",
+          source: "Quran 2:255",
+        },
+        // ── Evening ──────────────────────────────────────────────────────────
+        {
+          title: "Evening Remembrance (Masa)",
+          arabic: "أَمْسَيْنَا وَأَمْسَى الْمُلْكُ لِلَّهِ وَالْحَمْدُ لِلَّهِ لَا إِلَهَ إِلَّا اللَّهُ وَحْدَهُ لَا شَرِيكَ لَهُ",
+          transliteration: "Amsaynā wa amsal-mulku lillāhi wal-ḥamdu lillāhi lā ilāha illallāhu waḥdahu lā sharīka lah",
+          translation: "We have entered a new evening and all sovereignty belongs to Allah. All praise is for Allah. None has the right to be worshipped except Allah, alone, without partner.",
+          category: "Evening",
+          source: "Muslim",
+        },
+        {
+          title: "Dua before sleeping",
+          arabic: "بِاسْمِكَ اللَّهُمَّ أَمُوتُ وَأَحْيَا",
+          transliteration: "Bismika Allāhumma amūtu wa aḥyā",
+          translation: "In Your name, O Allah, I die and I live.",
+          category: "Sleep",
+          source: "Bukhari",
+        },
+        {
+          title: "Dua for forgiveness before sleep",
+          arabic: "اللَّهُمَّ إِنَّكَ خَلَقْتَ نَفْسِي وَأَنْتَ تَوَفَّاهَا لَكَ مَمَاتُهَا وَمَحْيَاهَا إِنْ أَحْيَيْتَهَا فَاحْفَظْهَا وَإِنْ أَمَتَّهَا فَاغْفِرْ لَهَا",
+          transliteration: "Allāhumma innaka khalaqta nafsī wa anta tawaffāhā laka mamātuhā wa maḥyāhā in aḥyaytahā faḥfaẓhā wa in amattahā faghfir lahā",
+          translation: "O Allah, You created my soul and You will take it back. To You belongs its death and its life. If You keep it alive then protect it, and if You cause it to die then forgive it.",
+          category: "Sleep",
+          source: "Muslim",
+        },
+        // ── Food ─────────────────────────────────────────────────────────────
+        {
+          title: "Dua before eating (Bismillah)",
+          arabic: "بِسْمِ اللَّهِ وَعَلَى بَرَكَةِ اللَّهِ",
+          transliteration: "Bismillāhi wa 'alā barakati-llāh",
+          translation: "In the name of Allah and with the blessings of Allah.",
+          category: "Food",
+          source: "Abu Dawud",
+        },
+        {
+          title: "Dua after eating (Alhamdulillah)",
+          arabic: "الْحَمْدُ لِلَّهِ الَّذِي أَطْعَمَنَا وَسَقَانَا وَجَعَلَنَا مُسْلِمِينَ",
+          transliteration: "Alḥamdulillāhil-ladhī aṭ'amanā wa saqānā wa ja'alanā muslimīn",
+          translation: "All praise is for Allah who fed us, gave us drink, and made us Muslims.",
+          category: "Food",
+          source: "Abu Dawud, Tirmidhi",
+        },
+        // ── Travel ───────────────────────────────────────────────────────────
+        {
+          title: "Dua for Travel (Safar)",
+          arabic: "سُبْحَانَ الَّذِي سَخَّرَ لَنَا هَذَا وَمَا كُنَّا لَهُ مُقْرِنِينَ وَإِنَّا إِلَى رَبِّنَا لَمُنْقَلِبُونَ",
+          transliteration: "Subḥānal-ladhī sakhkhara lanā hādhā wa mā kunnā lahū muqrinīna wa innā ilā rabbinā lamunqalibūn",
+          translation: "Glory be to the One Who has subjected this to us, and we were not able to do it ourselves. And indeed, we will return to our Lord.",
+          category: "Travel",
+          source: "Abu Dawud, Tirmidhi",
+        },
+        {
+          title: "Dua for safe arrival (returning home)",
+          arabic: "آيِبُونَ تَائِبُونَ عَابِدُونَ لِرَبِّنَا حَامِدُونَ",
+          transliteration: "Āyibūna tā'ibūna 'ābidūna li-rabbinā ḥāmidūn",
+          translation: "We are returning, repenting, worshipping, and praising our Lord.",
+          category: "Travel",
+          source: "Muslim",
+        },
+        // ── Protection ───────────────────────────────────────────────────────
+        {
+          title: "Dua for Protection (morning & evening)",
+          arabic: "بِسْمِ اللَّهِ الَّذِي لَا يَضُرُّ مَعَ اسْمِهِ شَيْءٌ فِي الْأَرْضِ وَلَا فِي السَّمَاءِ وَهُوَ السَّمِيعُ الْعَلِيمُ",
+          transliteration: "Bismillāhil-ladhī lā yaḍurru ma'asmihi shay'un fil-arḍi wa lā fis-samā'i wa huwas-Samī'ul-'Alīm",
+          translation: "In the name of Allah, with Whose name nothing can cause harm on earth or in heaven, and He is the All-Hearing, All-Knowing.",
+          category: "Protection",
+          source: "Abu Dawud, Tirmidhi",
+        },
+        {
+          title: "Dua for protection from anxiety",
+          arabic: "اللَّهُمَّ إِنِّي أَعُوذُ بِكَ مِنَ الْهَمِّ وَالْحَزَنِ وَالْعَجْزِ وَالْكَسَلِ وَالْبُخْلِ وَالْجُبْنِ وَضَلَعِ الدَّيْنِ وَغَلَبَةِ الرِّجَالِ",
+          transliteration: "Allāhumma innī a'ūdhu bika minal-hammi wal-ḥazani wal-'ajzi wal-kasali wal-bukhli wal-jubni wa ḍala'id-dayni wa ghalabatir-rijāl",
+          translation: "O Allah, I seek refuge in You from anxiety, grief, incapacity, laziness, miserliness, cowardice, the burden of debt and being overpowered by men.",
+          category: "Protection",
+          source: "Bukhari",
+        },
+        // ── General ──────────────────────────────────────────────────────────
+        {
+          title: "Istighfar (seeking forgiveness)",
+          arabic: "أَسْتَغْفِرُ اللَّهَ الَّذِي لَا إِلَهَ إِلَّا هُوَ الْحَيُّ الْقَيُّومُ وَأَتُوبُ إِلَيْهِ",
+          transliteration: "Astaghfirullāhal-ladhī lā ilāha illā huwal-Ḥayyul-Qayyūmu wa atūbu ilayh",
+          translation: "I seek forgiveness from Allah, besides Whom there is none worthy of worship, the Ever Living, the Eternal, and I repent to Him.",
+          category: "General",
+          source: "Abu Dawud, Tirmidhi",
+        },
+        {
+          title: "Dua for parents",
+          arabic: "رَّبِّ ارْحَمْهُمَا كَمَا رَبَّيَانِي صَغِيرًا",
+          transliteration: "Rabbir-ḥamhumā kamā rabbayānī ṣaghīrā",
+          translation: "My Lord, have mercy upon them as they raised me when I was small.",
+          category: "General",
+          source: "Quran 17:24",
+        },
+        {
+          title: "Dua for guidance (Ihdina)",
+          arabic: "اهْدِنَا الصِّرَاطَ الْمُسْتَقِيمَ صِرَاطَ الَّذِينَ أَنْعَمْتَ عَلَيْهِمْ غَيْرِ الْمَغْضُوبِ عَلَيْهِمْ وَلَا الضَّالِّينَ",
+          transliteration: "Ihdinā aṣ-ṣirāṭal-mustaqīm ṣirāṭal-ladhīna an'amta 'alayhim ghayril-maghḍūbi 'alayhim wa laḍ-ḍāllīn",
+          translation: "Guide us to the straight path — the path of those upon whom You have bestowed favour, not of those who have evoked anger or of those who are astray.",
+          category: "General",
+          source: "Quran 1:6-7",
+        },
+      ],
+    });
+    console.log("  ✓ Seeded duas");
+  }
+
+  const existingArticles = await prisma.islamicArticle.count();
+  if (existingArticles === 0) {
+    // Need an admin user ID — use superAdmin created above
+    await prisma.islamicArticle.createMany({
+      data: [
+        {
+          title: "Prayer Times in Singapore — Complete Guide",
+          excerpt: "Daily Fajr, Dhuhr, Asr, Maghrib and Isha times for Singapore, and the nearest mosques for Bangladeshi workers in every district.",
+          content: `Singapore is a Muslim-friendly city with MUIS (Islamic Religious Council of Singapore) officially publishing daily prayer times. Here is what every Bangladeshi worker in Singapore needs to know.
+
+**Daily Prayer Times (approximate — check MUIS app for exact times)**
+- Fajr (Subh): ~5:30–6:00 AM (before sunrise)
+- Dhuhr (Zohr): ~1:00–1:15 PM
+- Asr: ~4:15–4:30 PM
+- Maghrib: ~7:10–7:20 PM (at sunset)
+- Isha: ~8:20–8:30 PM
+
+**How to get exact times**
+Download the official MUIS app or visit muis.gov.sg. Times shift slightly each day. Singapore's latitude means prayer times are fairly consistent year-round.
+
+**Mosques near Bangladeshi work areas**
+- Little India / Mustafa Centre: Abdul Gafoor Mosque (Dunlop Street)
+- Jurong Industrial Area: Masjid An-Nur (Woodlands), Masjid Al-Ansar (Bedok)
+- Toa Payoh: Masjid Assyakirin
+- Woodlands: Masjid Petempatan Melayu Sembawang
+- Geylang: Masjid Khalid (Geylang Road)
+
+**Tips for workers**
+- Many workplaces allow a 10–15 minute break for Dhuhr and Asr. Communicate with your supervisor.
+- Carry a prayer mat (sejadah) in your bag.
+- Use the Athan app for automatic adhan reminders on your phone.`,
+          authorId: superAdmin.id,
+          status: "PUBLISHED",
+        },
+        {
+          title: "Jumu'ah (Friday Prayer) — Mosques Guide for Singapore",
+          excerpt: "Where to attend Friday prayer near your workplace in Singapore. Mosques across Jurong, Woodlands, Geylang, Toa Payoh and more.",
+          content: `Friday (Jumu'ah) prayer is obligatory for every adult Muslim male. In Singapore, Jumu'ah prayers typically start between 12:15 PM and 1:30 PM depending on the mosque.
+
+**What to do on Jumma**
+1. Take a ritual bath (ghusl) in the morning if possible
+2. Wear clean clothes — white is recommended but not mandatory
+3. Recite Surah Al-Kahf (or as much as you can)
+4. Send abundant Salawat (blessings) on the Prophet ﷺ
+5. Go early — mosques fill up quickly on Fridays
+
+**Key mosques by area**
+- **Jurong / Tuas**: Masjid An-Nur (Woodlands Rd), Masjid Al-Istiqamah (Bukit Timah)
+- **Little India / Mustafa**: Abdul Gafoor Mosque, Masjid Bencoolen
+- **Geylang / Paya Lebar**: Masjid Khalid, Masjid Darul Aman
+- **Tampines / Pasir Ris**: Masjid Darul Ghufran, Masjid Al-Ansar
+- **Toa Payoh / Bishan**: Masjid Assyakirin
+- **Woodlands / Sembawang**: Masjid Petempatan Melayu Sembawang
+
+**Khutbah language**
+Most mosques deliver the Khutbah (sermon) in Malay and English. Some mosques in Little India also offer Tamil. The core Arabic content is the same in all mosques.
+
+**Tip**: Arrive 20–30 minutes early to get a spot inside the main prayer hall. Bring your own prayer mat on busy weeks like Eid preparations.`,
+          authorId: superAdmin.id,
+          status: "PUBLISHED",
+        },
+        {
+          title: "Ramadan in Singapore — A Guide for Bangladeshi Workers",
+          excerpt: "Fasting hours, Taraweeh mosques, halal iftar options, and how to observe Ramadan while working in Singapore.",
+          content: `Ramadan in Singapore is a beautiful experience. The city is Muslim-friendly, and fasting while working is manageable with the right preparation.
+
+**Fasting Hours in Singapore**
+Singapore is close to the equator, so fasting hours are consistent throughout the year — typically 13–14 hours from Suhoor to Iftar, with no extreme long summer fasts.
+
+**Suhoor (pre-dawn meal)**
+Wake up before Fajr (around 5:30 AM) for Suhoor. Many 24-hour kopitiam (coffee shops) and halal eateries near Little India and Geylang serve meals from 4 AM during Ramadan.
+
+**Iftar (breaking fast)**
+Iftar is at Maghrib (around 7:15 PM in Singapore). The entire Little India and Geylang area transforms during Ramadan with bazaars selling Bangladeshi food, murtabak, dates, and more. Geylang Serai Ramadan Bazaar is the most famous.
+
+**Taraweeh Prayers**
+Most mosques offer 8 or 20 rakah Taraweeh after Isha. Check your nearest mosque's schedule.
+
+**Zakat and Fidyah**
+Pay your Zakat Fitrah before Eid prayers. MUIS sets the official rate each year. You can pay at any mosque or via the MUIS website.
+
+**Work tips during Ramadan**
+- Inform your employer you are fasting
+- Stay hydrated between Iftar and Suhoor
+- Eat nutritious Suhoor meals — rice, eggs, oats
+- Many Bangladeshi workers take annual leave during the last 10 days of Ramadan`,
+          authorId: superAdmin.id,
+          status: "PUBLISHED",
+        },
+        {
+          title: "Halal Food in Singapore — What Every Muslim Worker Should Know",
+          excerpt: "How MUIS halal certification works, how to identify halal food, and the best areas for halal meals near Bangladeshi communities.",
+          content: `Singapore has one of the most reliable halal food certification systems in the world, run by MUIS (Majlis Ugama Islam Singapura).
+
+**MUIS Halal Certification**
+- Look for the official MUIS halal logo (a green crescent with "MUIS" text)
+- Many hawker centres have dedicated halal stalls — look for the sign above the stall
+- Major supermarkets (NTUC FairPrice, Giant, Cold Storage) clearly label halal products
+
+**Is Muslim-owned automatically halal?**
+No. A restaurant or stall run by a Muslim may still serve non-halal items or use shared cooking equipment. Always look for the official MUIS cert.
+
+**Best areas for halal food near Bangladeshi workers**
+- **Little India**: Dozens of Bangladeshi, Indian Muslim, and Malay restaurants. Mutton biryani, roti prata available all day.
+- **Geylang**: Nasi padang, murtabak, seafood — many halal options
+- **Woodlands**: Malay food courts with halal certification
+- **Jurong East**: Sun Plaza food court has certified halal options
+
+**Common halal-certified food chains in Singapore**
+- McDonald's (certified halal)
+- KFC (certified halal)
+- Subway (certain outlets — check the cert)
+- Burger King (certain outlets)
+
+**Free app**: Download the "Halal SG" app or use the MUIS halal directory at muis.gov.sg/halal to verify any outlet before eating.`,
+          authorId: superAdmin.id,
+          status: "PUBLISHED",
+        },
+        {
+          title: "Important Duas for Daily Life as a Muslim Worker Abroad",
+          excerpt: "Compilation of essential duas for morning, evening, workplace, and difficult times — to keep your faith strong while working away from home.",
+          content: `Being far from home and family is a test. These duas, when recited with sincerity, help maintain spiritual strength throughout the day.
+
+**Starting the day**
+Begin every morning by saying "Alhamdulillah" for waking up. Recite Ayatul Kursi (Al-Baqarah 2:255) for protection through the day. The morning adhkar (remembrances) from the Sunnah take only 5–10 minutes and bring tremendous barakah.
+
+**At the workplace**
+Before starting any task, say "Bismillah" (In the name of Allah). When something goes wrong, say "Inna lillahi wa inna ilayhi raji'un" (Indeed we belong to Allah and to Him we shall return). When completing work, say "Alhamdulillah."
+
+**Dua for rizq (provision)**
+"Allāhumma innī as'aluka 'ilman nāfi'an wa rizqan ṭayyiban wa 'amalan mutaqabbalan."
+O Allah, I ask You for beneficial knowledge, pure provision, and accepted deeds.
+
+**When facing hardship**
+Recite "La hawla wa la quwwata illa billah" (There is no power nor might except with Allah). This is a treasure from the treasures of Paradise (Bukhari).
+
+**Sending money home**
+When making remittances, make dua that Allah puts barakah in the money and that it reaches your family safely. This act of providing for your family is sadaqah (charity) and earns reward.
+
+**End of the day**
+Complete your evening adhkar, pray Isha, and sleep in a state of wudu. This routine, even when exhausted, keeps the heart connected to Allah while living far from home.`,
+          authorId: superAdmin.id,
+          status: "PUBLISHED",
+        },
+      ],
+    });
+    console.log("  ✓ Seeded Islamic articles");
+  }
 
   // ── Blog Categories ───────────────────────────────────────────────────────
   await prisma.blogCategory.createMany({
