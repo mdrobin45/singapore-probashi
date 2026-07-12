@@ -624,7 +624,33 @@ model ApplyService {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  applications ApplyApplication[]
+  applications     ApplyApplication[]
+  serviceRequests  ServiceRequest[]
+}
+
+model ServiceRequest {
+  id            String      @id @default(cuid())
+  serviceId     String
+
+  fullName      String
+  phone         String
+  email         String
+
+  passportUrl   String?
+  nidUrl        String?
+  photoUrl      String?
+  workPermitUrl String?
+  otherUrl      String?
+
+  status        ApplyStatus @default(PENDING)
+  adminNote     String?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  service ApplyService @relation(fields: [serviceId], references: [id])
+
+  @@index([serviceId])
+  @@index([email])
 }
 
 model ApplyApplication {

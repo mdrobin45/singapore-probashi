@@ -945,6 +945,30 @@ Complete your evening adhkar, pray Isha, and sleep in a state of wudu. This rout
   console.log("├─────────────┼────────────────────────┼───────────────┤");
   console.log("│ SUPER_ADMIN │ superadmin@mail.com    │ password      │");
   console.log("│ ADMIN       │ admin@mail.com         │ password      │");
+  // ── Apply Services (seed 2 initial if none exist) ────────────────────────
+  const existingServices = await prisma.applyService.count();
+  if (existingServices === 0) {
+    await prisma.applyService.createMany({
+      data: [
+        {
+          name: "Resume / CV Creation",
+          description: "Professional resume writing tailored for Singapore job market. Includes formatting, highlights, and English proofreading.",
+          price: 30.00,
+          isActive: true,
+          sortOrder: 1,
+        },
+        {
+          name: "ePassport Assistance",
+          description: "End-to-end assistance with Bangladesh ePassport application while in Singapore. Form filling, document verification, and submission guidance.",
+          price: 50.00,
+          isActive: true,
+          sortOrder: 2,
+        },
+      ],
+    });
+    console.log("  ✓ Seeded 2 apply services");
+  }
+
   console.log("│ MODERATOR   │ mod@mail.com           │ password      │");
   console.log("│ USER        │ user@mail.com          │ password      │");
   console.log("│ USER        │ user2@mail.com         │ password      │");

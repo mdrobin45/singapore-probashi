@@ -176,7 +176,7 @@ export function Navbar({ user }: { user: SessionPayload | null }) {
   const navLinks = user
     ? [
         { href: "/shares/my",     label: t("myInvestments") },
-        { href: "/apply",         label: t("apply") },
+        { href: "/services",      label: t("services") },
         { href: "/air-ticket",    label: t("airTicket") },
         { href: "/currency",      label: t("currency") },
         { href: "/blog",          label: t("blog") },
@@ -185,6 +185,7 @@ export function Navbar({ user }: { user: SessionPayload | null }) {
       ]
     : [
         { href: "/shares",        label: t("shares") },
+        { href: "/services",      label: t("services") },
         { href: "/air-ticket",    label: t("airTicket") },
         { href: "/currency",      label: t("currency") },
         { href: "/blog",          label: t("blog") },

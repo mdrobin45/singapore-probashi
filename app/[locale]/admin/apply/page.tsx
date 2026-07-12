@@ -1,9 +1,10 @@
 import { prisma } from "@/lib/prisma";
 import { CreateServiceModal, ServiceActions } from "./service-form";
 import { ApplicationActions, FileViewer } from "./application-actions";
+import { RequestActions, DocLink } from "./request-actions";
 
 async function getData() {
-  const [services, applications] = await Promise.all([
+  const [services, applications, serviceRequests] = await Promise.all([
     prisma.applyService.findMany({ orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }] }),
     prisma.applyApplication.findMany({
       orderBy: { createdAt: "desc" },
@@ -12,8 +13,12 @@ async function getData() {
         service: { select: { name: true } },
       },
     }),
+    prisma.serviceRequest.findMany({
+      orderBy: { createdAt: "desc" },
+      include: { service: { select: { name: true } } },
+    }),
   ]);
-  return { services, applications };
+  return { services, applications, serviceRequests };
 }
 
 const STATUS_STYLES: Record<string, string> = {
@@ -24,16 +29,17 @@ const STATUS_STYLES: Record<string, string> = {
 };
 
 export default async function AdminApplyPage() {
-  const { services, applications } = await getData();
+  const { services, applications, serviceRequests } = await getData();
 
   const pending = applications.filter((a) => a.status === "PENDING").length;
+  const pendingRequests = serviceRequests.filter((r) => r.status === "PENDING").length;
 
   return (
     <div className="max-w-6xl mx-auto space-y-8">
       <div>
         <h1 className="text-2xl font-bold text-foreground">Apply / Services</h1>
         <p className="text-sm text-muted-foreground mt-0.5">
-          {services.length} services · {pending} pending applications
+          {services.length} services · {pending} pending member applications · {pendingRequests} pending public requests
         </p>
       </div>
 
@@ -78,9 +84,67 @@ export default async function AdminApplyPage() {
         </div>
       </section>
 
-      {/* Applications */}
+      {/* Public Service Requests */}
       <section>
-        <h2 className="text-base font-semibold text-foreground mb-3">Applications ({applications.length})</h2>
+        <div className="flex items-center gap-3 mb-3">
+          <h2 className="text-base font-semibold text-foreground">Public Service Requests ({serviceRequests.length})</h2>
+          {pendingRequests > 0 && (
+            <span className="text-xs font-semibold bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full">{pendingRequests} pending</span>
+          )}
+        </div>
+        <div className="bg-white rounded-xl border border-border overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-border bg-muted/50">
+                  <th className="text-left text-xs font-semibold text-muted-foreground px-5 py-3">Applicant</th>
+                  <th className="text-left text-xs font-semibold text-muted-foreground px-4 py-3">Service</th>
+                  <th className="text-left text-xs font-semibold text-muted-foreground px-4 py-3">Documents</th>
+                  <th className="text-left text-xs font-semibold text-muted-foreground px-4 py-3">Date</th>
+                  <th className="text-left text-xs font-semibold text-muted-foreground px-4 py-3">Status</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border">
+                {serviceRequests.map((r) => (
+                  <tr key={r.id} className={`hover:bg-muted/30 ${r.status === "REJECTED" ? "opacity-60" : ""}`}>
+                    <td className="px-5 py-3.5">
+                      <p className="font-medium text-foreground">{r.fullName}</p>
+                      <p className="text-xs text-muted-foreground">{r.email}</p>
+                      <p className="text-xs text-muted-foreground">{r.phone}</p>
+                      {r.adminNote && (
+                        <p className="text-xs text-amber-700 mt-1 max-w-xs">Note: {r.adminNote}</p>
+                      )}
+                    </td>
+                    <td className="px-4 py-3.5 text-sm font-medium text-foreground">{r.service.name}</td>
+                    <td className="px-4 py-3.5">
+                      <div className="flex flex-col gap-1">
+                        <DocLink label="Passport" url={r.passportUrl} />
+                        <DocLink label="NID"      url={r.nidUrl} />
+                        <DocLink label="Photo"    url={r.photoUrl} />
+                        <DocLink label="Work Permit" url={r.workPermitUrl} />
+                        <DocLink label="Other"    url={r.otherUrl} />
+                      </div>
+                    </td>
+                    <td className="px-4 py-3.5 text-xs text-muted-foreground whitespace-nowrap">
+                      {r.createdAt.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })}
+                    </td>
+                    <td className="px-4 py-3.5">
+                      <RequestActions id={r.id} status={r.status} />
+                    </td>
+                  </tr>
+                ))}
+                {serviceRequests.length === 0 && (
+                  <tr><td colSpan={5} className="text-center py-10 text-muted-foreground text-sm">No public requests yet.</td></tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      {/* Member Applications */}
+      <section>
+        <h2 className="text-base font-semibold text-foreground mb-3">Member Applications ({applications.length})</h2>
         <div className="bg-white rounded-xl border border-border overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-sm">

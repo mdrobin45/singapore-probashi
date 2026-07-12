@@ -1,0 +1,86 @@
+import { prisma } from "@/lib/prisma";
+import { ServiceRequestForm } from "./service-form";
+
+async function getServices() {
+  return prisma.applyService.findMany({
+    where: { isActive: true },
+    orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
+    select: { id: true, name: true, description: true, price: true },
+  });
+}
+
+export default async function ServicesPage() {
+  const services = await getServices();
+
+  const serialized = services.map((s) => ({
+    ...s,
+    price: Number(s.price),
+  }));
+
+  return (
+    <div className="min-h-screen bg-muted">
+      {/* Hero */}
+      <div className="bg-white border-b border-border">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 py-12">
+          <span className="inline-block text-xs font-bold uppercase tracking-wider text-brand bg-brand-50 px-3 py-1 rounded-full mb-4">
+            Professional Services
+          </span>
+          <h1 className="text-3xl font-bold text-foreground mb-2">Our Services</h1>
+          <p className="text-muted-foreground max-w-xl">
+            We help Bangladeshi workers in Singapore with document processing, resume creation, ePassport applications, and more. Fill the form and our team will contact you.
+          </p>
+
+          {/* What you need */}
+          <div className="flex flex-wrap gap-3 mt-6">
+            {[
+              { icon: "📄", label: "Passport Copy" },
+              { icon: "🪪", label: "NID / IC" },
+              { icon: "📸", label: "Passport Photo" },
+              { icon: "📋", label: "Work Permit" },
+            ].map((item) => (
+              <div key={item.label} className="flex items-center gap-2 bg-muted px-3 py-2 rounded-lg text-sm text-foreground">
+                <span>{item.icon}</span>
+                <span>{item.label}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Services grid */}
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 py-10">
+        {services.length === 0 ? (
+          <div className="text-center py-20 text-muted-foreground">
+            No services available right now. Check back soon.
+          </div>
+        ) : (
+          <ServiceRequestForm services={serialized} />
+        )}
+      </div>
+
+      {/* How it works */}
+      <div className="bg-white border-t border-border mt-4">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 py-10">
+          <h2 className="text-lg font-bold text-foreground mb-6">How It Works</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+            {[
+              { step: "1", title: "Choose a Service", desc: "Select the service you need and click Apply Now." },
+              { step: "2", title: "Upload Documents", desc: "Fill your details and upload required documents like Passport and NID." },
+              { step: "3", title: "We Contact You", desc: "Our team will review your application and contact you within 1–2 business days." },
+            ].map((item) => (
+              <div key={item.step} className="flex gap-4">
+                <div className="w-9 h-9 rounded-full bg-brand text-white font-bold flex items-center justify-center shrink-0 text-sm">
+                  {item.step}
+                </div>
+                <div>
+                  <p className="font-semibold text-foreground">{item.title}</p>
+                  <p className="text-sm text-muted-foreground mt-0.5">{item.desc}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
