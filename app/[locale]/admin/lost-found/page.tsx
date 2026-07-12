@@ -1,8 +1,9 @@
 import { prisma } from "@/lib/prisma";
+import { LostFoundActions } from "./actions";
 
 async function getPosts() {
   return prisma.lostFoundPost.findMany({
-    orderBy: { createdAt: "desc" },
+    orderBy: [{ status: "asc" }, { createdAt: "desc" }],
     include: { user: { select: { fullName: true, email: true } } },
   });
 }
@@ -40,11 +41,12 @@ export default async function AdminLostFoundPage() {
                 <th className="text-left text-xs font-semibold text-muted-foreground px-4 py-3">Location</th>
                 <th className="text-left text-xs font-semibold text-muted-foreground px-4 py-3">Status</th>
                 <th className="text-left text-xs font-semibold text-muted-foreground px-4 py-3">Date</th>
+                <th className="text-left text-xs font-semibold text-muted-foreground px-4 py-3">Action</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
               {posts.map((p) => (
-                <tr key={p.id} className="hover:bg-muted/30 transition-colors">
+                <tr key={p.id} className={`hover:bg-muted/30 transition-colors ${p.status !== "OPEN" ? "opacity-60" : ""}`}>
                   <td className="px-6 py-3.5">
                     <p className="font-medium text-foreground max-w-52 truncate">{p.title}</p>
                     <p className="text-xs text-muted-foreground line-clamp-1">{p.description}</p>
@@ -67,10 +69,13 @@ export default async function AdminLostFoundPage() {
                   <td className="px-4 py-3.5 text-xs text-muted-foreground whitespace-nowrap">
                     {p.createdAt.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })}
                   </td>
+                  <td className="px-4 py-3.5">
+                    <LostFoundActions id={p.id} status={p.status} />
+                  </td>
                 </tr>
               ))}
               {posts.length === 0 && (
-                <tr><td colSpan={6} className="text-center py-12 text-muted-foreground text-sm">No posts yet.</td></tr>
+                <tr><td colSpan={7} className="text-center py-12 text-muted-foreground text-sm">No posts yet.</td></tr>
               )}
             </tbody>
           </table>

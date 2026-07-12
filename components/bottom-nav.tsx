@@ -57,15 +57,34 @@ function MoreIcon({ active }: { active: boolean }) {
   );
 }
 
-// ── Extra links shown in the sheet ────────────────────────────────────────────
+// ── Icons reused in extra links ────────────────────────────────────────────────
 
-const EXTRA_LINKS = [
-  { href: "/air-ticket",    label: "Air Ticket",   icon: <svg className="w-4.5 h-4.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg> },
-  { href: "/currency",      label: "Currency",     icon: <svg className="w-4.5 h-4.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 014-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 01-4 4H3"/></svg> },
-  { href: "/taxi",          label: "Taxi",         icon: <svg className="w-4.5 h-4.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><rect x="1" y="3" width="15" height="13" rx="1"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg> },
-  { href: "/lost-found",    label: "Lost & Found", icon: <svg className="w-4.5 h-4.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg> },
-  { href: "/contact",       label: "Contact",      icon: <svg className="w-4.5 h-4.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg> },
-  { href: "/wallet",        label: "Wallet",       icon: <svg className="w-4.5 h-4.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg> },
+const IcoPlane   = <svg className="w-4.5 h-4.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>;
+const IcoCurr    = <svg className="w-4.5 h-4.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 014-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 01-4 4H3"/></svg>;
+const IcoTaxi    = <svg className="w-4.5 h-4.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><rect x="1" y="3" width="15" height="13" rx="1"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>;
+const IcoSearch  = <svg className="w-4.5 h-4.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>;
+const IcoChat    = <svg className="w-4.5 h-4.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>;
+const IcoWallet  = <svg className="w-4.5 h-4.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>;
+const IcoChart   = <svg className="w-4.5 h-4.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>;
+
+// ── Extra links shown in the sheet (static — for guests) ──────────────────────
+
+const GUEST_LINKS = [
+  { href: "/air-ticket",  label: "Air Ticket",   icon: IcoPlane  },
+  { href: "/currency",    label: "Currency",     icon: IcoCurr   },
+  { href: "/taxi",        label: "Taxi",         icon: IcoTaxi   },
+  { href: "/lost-found",  label: "Lost & Found", icon: IcoSearch },
+  { href: "/contact",     label: "Contact",      icon: IcoChat   },
+];
+
+const USER_LINKS = [
+  { href: "/shares/my",      label: "My Investments", icon: IcoChart  },
+  { href: "/lost-found/my",  label: "My Lost & Found",icon: IcoSearch },
+  { href: "/wallet",         label: "Wallet",         icon: IcoWallet },
+  { href: "/air-ticket",     label: "Air Tickets",    icon: IcoPlane  },
+  { href: "/currency",       label: "Currency",       icon: IcoCurr   },
+  { href: "/taxi",           label: "Taxi",           icon: IcoTaxi   },
+  { href: "/contact",        label: "Contact",        icon: IcoChat   },
 ];
 
 // ── Component ─────────────────────────────────────────────────────────────────
@@ -73,6 +92,7 @@ const EXTRA_LINKS = [
 export function BottomNav({ user }: { user: SessionPayload | null }) {
   const pathname = usePathname();
   const [sheetOpen, setSheetOpen] = useState(false);
+  const EXTRA_LINKS = user ? USER_LINKS : GUEST_LINKS;
 
   // Close sheet on route change
   useEffect(() => { setSheetOpen(false); }, [pathname]);
@@ -88,7 +108,7 @@ export function BottomNav({ user }: { user: SessionPayload | null }) {
     return prefix ? pathname.startsWith(href) : pathname === href;
   };
 
-  const isMoreActive = EXTRA_LINKS.some((l) => pathname.startsWith(l.href));
+  const isMoreActive = EXTRA_LINKS.some((l) => pathname === l.href || pathname.startsWith(l.href + "/"));
 
   const mainTabs = [
     { href: "/",               label: "Home",    icon: HomeIcon },
@@ -180,7 +200,7 @@ export function BottomNav({ user }: { user: SessionPayload | null }) {
           </p>
           <div className="grid grid-cols-2 gap-2 mb-5">
             {EXTRA_LINKS.map((item) => {
-              const active = pathname.startsWith(item.href);
+              const active = pathname === item.href || pathname.startsWith(item.href + "/");
               return (
                 <Link
                   key={item.href}

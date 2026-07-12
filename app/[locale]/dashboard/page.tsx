@@ -57,10 +57,10 @@ export default async function DashboardPage() {
   const totalShares = ownerships.reduce((sum, o) => sum + o.quantity, 0);
 
   const MODULE_LINKS = [
-    { href: "/shares", label: t("moduleShares"), desc: t("moduleSharesDesc"), icon: "📈" },
+    { href: "/shares/my", label: t("moduleShares"), desc: t("moduleSharesDesc"), icon: "📈" },
     { href: "/air-ticket", label: t("moduleAirTicket"), desc: t("moduleAirTicketDesc"), icon: "✈️" },
     { href: "/currency", label: t("moduleCurrency"), desc: t("moduleCurrencyDesc"), icon: "💱" },
-    { href: "/lost-found", label: t("moduleLostFound"), desc: t("moduleLostFoundDesc"), icon: "🔍" },
+    { href: "/lost-found/my", label: t("moduleLostFound"), desc: t("moduleLostFoundDesc"), icon: "🔍" },
     { href: "/islamic-center", label: t("moduleIslamicCenter"), desc: t("moduleIslamicCenterDesc"), icon: "🕌" },
     { href: "/blog", label: t("moduleBlog"), desc: t("moduleBlogDesc"), icon: "📝" },
   ];

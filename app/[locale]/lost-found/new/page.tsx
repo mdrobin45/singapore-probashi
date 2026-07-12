@@ -1,13 +1,13 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import { createLostFoundPostAction } from "@/app/actions/lost-found";
 import { Link } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
 
-// This is a client component with a server action
 export default function NewLostFoundPage() {
   const [state, action, pending] = useActionState(createLostFoundPostAction, null);
+  const [selectedType, setSelectedType] = useState<"LOST" | "FOUND" | null>(null);
   const t = useTranslations("lostFound");
 
   return (
@@ -28,20 +28,33 @@ export default function NewLostFoundPage() {
             <div>
               <label className="block text-sm font-medium text-foreground mb-2">{t("postType")}</label>
               <div className="grid grid-cols-2 gap-3">
-                {(
-                  [
-                    { value: "LOST", labelKey: "iLostSomething", color: "text-red-700 bg-red-50 border-red-200" },
-                    { value: "FOUND", labelKey: "iFoundSomething", color: "text-green-700 bg-green-50 border-green-200" },
-                  ] as const
-                ).map((opt) => (
-                  <label key={opt.value} className="cursor-pointer">
-                    <input type="radio" name="type" value={opt.value} className="sr-only peer" required />
-                    <div className={`border-2 rounded-xl px-4 py-3 text-sm font-semibold text-center transition-all peer-checked:${opt.color} border-border hover:border-current ${opt.color.split(" ")[0]}`}>
-                      {t(opt.labelKey)}
-                    </div>
-                  </label>
-                ))}
+                <button
+                  type="button"
+                  onClick={() => setSelectedType("LOST")}
+                  className={`border-2 rounded-xl px-4 py-3 text-sm font-semibold text-center transition-all ${
+                    selectedType === "LOST"
+                      ? "border-red-300 bg-red-50 text-red-700"
+                      : "border-border text-muted-foreground hover:border-red-200 hover:text-red-600"
+                  }`}
+                >
+                  {t("iLostSomething")}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSelectedType("FOUND")}
+                  className={`border-2 rounded-xl px-4 py-3 text-sm font-semibold text-center transition-all ${
+                    selectedType === "FOUND"
+                      ? "border-green-300 bg-green-50 text-green-700"
+                      : "border-border text-muted-foreground hover:border-green-200 hover:text-green-600"
+                  }`}
+                >
+                  {t("iFoundSomething")}
+                </button>
+                <input type="hidden" name="type" value={selectedType ?? ""} />
               </div>
+              {!selectedType && state?.error && (
+                <p className="text-xs text-red-600 mt-1">Please select a type.</p>
+              )}
             </div>
 
             <div>
@@ -84,7 +97,7 @@ export default function NewLostFoundPage() {
 
             <button
               type="submit"
-              disabled={pending}
+              disabled={pending || !selectedType}
               className="w-full bg-brand text-white rounded-xl py-2.5 text-sm font-semibold hover:bg-brand-dark transition-colors disabled:opacity-60"
             >
               {pending ? t("posting") : t("publishPost")}

@@ -100,6 +100,44 @@ function AvatarDropdown({ user }: { user: SessionPayload }) {
             </Link>
           </div>
 
+          {/* My sections */}
+          <div className="border-t border-border py-1">
+            <p className="px-4 pt-1 pb-0.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">My Sections</p>
+            <Link
+              href="/shares/my"
+              onClick={() => setOpen(false)}
+              className="flex items-center gap-2.5 px-4 py-2 text-sm text-foreground hover:bg-muted transition-colors"
+            >
+              <svg className="w-4 h-4 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                <polyline strokeLinecap="round" strokeLinejoin="round" points="22 7 13.5 15.5 8.5 10.5 2 17" />
+                <polyline strokeLinecap="round" strokeLinejoin="round" points="16 7 22 7 22 13" />
+              </svg>
+              My Investments
+            </Link>
+            <Link
+              href="/lost-found/my"
+              onClick={() => setOpen(false)}
+              className="flex items-center gap-2.5 px-4 py-2 text-sm text-foreground hover:bg-muted transition-colors"
+            >
+              <svg className="w-4 h-4 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                <circle cx="11" cy="11" r="8" strokeLinecap="round" strokeLinejoin="round" />
+                <line x1="21" y1="21" x2="16.65" y2="16.65" strokeLinecap="round" />
+              </svg>
+              My Lost & Found
+            </Link>
+            <Link
+              href="/wallet"
+              onClick={() => setOpen(false)}
+              className="flex items-center gap-2.5 px-4 py-2 text-sm text-foreground hover:bg-muted transition-colors"
+            >
+              <svg className="w-4 h-4 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                <rect x="1" y="4" width="22" height="16" rx="2" strokeLinecap="round" strokeLinejoin="round" />
+                <line x1="1" y1="10" x2="23" y2="10" strokeLinecap="round" />
+              </svg>
+              Wallet
+            </Link>
+          </div>
+
           {/* Logout */}
           <div className="border-t border-border py-1">
             <form action="/api/logout" method="POST">
@@ -125,14 +163,23 @@ export function Navbar({ user }: { user: SessionPayload | null }) {
   const [open, setOpen] = useState(false);
   const isAdmin = user ? ADMIN_ROLES.includes(user.role) : false;
 
-  const navLinks = [
-    { href: "/shares", label: t("shares") },
-    { href: "/air-ticket", label: t("airTicket") },
-    { href: "/currency", label: t("currency") },
-    { href: "/blog", label: t("blog") },
-    { href: "/islamic-center", label: t("islamicCenter") },
-    { href: "/lost-found", label: t("lostFound") },
-  ];
+  const navLinks = user
+    ? [
+        { href: "/shares/my",     label: t("myInvestments") },
+        { href: "/air-ticket",    label: t("airTicket") },
+        { href: "/currency",      label: t("currency") },
+        { href: "/blog",          label: t("blog") },
+        { href: "/islamic-center",label: t("islamicCenter") },
+        { href: "/lost-found/my", label: t("myLostFound") },
+      ]
+    : [
+        { href: "/shares",        label: t("shares") },
+        { href: "/air-ticket",    label: t("airTicket") },
+        { href: "/currency",      label: t("currency") },
+        { href: "/blog",          label: t("blog") },
+        { href: "/islamic-center",label: t("islamicCenter") },
+        { href: "/lost-found",    label: t("lostFound") },
+      ];
 
   return (
     <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-sm border-b border-border">

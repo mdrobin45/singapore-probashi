@@ -6,6 +6,40 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import { revalidatePath } from "next/cache";
 
+export async function resolveLostFoundPostAction(id: string): Promise<void> {
+  const session = await getSession();
+  if (!session) return;
+
+  const post = await prisma.lostFoundPost.findUnique({ where: { id }, select: { userId: true } });
+  if (!post) return;
+
+  const isAdmin = ["SUPER_ADMIN", "ADMIN", "MODERATOR"].includes(session.role);
+  const isOwner = post.userId === session.userId;
+  if (!isAdmin && !isOwner) return;
+
+  await prisma.lostFoundPost.update({ where: { id }, data: { status: "RESOLVED" } });
+  revalidatePath("/lost-found");
+  revalidatePath("/lost-found/my");
+  revalidatePath("/admin/lost-found");
+}
+
+export async function removeLostFoundPostAction(id: string): Promise<void> {
+  const session = await getSession();
+  if (!session) return;
+
+  const post = await prisma.lostFoundPost.findUnique({ where: { id }, select: { userId: true } });
+  if (!post) return;
+
+  const isAdmin = ["SUPER_ADMIN", "ADMIN", "MODERATOR"].includes(session.role);
+  const isOwner = post.userId === session.userId;
+  if (!isAdmin && !isOwner) return;
+
+  await prisma.lostFoundPost.update({ where: { id }, data: { status: "REMOVED" } });
+  revalidatePath("/lost-found");
+  revalidatePath("/lost-found/my");
+  revalidatePath("/admin/lost-found");
+}
+
 type ActionState = { error?: string; success?: boolean } | null;
 
 const postSchema = z.object({

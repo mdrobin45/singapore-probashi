@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/session";
 import { Link } from "@/i18n/navigation";
 import { getTranslations } from "next-intl/server";
+import { PostOwnerActions } from "./post-actions";
 
 async function getPosts(type?: string) {
   return prisma.lostFoundPost.findMany({
@@ -10,7 +11,11 @@ async function getPosts(type?: string) {
       ...(type === "LOST" || type === "FOUND" ? { type } : {}),
     },
     orderBy: { createdAt: "desc" },
-    include: { user: { select: { fullName: true, phone: true } } },
+    select: {
+      id: true, type: true, title: true, description: true,
+      location: true, createdAt: true, userId: true,
+      user: { select: { fullName: true, phone: true } },
+    },
   });
 }
 
@@ -53,12 +58,20 @@ export default async function LostFoundPage({
               </p>
             </div>
             {session ? (
-              <Link
-                href="/lost-found/new"
-                className="shrink-0 bg-brand text-white text-sm font-semibold px-5 py-2.5 rounded-xl hover:bg-brand-dark transition-colors"
-              >
-                {t("postItem")}
-              </Link>
+              <div className="flex items-center gap-2 shrink-0">
+                <Link
+                  href="/lost-found/my"
+                  className="bg-muted text-foreground text-sm font-semibold px-4 py-2.5 rounded-xl border border-border hover:bg-muted/80 transition-colors"
+                >
+                  My Posts
+                </Link>
+                <Link
+                  href="/lost-found/new"
+                  className="bg-brand text-white text-sm font-semibold px-5 py-2.5 rounded-xl hover:bg-brand-dark transition-colors"
+                >
+                  {t("postItem")}
+                </Link>
+              </div>
             ) : (
               <Link href="/login" className="shrink-0 bg-brand text-white text-sm font-semibold px-5 py-2.5 rounded-xl hover:bg-brand-dark transition-colors">
                 {t("loginToPost")}
@@ -129,13 +142,18 @@ export default async function LostFoundPage({
                     <p className="text-xs font-medium text-foreground">{post.user.fullName}</p>
                     <p className="text-xs text-muted-foreground">{post.user.phone}</p>
                   </div>
-                  <a
-                    href={`tel:${post.user.phone}`}
-                    className="text-xs bg-brand-50 text-brand font-semibold px-3 py-1.5 rounded-lg hover:bg-brand hover:text-white transition-colors"
-                  >
-                    {t("contact")}
-                  </a>
+                  {post.userId !== session?.userId && (
+                    <a
+                      href={`tel:${post.user.phone}`}
+                      className="text-xs bg-brand-50 text-brand font-semibold px-3 py-1.5 rounded-lg hover:bg-brand hover:text-white transition-colors"
+                    >
+                      {t("contact")}
+                    </a>
+                  )}
                 </div>
+                {post.userId === session?.userId && (
+                  <PostOwnerActions id={post.id} />
+                )}
               </div>
             ))}
           </div>
