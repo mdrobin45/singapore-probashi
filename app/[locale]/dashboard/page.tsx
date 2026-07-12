@@ -61,6 +61,7 @@ export default async function DashboardPage() {
     { href: "/air-ticket", label: t("moduleAirTicket"), desc: t("moduleAirTicketDesc"), icon: "✈️" },
     { href: "/currency", label: t("moduleCurrency"), desc: t("moduleCurrencyDesc"), icon: "💱" },
     { href: "/lost-found/my", label: t("moduleLostFound"), desc: t("moduleLostFoundDesc"), icon: "🔍" },
+    { href: "/apply", label: t("moduleApply"), desc: t("moduleApplyDesc"), icon: "📋" },
     { href: "/islamic-center", label: t("moduleIslamicCenter"), desc: t("moduleIslamicCenterDesc"), icon: "🕌" },
     { href: "/blog", label: t("moduleBlog"), desc: t("moduleBlogDesc"), icon: "📝" },
   ];

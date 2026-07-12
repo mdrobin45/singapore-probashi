@@ -77,9 +77,12 @@ const GUEST_LINKS = [
   { href: "/contact",     label: "Contact",      icon: IcoChat   },
 ];
 
+const IcoApply  = <svg className="w-4.5 h-4.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>;
+
 const USER_LINKS = [
   { href: "/shares/my",      label: "My Investments", icon: IcoChart  },
   { href: "/lost-found/my",  label: "My Lost & Found",icon: IcoSearch },
+  { href: "/apply",          label: "Apply",          icon: IcoApply  },
   { href: "/wallet",         label: "Wallet",         icon: IcoWallet },
   { href: "/air-ticket",     label: "Air Tickets",    icon: IcoPlane  },
   { href: "/currency",       label: "Currency",       icon: IcoCurr   },

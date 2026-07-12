@@ -6,7 +6,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 
-type ActionState = { error?: string; success?: boolean } | null;
+type ActionState = { error?: string; success?: boolean; shareNumbersCreated?: number } | null;
 
 async function requireAdmin() {
   const session = await getSession();
@@ -39,6 +39,7 @@ export async function processPurchaseAction(
       return { error: `Only ${request.project.availableShares} shares left.` };
     }
 
+    try {
     await prisma.$transaction(async (tx) => {
       // Update request status
       await tx.sharePurchaseRequest.update({
@@ -73,6 +74,21 @@ export async function processPurchaseAction(
         });
       }
 
+      // Assign available share numbers from the admin-defined pool
+      const availableCerts = await tx.shareCertificate.findMany({
+        where: { projectId: request.projectId, ownerId: null },
+        orderBy: { shareNumber: "asc" },
+        take: request.quantity,
+        select: { id: true },
+      });
+      if (availableCerts.length < request.quantity) {
+        throw new Error(`Not enough unassigned share numbers. Available: ${availableCerts.length}, needed: ${request.quantity}. Please create share numbers for this project first.`);
+      }
+      await tx.shareCertificate.updateMany({
+        where: { id: { in: availableCerts.map((c) => c.id) } },
+        data: { ownerId: request.buyerId, issuedAt: new Date() },
+      });
+
       // Notify buyer
       await tx.notification.create({
         data: {
@@ -83,6 +99,10 @@ export async function processPurchaseAction(
         },
       });
     });
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Transaction failed.";
+      return { error: msg };
+    }
   } else {
     await prisma.sharePurchaseRequest.update({
       where: { id: requestId },
@@ -128,11 +148,20 @@ export async function createProjectAction(
   if (!parse.success) return { error: parse.error.issues[0].message };
 
   const { name, description, totalShares, sharePrice } = parse.data;
+  const imageUrl = (formData.get("imageUrl") as string) || null;
 
-  await prisma.project.create({
+  const numbersRaw = formData.get("shareNumbers") as string;
+  let shareNumbers: number[] = [];
+  try {
+    const parsed = JSON.parse(numbersRaw || "[]");
+    if (Array.isArray(parsed)) shareNumbers = [...new Set(parsed.filter((n: unknown) => typeof n === "number" && n > 0))];
+  } catch { /* ignore — no numbers provided */ }
+
+  const project = await prisma.project.create({
     data: {
       name,
       description,
+      imageUrl: imageUrl || undefined,
       totalShares,
       sharePrice,
       availableShares: totalShares,
@@ -140,8 +169,14 @@ export async function createProjectAction(
     },
   });
 
+  if (shareNumbers.length > 0) {
+    await prisma.shareCertificate.createMany({
+      data: shareNumbers.map((n) => ({ projectId: project.id, shareNumber: n })),
+    });
+  }
+
   revalidatePath("/admin/shares");
-  return { success: true };
+  return { success: true, shareNumbersCreated: shareNumbers.length };
 }
 
 // ── Approve / reject resell listing or trade ──────────────────────────────────
@@ -231,6 +266,18 @@ export async function processResellAction({
             },
           });
         }
+
+        // Transfer share certificates from seller to buyer
+        const certsToTransfer = await tx.shareCertificate.findMany({
+          where: { projectId: trade.listing.projectId, ownerId: trade.listing.sellerId },
+          orderBy: { shareNumber: "asc" },
+          take: trade.quantity,
+          select: { id: true },
+        });
+        await tx.shareCertificate.updateMany({
+          where: { id: { in: certsToTransfer.map((c) => c.id) } },
+          data: { ownerId: trade.buyerId },
+        });
 
         // Notify both parties
         await tx.notification.createMany({

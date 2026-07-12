@@ -124,18 +124,30 @@ export default async function SharesPage({
 
                   return (
                     <div key={project.id} className="bg-white rounded-2xl border border-border overflow-hidden flex flex-col hover:shadow-md transition-shadow">
-                      <div className="bg-linear-to-br from-brand/10 to-brand-50 px-6 pt-6 pb-4">
-                        <div className="flex items-start justify-between gap-2 mb-3">
-                          <div className="w-10 h-10 rounded-xl bg-brand flex items-center justify-center shrink-0">
-                            <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-                            </svg>
+                      {project.imageUrl ? (
+                        <div className="relative h-40 overflow-hidden">
+                          <img src={project.imageUrl} alt={project.name} className="w-full h-full object-cover" />
+                          <div className="absolute inset-0 bg-linear-to-t from-black/50 to-transparent" />
+                          <span className="absolute top-3 right-3 text-xs font-semibold text-green-700 bg-green-100 px-2.5 py-1 rounded-full">{t("activeStatus")}</span>
+                          <div className="absolute bottom-0 left-0 px-5 pb-4">
+                            <h2 className="font-bold text-white text-lg leading-snug drop-shadow">{project.name}</h2>
+                            <p className="text-xs text-white/80 mt-0.5 line-clamp-2">{project.description}</p>
                           </div>
-                          <span className="text-xs font-semibold text-green-700 bg-green-100 px-2.5 py-1 rounded-full">{t("activeStatus")}</span>
                         </div>
-                        <h2 className="font-bold text-foreground text-lg leading-snug">{project.name}</h2>
-                        <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{project.description}</p>
-                      </div>
+                      ) : (
+                        <div className="bg-linear-to-br from-brand/10 to-brand-50 px-6 pt-6 pb-4">
+                          <div className="flex items-start justify-between gap-2 mb-3">
+                            <div className="w-10 h-10 rounded-xl bg-brand flex items-center justify-center shrink-0">
+                              <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                              </svg>
+                            </div>
+                            <span className="text-xs font-semibold text-green-700 bg-green-100 px-2.5 py-1 rounded-full">{t("activeStatus")}</span>
+                          </div>
+                          <h2 className="font-bold text-foreground text-lg leading-snug">{project.name}</h2>
+                          <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{project.description}</p>
+                        </div>
+                      )}
 
                       <div className="px-6 py-4 border-b border-border grid grid-cols-3 gap-3 text-center">
                         <div>

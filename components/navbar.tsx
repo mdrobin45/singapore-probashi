@@ -126,6 +126,16 @@ function AvatarDropdown({ user }: { user: SessionPayload }) {
               My Lost & Found
             </Link>
             <Link
+              href="/apply"
+              onClick={() => setOpen(false)}
+              className="flex items-center gap-2.5 px-4 py-2 text-sm text-foreground hover:bg-muted transition-colors"
+            >
+              <svg className="w-4 h-4 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+              Apply for Service
+            </Link>
+            <Link
               href="/wallet"
               onClick={() => setOpen(false)}
               className="flex items-center gap-2.5 px-4 py-2 text-sm text-foreground hover:bg-muted transition-colors"
@@ -166,6 +176,7 @@ export function Navbar({ user }: { user: SessionPayload | null }) {
   const navLinks = user
     ? [
         { href: "/shares/my",     label: t("myInvestments") },
+        { href: "/apply",         label: t("apply") },
         { href: "/air-ticket",    label: t("airTicket") },
         { href: "/currency",      label: t("currency") },
         { href: "/blog",          label: t("blog") },

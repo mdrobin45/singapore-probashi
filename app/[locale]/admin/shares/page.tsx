@@ -9,7 +9,16 @@ async function getData() {
       orderBy: { createdAt: "desc" },
       include: {
         createdBy: { select: { fullName: true } },
-        _count: { select: { shares: true, purchaseRequests: true } },
+        _count: {
+          select: {
+            shares: true,
+            purchaseRequests: true,
+          },
+        },
+        // Include all certificates so we can count total vs available in JS
+        certificates: {
+          select: { id: true, ownerId: true },
+        },
       },
     }),
     prisma.shareListing.findMany({
@@ -130,6 +139,10 @@ export default async function AdminSharesPage() {
           <h2 className="text-base font-semibold text-foreground">All Projects</h2>
           {projects.map((p) => {
             const soldPct = Math.round(((p.totalShares - p.availableShares) / p.totalShares) * 100);
+            const totalCerts = p.certificates.length;
+            const availableCerts = p.certificates.filter((c) => !c.ownerId).length;
+            const assignedCerts = totalCerts - availableCerts;
+            const missingNumbers = totalCerts === 0;
             return (
               <div key={p.id} className="bg-white rounded-xl border border-border p-5">
                 <div className="flex items-start justify-between gap-3 mb-3">
@@ -159,14 +172,31 @@ export default async function AdminSharesPage() {
                     <p className="text-[11px] text-muted-foreground">Requests</p>
                   </div>
                 </div>
-                <div className="h-1.5 bg-muted rounded-full overflow-hidden">
+                <div className="h-1.5 bg-muted rounded-full overflow-hidden mb-1">
                   <div className="h-full bg-brand rounded-full" style={{ width: `${soldPct}%` }} />
                 </div>
-                <div className="flex justify-between text-[11px] text-muted-foreground mt-1">
+                <div className="flex justify-between text-[11px] text-muted-foreground mb-3">
                   <span>{soldPct}% sold</span>
                   <span>by {p.createdBy.fullName}</span>
                 </div>
-                <div className="mt-3 pt-3 border-t border-border">
+
+                {/* Share number status */}
+                <div className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs mb-3 ${missingNumbers ? "bg-red-50 border border-red-200" : "bg-muted"}`}>
+                  <svg className={`w-3.5 h-3.5 shrink-0 ${missingNumbers ? "text-red-500" : "text-muted-foreground"}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14" />
+                  </svg>
+                  {missingNumbers ? (
+                    <span className="text-red-600 font-medium">No share numbers created — add them in View Details</span>
+                  ) : (
+                    <span className="text-muted-foreground">
+                      <span className="font-semibold text-foreground">{totalCerts}</span> share numbers ·{" "}
+                      <span className="text-green-600 font-semibold">{availableCerts} available</span> ·{" "}
+                      <span className="text-brand font-semibold">{assignedCerts} assigned</span>
+                    </span>
+                  )}
+                </div>
+
+                <div className="pt-3 border-t border-border flex items-center gap-4">
                   <Link
                     href={`/admin/shares/${p.id}`}
                     className="inline-flex items-center gap-1.5 text-xs font-semibold text-brand hover:text-brand/80 transition-colors"
@@ -175,7 +205,7 @@ export default async function AdminSharesPage() {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                     </svg>
-                    View Details
+                    View Details & Manage Share #s
                   </Link>
                 </div>
               </div>

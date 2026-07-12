@@ -101,6 +101,13 @@ enum NotificationType {
   OTP
 }
 
+enum ApplyStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  REJECTED
+}
+
 // ─────────────────────────────────────────────
 // AUTH & USERS
 // ─────────────────────────────────────────────
@@ -136,6 +143,8 @@ model User {
   lostFoundPosts       LostFoundPost[]
   notifications        Notification[]
   auditLogs            AuditLog[]
+  applyApplications    ApplyApplication[]
+  shareCertificates    ShareCertificate[]
   processedPurchases   SharePurchaseRequest[] @relation("PurchaseProcessor")
   processedListings    ShareTrade[]           @relation("TradeProcessor")
   processedDeposits    DepositRequest[]       @relation("DepositProcessor")
@@ -181,6 +190,7 @@ model Project {
   id               String        @id @default(cuid())
   name             String
   description      String
+  imageUrl         String?
   totalShares      Int
   sharePrice       Decimal       @db.Decimal(12, 2)
   availableShares  Int
@@ -194,6 +204,21 @@ model Project {
   purchaseRequests SharePurchaseRequest[]
   listings         ShareListing[]
   priceHistory     ProjectPriceHistory[]
+  certificates     ShareCertificate[]
+}
+
+model ShareCertificate {
+  id          String    @id @default(cuid())
+  projectId   String
+  shareNumber Int
+  ownerId     String?   // null = available (not yet assigned)
+  issuedAt    DateTime? // set when assigned to an owner
+
+  project Project @relation(fields: [projectId], references: [id])
+  owner   User?   @relation(fields: [ownerId], references: [id])
+
+  @@unique([projectId, shareNumber])
+  @@index([projectId, ownerId])
 }
 
 model ProjectPriceHistory {
@@ -583,4 +608,42 @@ model BankRate {
   sortOrder Int      @default(0)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+// ─────────────────────────────────────────────
+// APPLY / SERVICE APPLICATIONS
+// ─────────────────────────────────────────────
+
+model ApplyService {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  price       Decimal  @db.Decimal(10, 2)
+  isActive    Boolean  @default(true)
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  applications ApplyApplication[]
+}
+
+model ApplyApplication {
+  id             String      @id @default(cuid())
+  userId         String
+  serviceId      String
+  resumeUrl      String?
+  ePassportUrl   String?
+  permitUrl      String?
+  oldPassportUrl String?
+  otherFileUrl   String?
+  status         ApplyStatus @default(PENDING)
+  adminNote      String?
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+
+  user    User         @relation(fields: [userId], references: [id])
+  service ApplyService @relation(fields: [serviceId], references: [id])
+
+  @@index([userId])
+  @@index([serviceId])
 }

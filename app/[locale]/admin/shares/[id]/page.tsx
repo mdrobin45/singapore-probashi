@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { ScreenshotViewer } from "./screenshot-viewer";
+import { ShareNumbersManager } from "./share-numbers";
 
 async function getProjectDetail(id: string) {
   return prisma.project.findUnique({
@@ -31,6 +32,12 @@ async function getProjectDetail(id: string) {
           },
         },
         orderBy: { createdAt: "desc" },
+      },
+      certificates: {
+        include: {
+          owner: { select: { fullName: true, email: true } },
+        },
+        orderBy: { shareNumber: "asc" },
       },
     },
   });
@@ -67,6 +74,7 @@ export default async function AdminProjectDetailPage({
 
   const soldShares = project.totalShares - project.availableShares;
   const soldPct = project.totalShares > 0 ? Math.round((soldShares / project.totalShares) * 100) : 0;
+  const availableCertCount = project.certificates.filter((c) => !c.ownerId).length;
   const totalRaised = project.purchaseRequests
     .filter((r) => r.status === "APPROVED")
     .reduce((sum, r) => sum + Number(r.totalAmount), 0);
@@ -112,6 +120,8 @@ export default async function AdminProjectDetailPage({
           { label: "Shareholders", value: project.shares.length },
           { label: "Pending Requests", value: pendingRequests.length },
           { label: "Approved Requests", value: approvedRequests.length },
+          { label: "Share #s Created", value: project.certificates.length },
+          { label: "Share #s Available", value: availableCertCount },
         ].map((s) => (
           <div key={s.label} className="bg-white rounded-xl border border-border px-4 py-3">
             <p className="text-lg font-bold text-foreground">{s.value}</p>
@@ -153,7 +163,8 @@ export default async function AdminProjectDetailPage({
               <thead>
                 <tr className="border-b border-border bg-muted/40">
                   <th className="text-left text-xs font-semibold text-muted-foreground px-5 py-3">Member</th>
-                  <th className="text-left text-xs font-semibold text-muted-foreground px-4 py-3">Shares Owned</th>
+                  <th className="text-left text-xs font-semibold text-muted-foreground px-4 py-3">Shares</th>
+                  <th className="text-left text-xs font-semibold text-muted-foreground px-4 py-3">Share Numbers</th>
                   <th className="text-left text-xs font-semibold text-muted-foreground px-4 py-3">Purchase Price</th>
                   <th className="text-left text-xs font-semibold text-muted-foreground px-4 py-3">Total Value</th>
                   <th className="text-left text-xs font-semibold text-muted-foreground px-4 py-3">% of Project</th>
@@ -164,6 +175,13 @@ export default async function AdminProjectDetailPage({
                 {project.shares.map((s) => {
                   const totalValue = s.quantity * Number(s.purchasePrice);
                   const pct = project.totalShares > 0 ? ((s.quantity / project.totalShares) * 100).toFixed(1) : "0";
+                  const holderCerts = project.certificates
+                    .filter((c) => c.ownerId === s.ownerId)
+                    .map((c) => c.shareNumber)
+                    .sort((a, b) => a - b);
+                  const certLabel = holderCerts.length > 0
+                    ? holderCerts.map((n) => `#${String(n).padStart(4, "0")}`).join(", ")
+                    : "—";
                   return (
                     <tr key={s.id} className="hover:bg-muted/20 transition-colors">
                       <td className="px-5 py-3">
@@ -172,6 +190,7 @@ export default async function AdminProjectDetailPage({
                         {s.owner.phone && <p className="text-[11px] text-muted-foreground">{s.owner.phone}</p>}
                       </td>
                       <td className="px-4 py-3 font-semibold text-foreground">{s.quantity.toLocaleString()}</td>
+                      <td className="px-4 py-3 text-xs font-mono text-brand max-w-45 wrap-break-word">{certLabel}</td>
                       <td className="px-4 py-3 text-foreground">৳{Number(s.purchasePrice).toFixed(2)}</td>
                       <td className="px-4 py-3 font-semibold text-foreground">৳{totalValue.toLocaleString()}</td>
                       <td className="px-4 py-3">
@@ -269,6 +288,12 @@ export default async function AdminProjectDetailPage({
           </div>
         )}
       </div>
+
+      {/* Share Numbers */}
+      <ShareNumbersManager
+        projectId={project.id}
+        certificates={project.certificates}
+      />
 
       {/* Secondary Market Listings */}
       {project.listings.length > 0 && (

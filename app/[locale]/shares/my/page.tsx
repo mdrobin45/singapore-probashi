@@ -4,7 +4,7 @@ import { Link } from "@/i18n/navigation";
 import { redirect } from "next/navigation";
 
 async function getMyShareData(userId: string) {
-  const [ownerships, purchases, listings] = await Promise.all([
+  const [ownerships, purchases, listings, certificates] = await Promise.all([
     prisma.shareOwnership.findMany({
       where: { ownerId: userId },
       orderBy: { acquiredAt: "desc" },
@@ -20,8 +20,29 @@ async function getMyShareData(userId: string) {
       orderBy: { createdAt: "desc" },
       include: { project: { select: { name: true } } },
     }),
+    prisma.shareCertificate.findMany({
+      where: { ownerId: userId },
+      orderBy: { shareNumber: "asc" },
+      select: { projectId: true, shareNumber: true },
+    }),
   ]);
-  return { ownerships, purchases, listings };
+  return { ownerships, purchases, listings, certificates };
+}
+
+function formatShareNumbers(numbers: number[]): string {
+  if (numbers.length === 0) return "—";
+  const sorted = [...numbers].sort((a, b) => a - b);
+  const ranges: string[] = [];
+  let start = sorted[0], end = sorted[0];
+  for (let i = 1; i < sorted.length; i++) {
+    if (sorted[i] === end + 1) { end = sorted[i]; }
+    else {
+      ranges.push(start === end ? `#${String(start).padStart(4, "0")}` : `#${String(start).padStart(4, "0")}–#${String(end).padStart(4, "0")}`);
+      start = end = sorted[i];
+    }
+  }
+  ranges.push(start === end ? `#${String(start).padStart(4, "0")}` : `#${String(start).padStart(4, "0")}–#${String(end).padStart(4, "0")}`);
+  return ranges.join(", ");
 }
 
 const STATUS_STYLES: Record<string, string> = {
@@ -34,7 +55,14 @@ export default async function MySharesPage() {
   const session = await getSession();
   if (!session) redirect("/login");
 
-  const { ownerships, purchases, listings } = await getMyShareData(session.userId);
+  const { ownerships, purchases, listings, certificates } = await getMyShareData(session.userId);
+
+  // Group certificates by projectId
+  const certsByProject = certificates.reduce<Record<string, number[]>>((acc, c) => {
+    if (!acc[c.projectId]) acc[c.projectId] = [];
+    acc[c.projectId].push(c.shareNumber);
+    return acc;
+  }, {});
 
   const totalValue = ownerships.reduce(
     (sum, o) => sum + o.quantity * Number(o.project.sharePrice),
@@ -105,6 +133,7 @@ export default async function MySharesPage() {
                     <tr className="border-b border-border bg-muted/50">
                       <th className="text-left text-xs font-semibold text-muted-foreground px-5 py-3">Project</th>
                       <th className="text-left text-xs font-semibold text-muted-foreground px-4 py-3">Shares</th>
+                      <th className="text-left text-xs font-semibold text-muted-foreground px-4 py-3">Share Numbers</th>
                       <th className="text-left text-xs font-semibold text-muted-foreground px-4 py-3">Price/Share</th>
                       <th className="text-left text-xs font-semibold text-muted-foreground px-4 py-3">Value</th>
                       <th className="text-left text-xs font-semibold text-muted-foreground px-4 py-3">Action</th>
@@ -115,6 +144,9 @@ export default async function MySharesPage() {
                       <tr key={o.id} className="hover:bg-muted/30">
                         <td className="px-5 py-3.5 font-medium text-foreground">{o.project.name}</td>
                         <td className="px-4 py-3.5 text-foreground">{o.quantity}</td>
+                        <td className="px-4 py-3.5 text-xs font-mono text-brand">
+                          {formatShareNumbers(certsByProject[o.projectId] ?? [])}
+                        </td>
                         <td className="px-4 py-3.5 text-muted-foreground">৳{Number(o.project.sharePrice).toFixed(0)}</td>
                         <td className="px-4 py-3.5 font-semibold text-foreground">
                           ৳{(o.quantity * Number(o.project.sharePrice)).toFixed(2)}
