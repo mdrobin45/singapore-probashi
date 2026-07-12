@@ -3,6 +3,7 @@ import { getSession } from "@/lib/session";
 import { getTranslations } from "next-intl/server";
 import { redirect } from "next/navigation";
 import { Link } from "@/i18n/navigation";
+import { AvatarUpload } from "./avatar-upload";
 
 export default async function ProfilePage() {
   const session = await getSession();
@@ -44,9 +45,10 @@ export default async function ProfilePage() {
         {/* Profile card */}
         <div className="bg-white rounded-2xl border border-border overflow-hidden mb-5">
           <div className="bg-gradient-to-br from-brand-50 to-brand-100 px-7 py-8 flex items-start gap-5">
-            <div className="w-20 h-20 rounded-full bg-brand flex items-center justify-center text-white text-3xl font-bold shrink-0">
-              {user.fullName.charAt(0).toUpperCase()}
-            </div>
+            <AvatarUpload
+              initial={user.fullName.charAt(0).toUpperCase()}
+              currentPhoto={user.profilePhoto}
+            />
             <div>
               <h1 className="text-2xl font-bold text-foreground">{user.fullName}</h1>
               <p className="text-sm text-muted-foreground">{user.email}</p>
@@ -75,7 +77,7 @@ export default async function ProfilePage() {
               { label: t("emailAddress"), value: user.email },
               { label: t("phoneNumber"), value: user.phone },
               { label: t("memberSince"), value: user.createdAt.toLocaleDateString("en-GB", { day: "2-digit", month: "long", year: "numeric" }) },
-              { label: t("walletBalance"), value: `৳{Number(user.wallet?.balance ?? 0).toFixed(2)}` },
+              { label: t("walletBalance"), value: `৳${Number(user.wallet?.balance ?? 0).toFixed(2)}` },
             ].map((f) => (
               <div key={f.label}>
                 <p className="text-xs text-muted-foreground font-medium mb-0.5">{f.label}</p>
