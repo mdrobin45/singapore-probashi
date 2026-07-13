@@ -90,10 +90,10 @@ export default async function AdminSharesPage() {
                       Buyer: {r.buyer.fullName} · {r.buyer.email} · {r.buyer.phone}
                     </p>
                     <div className="flex gap-4 mt-2 text-xs">
-                      <span>Qty: <strong className="text-foreground">{r.quantity}</strong></span>
+                      <span>Share #: <strong className="text-foreground font-mono">{r.shareNumber}</strong></span>
                       <span>Size: <strong className="text-foreground">{r.size}</strong></span>
-                      <span>Price/Share: <strong className="text-foreground">৳{Number(r.pricePerShare).toFixed(2)}</strong></span>
-                      <span>Total: <strong className="text-foreground">৳{(r.quantity * Number(r.pricePerShare)).toFixed(2)}</strong></span>
+                      <span>Price: <strong className="text-foreground">৳{Number(r.price).toFixed(2)}</strong></span>
+                      <span>Preferred Date: <strong className="text-foreground">{r.preferredDate.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })}</strong></span>
                     </div>
                   </div>
                   <ResellActions buyRequestId={r.id} type="buyRequest" />

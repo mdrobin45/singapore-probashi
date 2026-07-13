@@ -313,9 +313,10 @@ model ShareBuyRequest {
   id            String         @id @default(cuid())
   buyerId       String
   name          String
-  quantity      Int
+  shareNumber   String
   size          ShareSize
-  pricePerShare Decimal        @db.Decimal(12, 2)
+  price         Decimal        @db.Decimal(12, 2)
+  preferredDate DateTime
   status        PurchaseStatus @default(PENDING)
   adminNote     String?
   processedById String?

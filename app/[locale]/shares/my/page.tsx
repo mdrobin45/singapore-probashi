@@ -266,20 +266,24 @@ export default async function MySharesPage() {
                   <thead>
                     <tr className="border-b border-border bg-muted/50">
                       <th className="text-left text-xs font-semibold text-muted-foreground px-5 py-3">Name</th>
-                      <th className="text-left text-xs font-semibold text-muted-foreground px-4 py-3">Qty</th>
+                      <th className="text-left text-xs font-semibold text-muted-foreground px-4 py-3">Share #</th>
                       <th className="text-left text-xs font-semibold text-muted-foreground px-4 py-3">Size</th>
-                      <th className="text-left text-xs font-semibold text-muted-foreground px-4 py-3">Price/Share</th>
+                      <th className="text-left text-xs font-semibold text-muted-foreground px-4 py-3">Price</th>
+                      <th className="text-left text-xs font-semibold text-muted-foreground px-4 py-3">Preferred Date</th>
                       <th className="text-left text-xs font-semibold text-muted-foreground px-4 py-3">Status</th>
-                      <th className="text-left text-xs font-semibold text-muted-foreground px-4 py-3">Date</th>
+                      <th className="text-left text-xs font-semibold text-muted-foreground px-4 py-3">Submitted</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border">
                     {buyRequests.map((r) => (
                       <tr key={r.id} className={`hover:bg-muted/30 ${r.status === "REJECTED" ? "opacity-60" : ""}`}>
                         <td className="px-5 py-3.5 font-medium text-foreground">{r.name}</td>
-                        <td className="px-4 py-3.5 text-foreground">{r.quantity}</td>
+                        <td className="px-4 py-3.5 text-foreground font-mono">#{r.shareNumber}</td>
                         <td className="px-4 py-3.5 text-foreground">{r.size}</td>
-                        <td className="px-4 py-3.5 text-foreground">৳{Number(r.pricePerShare).toFixed(2)}</td>
+                        <td className="px-4 py-3.5 text-foreground">৳{Number(r.price).toFixed(2)}</td>
+                        <td className="px-4 py-3.5 text-xs text-muted-foreground whitespace-nowrap">
+                          {r.preferredDate.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })}
+                        </td>
                         <td className="px-4 py-3.5">
                           <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${STATUS_STYLES[r.status] ?? ""}`}>
                             {r.status}

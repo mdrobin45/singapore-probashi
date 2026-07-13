@@ -197,9 +197,10 @@ export async function requestShareTradeAction(
 // ── Submit a general buy request (not tied to a specific project) ────────────
 const buyRequestSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
-  quantity: z.coerce.number().int().min(1, "Quantity must be at least 1"),
+  shareNumber: z.string().min(1, "Share number is required"),
   size: z.enum(["SMALL", "BIG"]),
-  pricePerShare: z.coerce.number().positive("Enter a valid price"),
+  price: z.coerce.number().positive("Enter a valid price"),
+  preferredDate: z.coerce.date({ message: "Enter a valid date" }),
 });
 
 export async function createShareBuyRequestAction(
@@ -211,28 +212,30 @@ export async function createShareBuyRequestAction(
 
   const parse = buyRequestSchema.safeParse({
     name: formData.get("name"),
-    quantity: formData.get("quantity"),
+    shareNumber: formData.get("shareNumber"),
     size: formData.get("size"),
-    pricePerShare: formData.get("pricePerShare"),
+    price: formData.get("price"),
+    preferredDate: formData.get("preferredDate"),
   });
 
   if (!parse.success) return { error: parse.error.issues[0].message };
 
-  const { name, quantity, size, pricePerShare } = parse.data;
+  const { name, shareNumber, size, price, preferredDate } = parse.data;
 
   await prisma.shareBuyRequest.create({
     data: {
       buyerId: session.userId,
       name,
-      quantity,
+      shareNumber,
       size,
-      pricePerShare,
+      price,
+      preferredDate,
       status: "PENDING",
     },
   });
 
   return {
     success: true,
-    message: `Your request to buy ${quantity} share${quantity > 1 ? "s" : ""} has been submitted. Admin will review it shortly.`,
+    message: `Your request to buy share #${shareNumber} has been submitted. Admin will review it shortly.`,
   };
 }

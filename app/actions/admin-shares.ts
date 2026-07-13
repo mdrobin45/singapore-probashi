@@ -208,8 +208,8 @@ export async function processResellAction({
         title: status === "APPROVED" ? "Buy request approved" : "Buy request rejected",
         message:
           status === "APPROVED"
-            ? `Your request to buy ${buyRequest.quantity} shares has been approved. Admin will follow up with you.`
-            : `Your request to buy ${buyRequest.quantity} shares was not approved.`,
+            ? `Your request to buy share #${buyRequest.shareNumber} has been approved. Admin will follow up with you.`
+            : `Your request to buy share #${buyRequest.shareNumber} was not approved.`,
         type: "PURCHASE",
       },
     });

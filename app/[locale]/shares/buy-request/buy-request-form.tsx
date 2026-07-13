@@ -7,9 +7,7 @@ import { useTranslations } from "next-intl";
 export function BuyRequestForm({ defaultName }: { defaultName: string }) {
   const t = useTranslations("shares");
   const [state, action, pending] = useActionState(createShareBuyRequestAction, null);
-  const [qty, setQty] = useState(1);
   const [price, setPrice] = useState("");
-  const total = qty * Number(price || 0);
 
   if (state?.success) {
     return (
@@ -40,17 +38,16 @@ export function BuyRequestForm({ defaultName }: { defaultName: string }) {
         />
       </div>
 
-      {/* Quantity */}
+      {/* Share number */}
       <div>
-        <label className="block text-sm font-medium text-foreground mb-1.5">{t("quantityWanted")}</label>
+        <label className="block text-sm font-medium text-foreground mb-1.5">{t("shareNumberLabel")}</label>
         <input
-          type="number"
-          name="quantity"
-          min={1}
-          value={qty}
-          onChange={(e) => setQty(Number(e.target.value))}
+          type="text"
+          name="shareNumber"
+          placeholder={t("shareNumberPlaceholder")}
+          maxLength={20}
           required
-          className="w-full px-3.5 py-2.5 rounded-xl border border-border text-foreground focus:outline-none focus:ring-2 focus:ring-brand/30 focus:border-brand text-sm"
+          className="w-full px-3.5 py-2.5 rounded-xl border border-border text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-brand/30 focus:border-brand text-sm"
         />
       </div>
 
@@ -67,12 +64,12 @@ export function BuyRequestForm({ defaultName }: { defaultName: string }) {
         </select>
       </div>
 
-      {/* Price per share */}
+      {/* Price */}
       <div>
         <label className="block text-sm font-medium text-foreground mb-1.5">{t("desiredPricePerShare")}</label>
         <input
           type="number"
-          name="pricePerShare"
+          name="price"
           min={1}
           step="0.01"
           value={price}
@@ -80,11 +77,17 @@ export function BuyRequestForm({ defaultName }: { defaultName: string }) {
           required
           className="w-full px-3.5 py-2.5 rounded-xl border border-border text-foreground focus:outline-none focus:ring-2 focus:ring-brand/30 focus:border-brand text-sm"
         />
-        {price && Number(price) > 0 && (
-          <p className="mt-1.5 text-xs text-muted-foreground">
-            {t("total")}: <span className="font-bold text-foreground">৳{total.toFixed(2)}</span>
-          </p>
-        )}
+      </div>
+
+      {/* Preferred date */}
+      <div>
+        <label className="block text-sm font-medium text-foreground mb-1.5">{t("preferredDate")}</label>
+        <input
+          type="date"
+          name="preferredDate"
+          required
+          className="w-full px-3.5 py-2.5 rounded-xl border border-border text-foreground focus:outline-none focus:ring-2 focus:ring-brand/30 focus:border-brand text-sm"
+        />
       </div>
 
       {state?.error && (
