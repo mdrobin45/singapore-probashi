@@ -4,7 +4,7 @@ import { Link } from "@/i18n/navigation";
 import { redirect } from "next/navigation";
 
 async function getMyShareData(userId: string) {
-  const [ownerships, purchases, listings, certificates] = await Promise.all([
+  const [ownerships, purchases, listings, certificates, buyRequests] = await Promise.all([
     prisma.shareOwnership.findMany({
       where: { ownerId: userId },
       orderBy: { acquiredAt: "desc" },
@@ -25,8 +25,12 @@ async function getMyShareData(userId: string) {
       orderBy: { shareNumber: "asc" },
       select: { projectId: true, shareNumber: true },
     }),
+    prisma.shareBuyRequest.findMany({
+      where: { buyerId: userId },
+      orderBy: { createdAt: "desc" },
+    }),
   ]);
-  return { ownerships, purchases, listings, certificates };
+  return { ownerships, purchases, listings, certificates, buyRequests };
 }
 
 function formatShareNumbers(numbers: number[]): string {
@@ -55,7 +59,7 @@ export default async function MySharesPage() {
   const session = await getSession();
   if (!session) redirect("/login");
 
-  const { ownerships, purchases, listings, certificates } = await getMyShareData(session.userId);
+  const { ownerships, purchases, listings, certificates, buyRequests } = await getMyShareData(session.userId);
 
   // Group certificates by projectId
   const certsByProject = certificates.reduce<Record<string, number[]>>((acc, c) => {
@@ -240,6 +244,49 @@ export default async function MySharesPage() {
                         </td>
                         <td className="px-4 py-3.5 text-xs text-muted-foreground whitespace-nowrap">
                           {l.createdAt.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </section>
+        )}
+
+        {/* My Buy Requests */}
+        {buyRequests.length > 0 && (
+          <section>
+            <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">
+              My Buy Requests ({buyRequests.length})
+            </h2>
+            <div className="bg-white rounded-xl border border-border overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-border bg-muted/50">
+                      <th className="text-left text-xs font-semibold text-muted-foreground px-5 py-3">Name</th>
+                      <th className="text-left text-xs font-semibold text-muted-foreground px-4 py-3">Qty</th>
+                      <th className="text-left text-xs font-semibold text-muted-foreground px-4 py-3">Size</th>
+                      <th className="text-left text-xs font-semibold text-muted-foreground px-4 py-3">Price/Share</th>
+                      <th className="text-left text-xs font-semibold text-muted-foreground px-4 py-3">Status</th>
+                      <th className="text-left text-xs font-semibold text-muted-foreground px-4 py-3">Date</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border">
+                    {buyRequests.map((r) => (
+                      <tr key={r.id} className={`hover:bg-muted/30 ${r.status === "REJECTED" ? "opacity-60" : ""}`}>
+                        <td className="px-5 py-3.5 font-medium text-foreground">{r.name}</td>
+                        <td className="px-4 py-3.5 text-foreground">{r.quantity}</td>
+                        <td className="px-4 py-3.5 text-foreground">{r.size}</td>
+                        <td className="px-4 py-3.5 text-foreground">৳{Number(r.pricePerShare).toFixed(2)}</td>
+                        <td className="px-4 py-3.5">
+                          <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${STATUS_STYLES[r.status] ?? ""}`}>
+                            {r.status}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3.5 text-xs text-muted-foreground whitespace-nowrap">
+                          {r.createdAt.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })}
                         </td>
                       </tr>
                     ))}

@@ -108,6 +108,20 @@ export default async function SharesPage({
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+        {/* Buy request CTA */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white border border-border rounded-2xl px-6 py-5 mb-8">
+          <div>
+            <p className="font-semibold text-foreground">{t("buyRequestCta")}</p>
+            <p className="text-sm text-muted-foreground mt-0.5">{t("buyRequestCtaDesc")}</p>
+          </div>
+          <Link
+            href={session ? "/shares/buy-request" : "/login"}
+            className="shrink-0 bg-brand text-white text-sm font-semibold px-5 py-2.5 rounded-xl hover:bg-brand-dark transition-colors text-center"
+          >
+            {t("buyRequestTitle")}
+          </Link>
+        </div>
+
         {activeTab === "primary" ? (
           <>
             {projects.length === 0 ? (

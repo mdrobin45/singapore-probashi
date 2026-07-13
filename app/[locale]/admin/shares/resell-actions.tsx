@@ -6,17 +6,19 @@ import { processResellAction } from "@/app/actions/admin-shares";
 export function ResellActions({
   listingId,
   tradeId,
+  buyRequestId,
   type,
 }: {
   listingId?: string;
   tradeId?: string;
-  type: "listing" | "trade";
+  buyRequestId?: string;
+  type: "listing" | "trade" | "buyRequest";
 }) {
   const [pending, startTransition] = useTransition();
 
   function handle(status: "APPROVED" | "REJECTED") {
     startTransition(async () => {
-      await processResellAction({ listingId, tradeId, type, status });
+      await processResellAction({ listingId, tradeId, buyRequestId, type, status });
     });
   }
 

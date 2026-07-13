@@ -173,25 +173,15 @@ export function Navbar({ user }: { user: SessionPayload | null }) {
   const [open, setOpen] = useState(false);
   const isAdmin = user ? ADMIN_ROLES.includes(user.role) : false;
 
-  const navLinks = user
-    ? [
-        { href: "/shares/my",     label: t("myInvestments") },
-        { href: "/services",      label: t("services") },
-        { href: "/air-ticket",    label: t("airTicket") },
-        { href: "/currency",      label: t("currency") },
-        { href: "/blog",          label: t("blog") },
-        { href: "/islamic-center",label: t("islamicCenter") },
-        { href: "/lost-found/my", label: t("myLostFound") },
-      ]
-    : [
-        { href: "/shares",        label: t("shares") },
-        { href: "/services",      label: t("services") },
-        { href: "/air-ticket",    label: t("airTicket") },
-        { href: "/currency",      label: t("currency") },
-        { href: "/blog",          label: t("blog") },
-        { href: "/islamic-center",label: t("islamicCenter") },
-        { href: "/lost-found",    label: t("lostFound") },
-      ];
+  const navLinks = [
+    { href: "/shares",        label: t("shares") },
+    { href: "/services",      label: t("services") },
+    { href: "/air-ticket",    label: t("airTicket") },
+    { href: "/currency",      label: t("currency") },
+    { href: "/blog",          label: t("blog") },
+    { href: "/islamic-center",label: t("islamicCenter") },
+    { href: "/lost-found",    label: t("lostFound") },
+  ];
 
   return (
     <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-sm border-b border-border">

@@ -149,6 +149,8 @@ model User {
   processedListings    ShareTrade[]           @relation("TradeProcessor")
   processedDeposits    DepositRequest[]       @relation("DepositProcessor")
   createdProjects      Project[]
+  buyRequests          ShareBuyRequest[]      @relation("BuyRequestBuyer")
+  processedBuyRequests ShareBuyRequest[]      @relation("BuyRequestProcessor")
 
   @@index([email])
   @@index([nidNumber])
@@ -300,6 +302,28 @@ model ShareTrade {
   listing     ShareListing @relation(fields: [listingId], references: [id])
   buyer       User         @relation("BuyerTrades", fields: [buyerId], references: [id])
   processedBy User?        @relation("TradeProcessor", fields: [processedById], references: [id])
+}
+
+enum ShareSize {
+  SMALL
+  BIG
+}
+
+model ShareBuyRequest {
+  id            String         @id @default(cuid())
+  buyerId       String
+  name          String
+  quantity      Int
+  size          ShareSize
+  pricePerShare Decimal        @db.Decimal(12, 2)
+  status        PurchaseStatus @default(PENDING)
+  adminNote     String?
+  processedById String?
+  processedAt   DateTime?
+  createdAt     DateTime       @default(now())
+
+  buyer       User  @relation("BuyRequestBuyer", fields: [buyerId], references: [id])
+  processedBy User? @relation("BuyRequestProcessor", fields: [processedById], references: [id])
 }
 
 // ─────────────────────────────────────────────

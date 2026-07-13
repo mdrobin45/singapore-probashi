@@ -4,7 +4,7 @@ import { ResellActions } from "./resell-actions";
 import Link from "next/link";
 
 async function getData() {
-  const [projects, pendingListings, pendingTrades] = await Promise.all([
+  const [projects, pendingListings, pendingTrades, pendingBuyRequests] = await Promise.all([
     prisma.project.findMany({
       orderBy: { createdAt: "desc" },
       include: {
@@ -42,8 +42,15 @@ async function getData() {
         },
       },
     }),
+    prisma.shareBuyRequest.findMany({
+      where: { status: "PENDING" },
+      orderBy: { createdAt: "desc" },
+      include: {
+        buyer: { select: { fullName: true, email: true, phone: true } },
+      },
+    }),
   ]);
-  return { projects, pendingListings, pendingTrades };
+  return { projects, pendingListings, pendingTrades, pendingBuyRequests };
 }
 
 const STATUS_STYLES: Record<string, string> = {
@@ -53,16 +60,49 @@ const STATUS_STYLES: Record<string, string> = {
 };
 
 export default async function AdminSharesPage() {
-  const { projects, pendingListings, pendingTrades } = await getData();
+  const { projects, pendingListings, pendingTrades, pendingBuyRequests } = await getData();
 
   return (
     <div className="max-w-6xl mx-auto space-y-8">
       <div>
         <h1 className="text-2xl font-bold text-foreground">Share Management</h1>
         <p className="text-sm text-muted-foreground">
-          {projects.length} projects · {pendingListings.length} pending resell listings · {pendingTrades.length} pending trades
+          {projects.length} projects · {pendingListings.length} pending resell listings · {pendingTrades.length} pending trades · {pendingBuyRequests.length} pending buy requests
         </p>
       </div>
+
+      {/* Pending buy requests */}
+      {pendingBuyRequests.length > 0 && (
+        <div className="bg-white rounded-xl border border-border overflow-hidden">
+          <div className="px-6 py-4 border-b border-border bg-purple-50">
+            <h2 className="font-semibold text-purple-800">
+              Pending Buy Requests ({pendingBuyRequests.length})
+            </h2>
+            <p className="text-xs text-purple-700 mt-0.5">General requests to buy shares, not tied to a specific project</p>
+          </div>
+          <div className="divide-y divide-border">
+            {pendingBuyRequests.map((r) => (
+              <div key={r.id} className="px-6 py-4">
+                <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+                  <div>
+                    <p className="font-semibold text-foreground">{r.name}</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      Buyer: {r.buyer.fullName} · {r.buyer.email} · {r.buyer.phone}
+                    </p>
+                    <div className="flex gap-4 mt-2 text-xs">
+                      <span>Qty: <strong className="text-foreground">{r.quantity}</strong></span>
+                      <span>Size: <strong className="text-foreground">{r.size}</strong></span>
+                      <span>Price/Share: <strong className="text-foreground">৳{Number(r.pricePerShare).toFixed(2)}</strong></span>
+                      <span>Total: <strong className="text-foreground">৳{(r.quantity * Number(r.pricePerShare)).toFixed(2)}</strong></span>
+                    </div>
+                  </div>
+                  <ResellActions buyRequestId={r.id} type="buyRequest" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Pending resell listings */}
       {pendingListings.length > 0 && (

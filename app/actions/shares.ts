@@ -193,3 +193,46 @@ export async function requestShareTradeAction(
     message: `Trade request for ${quantity} share${quantity > 1 ? "s" : ""} submitted. Admin will process it shortly.`,
   };
 }
+
+// ── Submit a general buy request (not tied to a specific project) ────────────
+const buyRequestSchema = z.object({
+  name: z.string().min(2, "Name must be at least 2 characters"),
+  quantity: z.coerce.number().int().min(1, "Quantity must be at least 1"),
+  size: z.enum(["SMALL", "BIG"]),
+  pricePerShare: z.coerce.number().positive("Enter a valid price"),
+});
+
+export async function createShareBuyRequestAction(
+  _prev: ActionState,
+  formData: FormData
+): Promise<ActionState> {
+  const session = await getSession();
+  if (!session) redirect("/login");
+
+  const parse = buyRequestSchema.safeParse({
+    name: formData.get("name"),
+    quantity: formData.get("quantity"),
+    size: formData.get("size"),
+    pricePerShare: formData.get("pricePerShare"),
+  });
+
+  if (!parse.success) return { error: parse.error.issues[0].message };
+
+  const { name, quantity, size, pricePerShare } = parse.data;
+
+  await prisma.shareBuyRequest.create({
+    data: {
+      buyerId: session.userId,
+      name,
+      quantity,
+      size,
+      pricePerShare,
+      status: "PENDING",
+    },
+  });
+
+  return {
+    success: true,
+    message: `Your request to buy ${quantity} share${quantity > 1 ? "s" : ""} has been submitted. Admin will review it shortly.`,
+  };
+}

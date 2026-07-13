@@ -184,15 +184,39 @@ export async function createProjectAction(
 export async function processResellAction({
   listingId,
   tradeId,
+  buyRequestId,
   type,
   status,
 }: {
   listingId?: string;
   tradeId?: string;
-  type: "listing" | "trade";
+  buyRequestId?: string;
+  type: "listing" | "trade" | "buyRequest";
   status: "APPROVED" | "REJECTED";
 }) {
   const session = await requireAdmin();
+
+  if (type === "buyRequest" && buyRequestId) {
+    const buyRequest = await prisma.shareBuyRequest.update({
+      where: { id: buyRequestId },
+      data: { status, processedById: session.userId, processedAt: new Date() },
+    });
+
+    await prisma.notification.create({
+      data: {
+        userId: buyRequest.buyerId,
+        title: status === "APPROVED" ? "Buy request approved" : "Buy request rejected",
+        message:
+          status === "APPROVED"
+            ? `Your request to buy ${buyRequest.quantity} shares has been approved. Admin will follow up with you.`
+            : `Your request to buy ${buyRequest.quantity} shares was not approved.`,
+        type: "PURCHASE",
+      },
+    });
+
+    revalidatePath("/admin/shares");
+    return;
+  }
 
   if (type === "listing" && listingId) {
     await prisma.shareListing.update({
