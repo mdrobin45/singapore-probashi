@@ -54,7 +54,7 @@ export default async function AdminApplyPage() {
             <thead>
               <tr className="border-b border-border bg-muted/50">
                 <th className="text-left text-xs font-semibold text-muted-foreground px-5 py-3">Name</th>
-                <th className="text-left text-xs font-semibold text-muted-foreground px-4 py-3">Price (S$)</th>
+                <th className="text-left text-xs font-semibold text-muted-foreground px-4 py-3">Price (৳)</th>
                 <th className="text-left text-xs font-semibold text-muted-foreground px-4 py-3">Applications</th>
                 <th className="text-left text-xs font-semibold text-muted-foreground px-4 py-3">Status</th>
               </tr>
@@ -68,7 +68,7 @@ export default async function AdminApplyPage() {
                       <p className="font-medium text-foreground">{s.name}</p>
                       {s.description && <p className="text-xs text-muted-foreground mt-0.5 max-w-xs truncate">{s.description}</p>}
                     </td>
-                    <td className="px-4 py-3.5 font-semibold text-foreground">S${Number(s.price).toFixed(2)}</td>
+                    <td className="px-4 py-3.5 font-semibold text-foreground">৳{Number(s.price).toFixed(2)}</td>
                     <td className="px-4 py-3.5 text-muted-foreground text-sm">{count}</td>
                     <td className="px-4 py-3.5">
                       <ServiceActions id={s.id} isActive={s.isActive} />

@@ -94,7 +94,7 @@ export function ServiceRequestForm({ services }: { services: Service[] }) {
             <div className="flex items-center justify-between mt-auto pt-4 border-t border-border">
               <div>
                 <p className="text-[11px] text-muted-foreground uppercase tracking-wider">Service Fee</p>
-                <p className="text-xl font-bold text-brand">S${s.price.toFixed(2)}</p>
+                <p className="text-xl font-bold text-brand">৳{s.price.toFixed(2)}</p>
               </div>
               <button
                 type="button"
@@ -117,7 +117,7 @@ export function ServiceRequestForm({ services }: { services: Service[] }) {
             <div className="flex items-center justify-between px-6 py-4 border-b border-border shrink-0">
               <div>
                 <h2 className="text-base font-bold text-foreground">Apply for Service</h2>
-                <p className="text-xs text-muted-foreground">{selectedService.name} · S${selectedService.price.toFixed(2)}</p>
+                <p className="text-xs text-muted-foreground">{selectedService.name} · ৳{selectedService.price.toFixed(2)}</p>
               </div>
               <button type="button" onClick={() => setOpen(false)}
                 className="w-8 h-8 flex items-center justify-center rounded-lg text-muted-foreground hover:bg-muted transition-colors">

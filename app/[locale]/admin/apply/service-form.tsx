@@ -46,7 +46,7 @@ export function CreateServiceModal() {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-semibold text-foreground mb-1.5">Price (S$) *</label>
+                  <label className="block text-xs font-semibold text-foreground mb-1.5">Price (৳) *</label>
                   <input name="price" type="number" step="0.01" min="0" required placeholder="0.00" className={INPUT} />
                   <p className="text-[11px] text-muted-foreground mt-1">Hidden from applicants</p>
                 </div>
