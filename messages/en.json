@@ -574,7 +574,12 @@
     "colMethod": "Method",
     "colTxnId": "TXN ID",
     "colStatus": "Status",
-    "colDate": "Date"
+    "colDate": "Date",
+    "pendingWithdrawalsWarning": "{count} withdrawal request(s) pending admin approval",
+    "withdrawalRequests": "Withdrawal Requests",
+    "newWithdrawal": "+ New Withdrawal",
+    "noWithdrawals": "No withdrawal requests yet.",
+    "colAccount": "Account"
   },
   "contact": {
     "badge": "Contact",
@@ -732,5 +737,23 @@
     "title": "Page Not Found",
     "subtitle": "The page you're looking for doesn't exist or has been moved.",
     "home": "Go Home"
+  },
+  "withdraw": {
+    "title": "Withdraw Funds",
+    "subtitle": "Request a withdrawal to your bank or mobile wallet. Your balance is deducted after admin verification.",
+    "availableBalance": "Available Balance",
+    "amount": "Amount (৳)",
+    "amountPlaceholder": "Minimum ৳10",
+    "paymentMethod": "Payout Method",
+    "accountNumber": "Account / Mobile Number",
+    "accountNumberPlaceholder": "e.g. 01700-000000",
+    "accountName": "Account Holder Name",
+    "accountNamePlaceholder": "Name as registered on the account",
+    "submit": "Submit Withdrawal Request",
+    "submitting": "Submitting…",
+    "successTitle": "Withdrawal request submitted!",
+    "successMessage": "We'll verify your request and send the funds within a few business days.",
+    "backToDashboard": "Back to Dashboard",
+    "insufficientBalance": "Insufficient balance for this withdrawal."
   }
 }

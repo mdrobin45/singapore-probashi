@@ -41,6 +41,29 @@ export async function processPurchaseAction(
 
     try {
     await prisma.$transaction(async (tx) => {
+      // Debit buyer's wallet if they chose to pay from it
+      if (request.paymentMethod === "WALLET") {
+        const wallet = await tx.wallet.findUnique({ where: { userId: request.buyerId } });
+        if (!wallet) throw new Error("Buyer's wallet not found");
+        if (Number(wallet.balance) < Number(request.totalAmount)) {
+          throw new Error(`Buyer's wallet balance (৳${Number(wallet.balance).toFixed(2)}) is insufficient for this purchase.`);
+        }
+
+        const newBalance = Number(wallet.balance) - Number(request.totalAmount);
+        await tx.wallet.update({ where: { id: wallet.id }, data: { balance: newBalance } });
+
+        await tx.walletTransaction.create({
+          data: {
+            walletId: wallet.id,
+            type: "SHARE_PURCHASE",
+            amount: request.totalAmount,
+            description: `Purchase of ${request.quantity} shares in ${request.project.name}`,
+            balanceBefore: wallet.balance,
+            balanceAfter: newBalance,
+          },
+        });
+      }
+
       // Update request status
       await tx.sharePurchaseRequest.update({
         where: { id: requestId },
@@ -259,7 +282,49 @@ export async function processResellAction({
     if (!trade) return;
 
     if (status === "APPROVED") {
+      try {
       await prisma.$transaction(async (tx) => {
+        // Debit buyer's wallet if they chose to pay from it
+        if (trade.paymentMethod === "WALLET") {
+          const buyerWallet = await tx.wallet.findUnique({ where: { userId: trade.buyerId } });
+          if (!buyerWallet) throw new Error("Buyer's wallet not found");
+          if (Number(buyerWallet.balance) < Number(trade.totalAmount)) {
+            throw new Error(`Buyer's wallet balance (৳${Number(buyerWallet.balance).toFixed(2)}) is insufficient for this trade.`);
+          }
+
+          const buyerNewBalance = Number(buyerWallet.balance) - Number(trade.totalAmount);
+          await tx.wallet.update({ where: { id: buyerWallet.id }, data: { balance: buyerNewBalance } });
+
+          await tx.walletTransaction.create({
+            data: {
+              walletId: buyerWallet.id,
+              type: "SHARE_PURCHASE",
+              amount: trade.totalAmount,
+              description: `Purchase of ${trade.quantity} shares in ${trade.listing.project.name} (secondary market)`,
+              balanceBefore: buyerWallet.balance,
+              balanceAfter: buyerNewBalance,
+            },
+          });
+        }
+
+        // Credit seller's wallet with the sale proceeds
+        const sellerWallet = await tx.wallet.findUnique({ where: { userId: trade.listing.sellerId } });
+        if (!sellerWallet) throw new Error("Seller's wallet not found");
+
+        const sellerNewBalance = Number(sellerWallet.balance) + Number(trade.totalAmount);
+        await tx.wallet.update({ where: { id: sellerWallet.id }, data: { balance: sellerNewBalance } });
+
+        await tx.walletTransaction.create({
+          data: {
+            walletId: sellerWallet.id,
+            type: "SHARE_SALE",
+            amount: trade.totalAmount,
+            description: `Sale of ${trade.quantity} shares in ${trade.listing.project.name} (secondary market)`,
+            balanceBefore: sellerWallet.balance,
+            balanceAfter: sellerNewBalance,
+          },
+        });
+
         await tx.shareTrade.update({
           where: { id: tradeId },
           data: { status: "APPROVED", processedById: session.userId, processedAt: new Date() },
@@ -315,12 +380,16 @@ export async function processResellAction({
             {
               userId: trade.listing.sellerId,
               title: "Your shares have been sold",
-              message: `${trade.quantity} shares in ${trade.listing.project.name} were sold. Your wallet will be credited shortly.`,
+              message: `${trade.quantity} shares in ${trade.listing.project.name} were sold for ৳${Number(trade.totalAmount).toFixed(2)}. Your wallet has been credited.`,
               type: "TRADE",
             },
           ],
         });
       });
+      } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : "Transaction failed.";
+        return { error: msg };
+      }
     } else {
       await prisma.shareTrade.update({
         where: { id: tradeId },

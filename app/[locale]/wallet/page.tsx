@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import { Link } from "@/i18n/navigation";
 
 async function getWalletData(userId: string) {
-  const [wallet, deposits] = await Promise.all([
+  const [wallet, deposits, withdrawals] = await Promise.all([
     prisma.wallet.findUnique({
       where: { userId },
       include: {
@@ -17,8 +17,13 @@ async function getWalletData(userId: string) {
       orderBy: { createdAt: "desc" },
       take: 5,
     }),
+    prisma.withdrawalRequest.findMany({
+      where: { userId },
+      orderBy: { createdAt: "desc" },
+      take: 5,
+    }),
   ]);
-  return { wallet, deposits };
+  return { wallet, deposits, withdrawals };
 }
 
 const CREDIT_TYPES = new Set(["DEPOSIT", "SHARE_SALE", "REFUND"]);
@@ -45,7 +50,7 @@ export default async function WalletPage() {
     REFUND: tDash("txRefund"),
   };
 
-  const { wallet, deposits } = await getWalletData(session.userId);
+  const { wallet, deposits, withdrawals } = await getWalletData(session.userId);
   const balance = wallet ? Number(wallet.balance) : 0;
 
   return (
@@ -64,12 +69,20 @@ export default async function WalletPage() {
           <p className="text-sm font-medium text-white/70 mb-1">{t("availableBalance")}</p>
           <p className="text-4xl font-bold">৳{balance.toFixed(2)}</p>
           <p className="text-xs text-white/60 mt-1">{t("singaporeDollar")}</p>
-          <Link
-            href="/dashboard/deposit"
-            className="inline-block mt-5 bg-white/20 hover:bg-white/30 text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition-colors"
-          >
-            {t("depositFunds")}
-          </Link>
+          <div className="flex gap-2 mt-5">
+            <Link
+              href="/dashboard/deposit"
+              className="inline-block bg-white/20 hover:bg-white/30 text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition-colors"
+            >
+              {t("depositFunds")}
+            </Link>
+            <Link
+              href="/dashboard/withdraw"
+              className="inline-block bg-white/10 hover:bg-white/20 text-white text-sm font-semibold px-5 py-2.5 rounded-xl border border-white/30 transition-colors"
+            >
+              {t("withdraw")}
+            </Link>
+          </div>
         </div>
 
         {/* Pending deposit requests */}
@@ -77,6 +90,15 @@ export default async function WalletPage() {
           <div className="bg-amber-50 border border-amber-200 rounded-xl px-5 py-4 mb-6">
             <p className="text-sm font-semibold text-amber-800">
               {t("pendingDepositsWarning", { count: deposits.filter((d) => d.status === "PENDING").length })}
+            </p>
+          </div>
+        )}
+
+        {/* Pending withdrawal requests */}
+        {withdrawals.filter((w) => w.status === "PENDING").length > 0 && (
+          <div className="bg-amber-50 border border-amber-200 rounded-xl px-5 py-4 mb-6">
+            <p className="text-sm font-semibold text-amber-800">
+              {t("pendingWithdrawalsWarning", { count: withdrawals.filter((w) => w.status === "PENDING").length })}
             </p>
           </div>
         )}
@@ -160,6 +182,52 @@ export default async function WalletPage() {
                         </td>
                         <td className="px-4 py-3 text-xs text-muted-foreground">
                           {d.createdAt.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+
+          {/* Withdrawal history */}
+          <div className="md:col-span-2 bg-white rounded-2xl border border-border overflow-hidden">
+            <div className="px-6 py-4 border-b border-border flex items-center justify-between">
+              <h2 className="font-semibold text-foreground">{t("withdrawalRequests")}</h2>
+              <Link href="/dashboard/withdraw" className="text-xs text-brand font-medium hover:underline">
+                {t("newWithdrawal")}
+              </Link>
+            </div>
+            {withdrawals.length === 0 ? (
+              <div className="px-6 py-10 text-center text-muted-foreground text-sm">
+                {t("noWithdrawals")}
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-border bg-muted/50">
+                      <th className="text-left text-xs font-semibold text-muted-foreground px-6 py-3">{t("colAmount")}</th>
+                      <th className="text-left text-xs font-semibold text-muted-foreground px-4 py-3">{t("colMethod")}</th>
+                      <th className="text-left text-xs font-semibold text-muted-foreground px-4 py-3">{t("colAccount")}</th>
+                      <th className="text-left text-xs font-semibold text-muted-foreground px-4 py-3">{t("colStatus")}</th>
+                      <th className="text-left text-xs font-semibold text-muted-foreground px-4 py-3">{t("colDate")}</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border">
+                    {withdrawals.map((w) => (
+                      <tr key={w.id} className="hover:bg-muted/30">
+                        <td className="px-6 py-3 font-bold text-foreground">৳{Number(w.amount).toFixed(2)}</td>
+                        <td className="px-4 py-3 text-muted-foreground text-xs">{w.paymentMethod.replace("_", " ")}</td>
+                        <td className="px-4 py-3 font-mono text-xs text-muted-foreground">{w.accountNumber}</td>
+                        <td className="px-4 py-3">
+                          <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${DEPOSIT_STATUS[w.status]}`}>
+                            {w.status}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3 text-xs text-muted-foreground">
+                          {w.createdAt.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })}
                         </td>
                       </tr>
                     ))}
