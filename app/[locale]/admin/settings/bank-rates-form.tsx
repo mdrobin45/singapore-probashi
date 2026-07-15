@@ -26,15 +26,15 @@ function EditRow({ bank, onDone }: { bank: BankRow; onDone: () => void }) {
   }
 
   return (
-    <form action={action} className="flex items-center gap-2 py-2">
+    <form action={action} className="flex flex-col sm:flex-row sm:items-center gap-2 py-2">
       <input type="hidden" name="id" value={bank.id} />
       <input
         name="bankName"
         defaultValue={bank.bankName}
-        className="flex-1 text-sm px-2.5 py-1.5 rounded-lg border border-border focus:outline-none focus:border-brand"
+        className="flex-1 min-w-0 text-sm px-2.5 py-1.5 rounded-lg border border-border focus:outline-none focus:border-brand"
         placeholder="Bank name"
       />
-      <div className="relative w-36">
+      <div className="relative w-full sm:w-36">
         <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">1 SGD =</span>
         <input
           name="rate"
@@ -47,16 +47,18 @@ function EditRow({ bank, onDone }: { bank: BankRow; onDone: () => void }) {
         <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">৳</span>
       </div>
       {state?.error && <p className="text-xs text-red-600">{state.error}</p>}
-      <button
-        type="submit"
-        disabled={pending}
-        className="text-xs px-3 py-1.5 bg-brand text-white rounded-lg font-medium hover:bg-brand/90 disabled:opacity-50"
-      >
-        {pending ? "…" : "Save"}
-      </button>
-      <button type="button" onClick={onDone} className="text-xs px-2.5 py-1.5 border border-border rounded-lg text-muted-foreground hover:bg-muted">
-        Cancel
-      </button>
+      <div className="flex gap-2 shrink-0">
+        <button
+          type="submit"
+          disabled={pending}
+          className="flex-1 sm:flex-none text-xs px-3 py-1.5 bg-brand text-white rounded-lg font-medium hover:bg-brand/90 disabled:opacity-50"
+        >
+          {pending ? "…" : "Save"}
+        </button>
+        <button type="button" onClick={onDone} className="flex-1 sm:flex-none text-xs px-2.5 py-1.5 border border-border rounded-lg text-muted-foreground hover:bg-muted">
+          Cancel
+        </button>
+      </div>
     </form>
   );
 }
@@ -165,14 +167,14 @@ export function BankRatesForm({ banks: initial }: Props) {
         className="border border-dashed border-border rounded-xl p-4 space-y-3"
       >
         <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Add Bank</p>
-        <div className="flex gap-2">
+        <div className="flex flex-col sm:flex-row gap-2">
           <input
             name="bankName"
             required
             placeholder="e.g. Dutch-Bangla Bank"
-            className="flex-1 text-sm px-3 py-2 rounded-lg border border-border focus:outline-none focus:border-brand placeholder:text-muted-foreground"
+            className="flex-1 min-w-0 text-sm px-3 py-2 rounded-lg border border-border focus:outline-none focus:border-brand placeholder:text-muted-foreground"
           />
-          <div className="relative w-40">
+          <div className="relative w-full sm:w-40">
             <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">1 SGD =</span>
             <input
               name="rate"
