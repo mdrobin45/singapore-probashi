@@ -1,8 +1,7 @@
 "use client";
 
-import { useActionState, useRef, useState } from "react";
+import { useActionState, useState } from "react";
 import { registerAction } from "@/app/actions/auth";
-import Image from "next/image";
 import { Link } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
 
@@ -47,25 +46,16 @@ function inputClass(error?: string) {
 export default function RegisterPage() {
   const t = useTranslations("auth.register");
   const [state, action, pending] = useActionState(registerAction, null);
-  const fileRef = useRef<HTMLInputElement>(null);
-  const [preview, setPreview] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  const [fields, setFields] = useState({ fullName: "", email: "", phone: "", password: "" });
+  const [fields, setFields] = useState({ email: "", phone: "", password: "", confirmPassword: "" });
   function set(key: keyof typeof fields) {
     return (e: React.ChangeEvent<HTMLInputElement>) =>
       setFields((prev) => ({ ...prev, [key]: e.target.value }));
   }
 
   const fe = state?.fieldErrors ?? {};
-
-  function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => setPreview(reader.result as string);
-    reader.readAsDataURL(file);
-  }
 
   return (
     <div className="bg-white rounded-2xl shadow-sm border border-border p-8">
@@ -88,44 +78,7 @@ export default function RegisterPage() {
       </div>
 
       <form action={action} className="space-y-5">
-        {/* Profile Photo */}
-        <div className="flex flex-col items-center gap-3 mb-2">
-          <button
-            type="button"
-            onClick={() => fileRef.current?.click()}
-            className="relative w-20 h-20 rounded-full bg-muted border-2 border-dashed border-border hover:border-brand transition-colors overflow-hidden group"
-          >
-            {preview ? (
-              <Image src={preview} alt="Profile preview" fill className="object-cover" />
-            ) : (
-              <div className="w-full h-full flex flex-col items-center justify-center gap-1">
-                <svg className="w-6 h-6 text-muted-foreground group-hover:text-brand transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 4v16m8-8H4" />
-                </svg>
-                <span className="text-xs text-muted-foreground">{t("photoLabel")}</span>
-              </div>
-            )}
-          </button>
-          <input ref={fileRef} type="file" name="profilePhoto" accept="image/*" className="hidden" onChange={handleFile} />
-          <p className="text-xs text-muted-foreground">{t("photoHint")}</p>
-        </div>
-
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-          {/* Full Name */}
-          <div className="sm:col-span-2">
-            <label className="block text-sm font-medium text-foreground mb-1.5">{t("fullName")}</label>
-            <input
-              name="fullName"
-              type="text"
-              autoComplete="name"
-              placeholder={t("fullNamePlaceholder")}
-              value={fields.fullName}
-              onChange={set("fullName")}
-              className={inputClass(fe.fullName)}
-            />
-            <FieldError message={fe.fullName} />
-          </div>
-
           {/* Email */}
           <div className="sm:col-span-2">
             <label className="block text-sm font-medium text-foreground mb-1.5">{t("email")}</label>
@@ -180,6 +133,32 @@ export default function RegisterPage() {
               </button>
             </div>
             <FieldError message={fe.password} />
+          </div>
+
+          {/* Confirm Password */}
+          <div className="sm:col-span-2">
+            <label className="block text-sm font-medium text-foreground mb-1.5">{t("confirmPassword")}</label>
+            <div className="relative">
+              <input
+                name="confirmPassword"
+                type={showConfirmPassword ? "text" : "password"}
+                autoComplete="new-password"
+                placeholder={t("confirmPasswordPlaceholder")}
+                value={fields.confirmPassword}
+                onChange={set("confirmPassword")}
+                className={inputClass(fe.confirmPassword) + " pr-10"}
+              />
+              <button
+                type="button"
+                onClick={() => setShowConfirmPassword((v) => !v)}
+                tabIndex={-1}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                aria-label={showConfirmPassword ? "Hide password" : "Show password"}
+              >
+                <EyeIcon open={showConfirmPassword} />
+              </button>
+            </div>
+            <FieldError message={fe.confirmPassword} />
           </div>
         </div>
 

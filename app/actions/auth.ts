@@ -15,22 +15,34 @@ type ActionState = {
 
 // ─── Register ────────────────────────────────────────────────────────────────
 
-const registerSchema = z.object({
-  fullName: z.string().min(2, "Full name must be at least 2 characters"),
-  email: z.string().email("Invalid email address"),
-  phone: z.string().min(10, "Phone must be at least 10 digits"),
-  password: z.string().min(8, "Password must be at least 8 characters"),
-});
+const registerSchema = z
+  .object({
+    email: z.string().email("Invalid email address"),
+    phone: z.string().min(10, "Phone must be at least 10 digits"),
+    password: z.string().min(8, "Password must be at least 8 characters"),
+    confirmPassword: z.string(),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords do not match",
+    path: ["confirmPassword"],
+  });
+
+// Sign-up only collects email/phone/password — the account gets a placeholder
+// name derived from the email until the user sets their real name in profile.
+function placeholderName(email: string) {
+  const local = email.split("@")[0];
+  return local.charAt(0).toUpperCase() + local.slice(1);
+}
 
 export async function registerAction(
   _prev: ActionState,
   formData: FormData
 ): Promise<ActionState> {
   const parse = registerSchema.safeParse({
-    fullName: formData.get("fullName"),
     email: formData.get("email"),
     phone: formData.get("phone"),
     password: formData.get("password"),
+    confirmPassword: formData.get("confirmPassword"),
   });
 
   if (!parse.success) {
@@ -42,7 +54,8 @@ export async function registerAction(
     return { fieldErrors };
   }
 
-  const { fullName, email, phone, password } = parse.data;
+  const { email, phone, password } = parse.data;
+  const fullName = placeholderName(email);
 
   const existing = await prisma.user.findUnique({ where: { email }, select: { id: true } });
   if (existing) return { error: "Email is already registered." };

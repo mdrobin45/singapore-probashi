@@ -1,6 +1,15 @@
 import { MRTMapButton } from "@/components/mrt-map-button";
 import { Link } from "@/i18n/navigation";
 import { getTranslations } from "next-intl/server";
+import { prisma } from "@/lib/prisma";
+
+function getFeaturedProjects() {
+	return prisma.project.findMany({
+		where: { status: "ACTIVE" },
+		orderBy: { createdAt: "desc" },
+		take: 3,
+	});
+}
 
 // SVG icons — purely visual, not translated
 const ICONS = {
@@ -171,7 +180,10 @@ const ICONS = {
 };
 
 export default async function HomePage() {
-	const t = await getTranslations("home");
+	const [t, featuredProjects] = await Promise.all([
+		getTranslations("home"),
+		getFeaturedProjects(),
+	]);
 
 	const services = [
 		{ key: "svc1", icon: ICONS.shares, href: "/shares", bg: "bg-violet-600" },
@@ -382,48 +394,32 @@ export default async function HomePage() {
 									{t("mktUpdated")}
 								</span>
 							</div>
-							{[
-								{
-									name: "Project Alpha",
-									available: 124,
-									price: "৳12.50",
-									change: "+8.2%",
-								},
-								{
-									name: "Project Beta",
-									available: 280,
-									price: "৳8.00",
-									change: "+3.1%",
-								},
-								{
-									name: "Project Gamma",
-									available: 50,
-									price: "৳15.00",
-									change: "+12.5%",
-								},
-							].map((project) => (
-								<div
-									key={project.name}
-									className="flex items-center justify-between p-4 bg-muted rounded-xl"
-								>
-									<div>
-										<p className="font-semibold text-sm text-foreground">
-											{project.name}
-										</p>
-										<p className="text-xs text-muted-foreground mt-0.5">
-											{project.available} {t("mktSharesAvailable")}
-										</p>
+							{featuredProjects.length > 0 ? (
+								featuredProjects.map((project) => (
+									<div
+										key={project.id}
+										className="flex items-center justify-between p-4 bg-muted rounded-xl"
+									>
+										<div>
+											<p className="font-semibold text-sm text-foreground">
+												{project.name}
+											</p>
+											<p className="text-xs text-muted-foreground mt-0.5">
+												{project.availableShares} {t("mktSharesAvailable")}
+											</p>
+										</div>
+										<div className="text-right">
+											<p className="font-bold text-sm text-foreground">
+												৳{Number(project.sharePrice).toFixed(2)}
+											</p>
+										</div>
 									</div>
-									<div className="text-right">
-										<p className="font-bold text-sm text-foreground">
-											{project.price}
-										</p>
-										<p className="text-xs text-emerald-600 font-semibold">
-											{project.change}
-										</p>
-									</div>
-								</div>
-							))}
+								))
+							) : (
+								<p className="text-sm text-muted-foreground text-center py-6">
+									{t("mktNoProjects")}
+								</p>
+							)}
 							<Link
 								href="/register"
 								className="block text-center py-3 text-sm font-semibold text-brand border border-brand rounded-xl hover:bg-brand-50 transition-colors"
