@@ -201,13 +201,6 @@ export default async function HomePage() {
 		{ number: "03", titleKey: "step3Title", descKey: "step3Desc" },
 	] as const;
 
-	const stats = [
-		{ value: "5,200+", labelKey: "stat1Label" },
-		{ value: "24", labelKey: "stat2Label" },
-		{ value: "12,000+", labelKey: "stat3Label" },
-		{ value: "9", labelKey: "stat4Label" },
-	] as const;
-
 	const mktPoints = [
 		"mktPoint1",
 		"mktPoint2",
@@ -249,129 +242,56 @@ export default async function HomePage() {
 				</div>
 
 				<div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-16 lg:py-36">
-					<div className="grid lg:grid-cols-2 gap-8 lg:gap-14 items-center">
-						{/* MRT map card — first in DOM → top on mobile, right column on desktop */}
-						<div className="lg:order-last">
-							<div className="bg-white rounded-3xl shadow-2xl border border-border overflow-hidden">
-								{/* Card header */}
-								<div className="flex items-center justify-between px-3 md:px-5 py-3 md:py-4 border-b border-border">
-									<div className="flex items-center gap-2.5">
-										<div className="w-8 h-8 rounded-lg bg-brand flex items-center justify-center text-white shrink-0">
-											<svg
-												className="w-4.5 h-4.5"
-												viewBox="0 0 24 24"
-												fill="none"
-												stroke="currentColor"
-												strokeWidth={2}
-												strokeLinecap="round"
-												strokeLinejoin="round"
-											>
-												<rect x="5" y="2" width="14" height="20" rx="2" />
-												<line x1="5" y1="9" x2="19" y2="9" />
-												<line x1="5" y1="15" x2="19" y2="15" />
-												<circle cx="8.5" cy="18" r="1" />
-												<circle cx="15.5" cy="18" r="1" />
-											</svg>
-										</div>
-										<div>
-											<p className="text-sm font-semibold text-foreground leading-tight">
-												Singapore MRT Map
-											</p>
-											<p className="text-[11px] text-muted-foreground leading-tight">
-												Mass Rapid Transit Network
-											</p>
-										</div>
-									</div>
-									<span className="text-[10px] font-bold uppercase tracking-wider text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200">
-										Live
-									</span>
-								</div>
-
-								{/* Inline PDF preview */}
-								<div className="relative h-80 sm:h-96 lg:h-112 bg-muted">
-									<iframe
-										src="/mrt-map.pdf#toolbar=0&navpanes=0&scrollbar=0&view=FitH"
-										className="w-full h-full border-0"
-										title="Singapore MRT Map preview"
-									/>
-									<div className="absolute bottom-0 inset-x-0 h-10 bg-linear-to-t from-white/60 to-transparent pointer-events-none" />
-								</div>
-
-								{/* Actions */}
-								<div className="flex justify-center items-center gap-2.5 px-3 md:px-5  py-2 md:py-4 border-t border-border">
-									<MRTMapButton />
-								</div>
-							</div>
-						</div>
-
-						{/* Text — second in DOM → below card on mobile, left column on desktop */}
-						<div className="space-y-5 lg:space-y-8 lg:order-first">
-							<div className="inline-flex items-center gap-2 bg-brand-50 text-brand text-xs sm:text-sm font-medium px-3 py-1.5 rounded-full border border-brand/20">
-								<span className="w-2 h-2 rounded-full bg-brand animate-pulse" />
-								{t("heroBadge")}
-							</div>
-
-							<h1 className="text-3xl sm:text-5xl lg:text-[3.5rem] lg:bn:text-7xl font-bold tracking-tight text-foreground leading-[1.1]">
-								{t("heroTitle1")}
-								<br />
-								<span className="text-brand">{t("heroTitle2")}</span>
-								<br />
-								{t("heroTitle3")}
-							</h1>
-
-							<p className="text-base sm:text-lg bn:text-2xl text-muted-foreground leading-relaxed max-w-lg">
-								{t("heroSubtitle")}
-							</p>
-
-							<div className="flex flex-col sm:flex-row gap-3">
-								<Link
-									href="/register"
-									className="inline-flex items-center justify-center gap-2 px-7 py-3.5 text-base font-semibold text-white bg-brand rounded-full hover:bg-brand-dark transition-colors shadow-lg"
-								>
-									{t("heroCta1")}
-									{ICONS.arrow}
-								</Link>
-								<Link
-									href="#services"
-									className="inline-flex items-center justify-center gap-2 px-7 py-3.5 text-base font-semibold text-foreground border border-border rounded-full hover:border-brand hover:text-brand transition-colors"
-								>
-									{t("heroCta2")}
-								</Link>
-							</div>
-
-							<div className="flex items-center gap-4 pt-1">
-								<div className="flex -space-x-2">
-									{["R", "M", "K", "S"].map((letter) => (
-										<div
-											key={letter}
-											className="w-8 h-8 lg:w-9 lg:h-9 rounded-full bg-brand-100 border-2 border-white flex items-center justify-center text-xs font-bold text-brand"
+					<div className="max-w-xl mx-auto">
+						<div className="bg-white rounded-3xl shadow-2xl border border-border overflow-hidden">
+							{/* Card header */}
+							<div className="flex items-center justify-between px-3 md:px-5 py-3 md:py-4 border-b border-border">
+								<div className="flex items-center gap-2.5">
+									<div className="w-8 h-8 rounded-lg bg-brand flex items-center justify-center text-white shrink-0">
+										<svg
+											className="w-4.5 h-4.5"
+											viewBox="0 0 24 24"
+											fill="none"
+											stroke="currentColor"
+											strokeWidth={2}
+											strokeLinecap="round"
+											strokeLinejoin="round"
 										>
-											{letter}
-										</div>
-									))}
+											<rect x="5" y="2" width="14" height="20" rx="2" />
+											<line x1="5" y1="9" x2="19" y2="9" />
+											<line x1="5" y1="15" x2="19" y2="15" />
+											<circle cx="8.5" cy="18" r="1" />
+											<circle cx="15.5" cy="18" r="1" />
+										</svg>
+									</div>
+									<div>
+										<p className="text-sm font-semibold text-foreground leading-tight">
+											Singapore MRT Map
+										</p>
+										<p className="text-[11px] text-muted-foreground leading-tight">
+											Mass Rapid Transit Network
+										</p>
+									</div>
 								</div>
-								<p className="text-sm text-muted-foreground">
-									<span className="font-semibold text-foreground">5,000+</span>{" "}
-									{t("heroMembers")}
-								</p>
+								<span className="text-[10px] font-bold uppercase tracking-wider text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200">
+									Live
+								</span>
+							</div>
+
+							{/* Full map, always visible — square aspect matches the PDF page so it never needs internal scrolling */}
+							<div className="aspect-square bg-muted">
+								<iframe
+									src="/mrt-map.pdf#toolbar=0&navpanes=0&scrollbar=0&view=Fit"
+									className="w-full h-full border-0"
+									title="Singapore MRT Map"
+								/>
+							</div>
+
+							{/* Actions */}
+							<div className="flex justify-center items-center gap-2.5 px-3 md:px-5 py-2 md:py-4 border-t border-border">
+								<MRTMapButton />
 							</div>
 						</div>
-					</div>
-				</div>
-			</section>
-
-			{/* ─── Stats bar ─── */}
-			<section className="bg-brand py-8 lg:py-12">
-				<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-					<div className="grid grid-cols-2 lg:grid-cols-4 gap-5 lg:gap-8 text-white text-center">
-						{stats.map((s) => (
-							<div key={s.labelKey}>
-								<p className="text-2xl sm:text-4xl font-bold">{s.value}</p>
-								<p className="text-xs sm:text-sm text-white/70 mt-1">
-									{t(s.labelKey)}
-								</p>
-							</div>
-						))}
 					</div>
 				</div>
 			</section>
