@@ -551,7 +551,8 @@
     "depositFunds": "+ Deposit Funds",
     "browseShares": "Browse Shares",
     "viewWallet": "View Wallet",
-    "postLostFound": "Post Lost & Found"
+    "postLostFound": "Post Lost & Found",
+    "myTaxiRequests": "My Taxi Requests"
   },
   "wallet": {
     "title": "My Wallet",
@@ -658,12 +659,19 @@
     "pickupPlaceholder": "e.g. Block 123, Geylang Rd, Singapore",
     "dropoffPlaceholder": "e.g. Changi Airport Terminal 2",
     "passengers": "Passengers",
-    "vehicleType": "Vehicle Type",
     "notes": "Notes",
     "notesOptional": "optional",
     "notesPlaceholder": "Special requests, luggage info, medical needs, etc.",
     "submitting": "Submitting Request…",
-    "successTitle": "Request Submitted!"
+    "successTitle": "Request Submitted!",
+    "myRequests": "My Taxi Requests",
+    "myRequestsSubtitle": "Track the status, assigned driver, and price for your bookings.",
+    "backToTaxi": "Book a Taxi",
+    "noRequestsYet": "No requests yet",
+    "noRequestsDesc": "Book a taxi and track its status here.",
+    "assignedTo": "Assigned to",
+    "priceLabel": "Price",
+    "messageOnWhatsapp": "Message on WhatsApp"
   },
   "privacy": {
     "badge": "Legal",

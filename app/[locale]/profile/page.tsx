@@ -178,6 +178,12 @@ export default async function ProfilePage() {
 						>
 							{t("postLostFound")}
 						</Link>
+						<Link
+							href="/taxi/my"
+							className="text-xs font-semibold bg-muted text-foreground px-4 py-2 rounded-lg hover:bg-border transition-colors"
+						>
+							{t("myTaxiRequests")}
+						</Link>
 					</div>
 				</div>
 			</div>

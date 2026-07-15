@@ -65,6 +65,7 @@ enum DepositStatus {
 
 enum TaxiStatus {
   PENDING
+  ASSIGNED
   CONFIRMED
   CANCELLED
   COMPLETED
@@ -138,6 +139,8 @@ model User {
   ticketBookings       TicketBookingRequest[]
   referrals            TicketReferral[]
   taxiRequests         TaxiRequest[]
+  managedTaxiRequests  TaxiRequest[]          @relation("TaxiManagerAssignment")
+  processedTaxiRequests TaxiRequest[]         @relation("TaxiProcessedBy")
   blogPosts            Blog[]
   islamicArticles      IslamicArticle[]
   pdfDocuments         PdfDocument[]
@@ -447,20 +450,39 @@ model TicketReferral {
 // ─────────────────────────────────────────────
 
 model TaxiRequest {
-  id             String     @id @default(cuid())
-  userId         String
-  pickupLocation String
-  destination    String
-  date           DateTime
-  passengerCount Int        @default(1)
-  vehicleType    String
-  notes          String?
-  status         TaxiStatus @default(PENDING)
-  adminNote      String?
-  createdAt      DateTime   @default(now())
-  updatedAt      DateTime   @updatedAt
+  id                String     @id @default(cuid())
+  userId            String
+  pickupLocation    String
+  destination       String
+  date              DateTime
+  passengerCount    Int        @default(1)
+  notes             String?
+  status            TaxiStatus @default(PENDING)
+  adminNote         String?
+  price             Decimal?   @db.Decimal(10, 2)
+  assignedVendorId  String?
+  assignedManagerId String?
+  processedById     String?
+  processedAt       DateTime?
+  createdAt         DateTime   @default(now())
+  updatedAt         DateTime   @updatedAt
 
-  user User @relation(fields: [userId], references: [id])
+  user            User        @relation(fields: [userId], references: [id])
+  assignedVendor  TaxiVendor? @relation(fields: [assignedVendorId], references: [id])
+  assignedManager User?       @relation("TaxiManagerAssignment", fields: [assignedManagerId], references: [id])
+  processedBy     User?       @relation("TaxiProcessedBy", fields: [processedById], references: [id])
+}
+
+model TaxiVendor {
+  id          String   @id @default(cuid())
+  name        String
+  phone       String
+  vehicleType String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  taxiRequests TaxiRequest[]
 }
 
 // ─────────────────────────────────────────────

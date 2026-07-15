@@ -3,8 +3,7 @@
 import { useActionState } from "react";
 import { requestTaxiAction } from "@/app/actions/taxi";
 import { useTranslations } from "next-intl";
-
-const VEHICLE_OPTIONS = ["Sedan", "MPV / Minivan", "Van"];
+import { Link } from "@/i18n/navigation";
 
 export function TaxiRequestForm() {
   const [state, action, pending] = useActionState(requestTaxiAction, null);
@@ -19,7 +18,13 @@ export function TaxiRequestForm() {
           </svg>
         </div>
         <h3 className="text-xl font-bold text-foreground mb-2">{t("successTitle")}</h3>
-        <p className="text-muted-foreground text-sm">{state.message}</p>
+        <p className="text-muted-foreground text-sm mb-5">{state.message}</p>
+        <Link
+          href="/taxi/my"
+          className="inline-block bg-brand text-white text-sm font-semibold px-5 py-2.5 rounded-xl hover:bg-brand-dark transition-colors"
+        >
+          {t("myRequests")}
+        </Link>
       </div>
     );
   }
@@ -76,20 +81,6 @@ export function TaxiRequestForm() {
               defaultValue={1}
               className="w-full px-3.5 py-2.5 rounded-xl border border-border text-foreground focus:outline-none focus:ring-2 focus:ring-brand/30 focus:border-brand text-sm transition-colors"
             />
-          </div>
-
-          <div className="sm:col-span-2">
-            <label className="block text-sm font-medium text-foreground mb-2">{t("vehicleType")}</label>
-            <div className="grid grid-cols-3 gap-3">
-              {VEHICLE_OPTIONS.map((v) => (
-                <label key={v} className="cursor-pointer">
-                  <input type="radio" name="vehicleType" value={v} className="sr-only peer" required />
-                  <div className="border-2 border-border rounded-xl p-3 text-center text-sm font-medium text-muted-foreground transition-all peer-checked:border-brand peer-checked:bg-brand-50 peer-checked:text-brand hover:border-brand/40">
-                    {v}
-                  </div>
-                </label>
-              ))}
-            </div>
           </div>
 
           <div className="sm:col-span-2">

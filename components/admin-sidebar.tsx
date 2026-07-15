@@ -50,6 +50,10 @@ const nav = [
         label: "Taxi Requests", href: "/admin/taxi",
         icon: <svg className="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" /></svg>,
       },
+      {
+        label: "Taxi Vendors", href: "/admin/taxi/vendors",
+        icon: <svg className="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l1.5-4.5A2 2 0 018.4 7h7.2a2 2 0 011.9 1.5L19 13m-14 0v5a1 1 0 001 1h1a1 1 0 001-1v-1h8v1a1 1 0 001 1h1a1 1 0 001-1v-5m-14 0h14" /></svg>,
+      },
     ],
   },
   {
@@ -89,9 +93,13 @@ type Props = { userName: string; userRole: string; userEmail: string };
 export function AdminSidebar({ userName, userRole, userEmail }: Props) {
   const pathname = usePathname();
 
+  const allHrefs = nav.flatMap((group) => group.items.map((item) => item.href));
+  const bestMatch = allHrefs
+    .filter((href) => (href === "/admin" ? pathname === "/admin" || pathname === "/admin/" : pathname.startsWith(href)))
+    .sort((a, b) => b.length - a.length)[0];
+
   function isActive(href: string) {
-    if (href === "/admin") return pathname === "/admin" || pathname === "/admin/";
-    return pathname.startsWith(href);
+    return href === bestMatch;
   }
 
   return (

@@ -551,7 +551,8 @@
     "depositFunds": "+ টাকা জমা করুন",
     "browseShares": "শেয়ার দেখুন",
     "viewWallet": "ওয়ালেট দেখুন",
-    "postLostFound": "হারানো ও পাওয়া পোস্ট করুন"
+    "postLostFound": "হারানো ও পাওয়া পোস্ট করুন",
+    "myTaxiRequests": "আমার ট্যাক্সি রিকোয়েস্ট"
   },
   "wallet": {
     "title": "আমার ওয়ালেট",
@@ -658,12 +659,19 @@
     "pickupPlaceholder": "যেমন: ব্লক ১২৩, গেলাং রোড, সিঙ্গাপুর",
     "dropoffPlaceholder": "যেমন: চাঙ্গি বিমানবন্দর টার্মিনাল ২",
     "passengers": "যাত্রী সংখ্যা",
-    "vehicleType": "গাড়ির ধরন",
     "notes": "নোট",
     "notesOptional": "ঐচ্ছিক",
     "notesPlaceholder": "বিশেষ অনুরোধ, মালামালের তথ্য, চিকিৎসা প্রয়োজনীয়তা ইত্যাদি",
     "submitting": "অনুরোধ জমা দেওয়া হচ্ছে…",
-    "successTitle": "অনুরোধ জমা হয়েছে!"
+    "successTitle": "অনুরোধ জমা হয়েছে!",
+    "myRequests": "আমার ট্যাক্সি রিকোয়েস্ট",
+    "myRequestsSubtitle": "আপনার বুকিং-এর অবস্থা, নির্ধারিত ড্রাইভার এবং মূল্য দেখুন।",
+    "backToTaxi": "ট্যাক্সি বুক করুন",
+    "noRequestsYet": "এখনো কোনো রিকোয়েস্ট নেই",
+    "noRequestsDesc": "একটি ট্যাক্সি বুক করুন এবং এর অবস্থা এখানে দেখুন।",
+    "assignedTo": "নির্ধারিত হয়েছে",
+    "priceLabel": "মূল্য",
+    "messageOnWhatsapp": "হোয়াটসঅ্যাপে বার্তা পাঠান"
   },
   "privacy": {
     "badge": "আইনি",

@@ -397,7 +397,6 @@ async function main() {
       destination: "Changi Airport Terminal 2",
       date: new Date("2026-06-20T04:30:00Z"),
       passengerCount: 1,
-      vehicleType: "Sedan",
       notes: "Very early morning, please be on time",
       status: "PENDING",
     },
@@ -409,7 +408,6 @@ async function main() {
       destination: "Jurong East MRT",
       date: new Date("2026-06-18T08:00:00Z"),
       passengerCount: 3,
-      vehicleType: "MPV / Minivan",
       status: "CONFIRMED",
       adminNote: "Driver: Karim, +65 9123 4567",
     },
@@ -421,7 +419,6 @@ async function main() {
       destination: "Orchard Road",
       date: new Date("2026-06-25T10:00:00Z"),
       passengerCount: 2,
-      vehicleType: "Sedan",
       status: "PENDING",
     },
   });
