@@ -1,7 +1,7 @@
 import { MRTMapButton } from "@/components/mrt-map-button";
 import { Link } from "@/i18n/navigation";
-import { getTranslations } from "next-intl/server";
 import { prisma } from "@/lib/prisma";
+import { getTranslations } from "next-intl/server";
 
 function getFeaturedProjects() {
 	return prisma.project.findMany({
@@ -312,27 +312,27 @@ export default async function HomePage() {
 			<section id="services" className="py-12 lg:py-24 bg-white">
 				<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 					<div className="text-center space-y-3 mb-8 lg:mb-16">
-						<h2 className="text-2xl sm:text-4xl font-bold text-foreground">
+						<h2 className="text-xl sm:text-4xl font-bold text-foreground">
 							{t("servicesTitle")}
 						</h2>
-						<p className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto">
+						<p className="text-sm sm:text-lg text-muted-foreground max-w-2xl mx-auto">
 							{t("servicesSubtitle")}
 						</p>
 					</div>
 					{/* Mobile: icon grid (3 cols). Desktop: card grid (3 cols) */}
-					<div className="grid grid-cols-3 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-5">
+					<div className="grid grid-cols-3 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-5">
 						{services.map((svc) => (
 							<Link
 								key={svc.key}
 								href={svc.href}
-								className="group flex flex-col items-center text-center p-4 sm:p-6 rounded-2xl border border-border bg-white hover:border-brand hover:shadow-lg transition-all duration-200 active:scale-95"
+								className="group flex flex-col items-center text-center p-3 sm:p-6 rounded-2xl border border-border bg-white hover:border-brand hover:shadow-lg transition-all duration-200 active:scale-95"
 							>
 								<div
-									className={`w-12 h-12 sm:w-14 sm:h-14 rounded-xl sm:rounded-2xl ${svc.bg} flex items-center justify-center text-white mb-3`}
+									className={`size-9 sm:w-14 sm:h-14 rounded-xl sm:rounded-2xl ${svc.bg} flex items-center justify-center text-white mb-3`}
 								>
 									{svc.icon}
 								</div>
-								<h3 className="text-xs sm:text-base font-semibold text-foreground sm:mb-2 group-hover:text-brand transition-colors leading-tight">
+								<h3 className="text-[10px] sm:text-base font-semibold text-foreground sm:mb-2 group-hover:text-brand transition-colors leading-tight">
 									{t(`${svc.key}Title`)}
 								</h3>
 								<p className="hidden sm:block text-sm text-muted-foreground leading-relaxed">
@@ -461,32 +461,6 @@ export default async function HomePage() {
 								</p>
 							</div>
 						))}
-					</div>
-				</div>
-			</section>
-
-			{/* ─── CTA banner ─── */}
-			<section className="py-20 bg-brand">
-				<div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-8">
-					<h2 className="text-3xl sm:text-4xl font-bold text-white">
-						{t("ctaTitle")}
-					</h2>
-					<p className="text-lg text-white/80 max-w-xl mx-auto">
-						{t("ctaSubtitle")}
-					</p>
-					<div className="flex flex-wrap justify-center gap-4">
-						<Link
-							href="/register"
-							className="px-8 py-3.5 text-base font-semibold text-brand bg-white rounded-full hover:bg-brand-50 transition-colors shadow-lg"
-						>
-							{t("ctaRegister")}
-						</Link>
-						<Link
-							href="/contact"
-							className="px-8 py-3.5 text-base font-semibold text-white border-2 border-white/40 rounded-full hover:border-white/80 hover:bg-white/10 transition-colors"
-						>
-							{t("ctaContact")}
-						</Link>
 					</div>
 				</div>
 			</section>
