@@ -309,7 +309,7 @@ export default async function HomePage() {
 			</section>
 
 			{/* ─── Services grid ─── */}
-			<section id="services" className="py-12 lg:py-24 bg-white">
+			<section id="services" className="py-12 lg:py-12 md:py-24 bg-white">
 				<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 					<div className="text-center space-y-3 mb-8 lg:mb-16">
 						<h2 className="text-xl sm:text-4xl font-bold text-foreground">
@@ -349,26 +349,26 @@ export default async function HomePage() {
 			</section>
 
 			{/* ─── Marketplace highlight ─── */}
-			<section className="py-24 bg-muted">
+			<section className="py-12 md:py-24 bg-muted">
 				<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 					<div className="grid lg:grid-cols-2 gap-16 items-center">
 						<div className="space-y-6">
 							<div className="inline-flex items-center gap-2 bg-brand-50 text-brand text-sm font-medium px-4 py-1.5 rounded-full border border-brand/20">
 								{t("mktBadge")}
 							</div>
-							<h2 className="text-3xl sm:text-4xl font-bold text-foreground leading-tight">
+							<h2 className="text-xl sm:text-4xl font-bold text-foreground leading-tight">
 								{t("mktTitle")}
 							</h2>
-							<p className="text-lg text-muted-foreground leading-relaxed">
+							<p className="text-sm sm:text-lg text-muted-foreground leading-relaxed">
 								{t("mktSubtitle")}
 							</p>
 							<ul className="space-y-3">
 								{mktPoints.map((key) => (
 									<li
 										key={key}
-										className="flex items-start gap-3 text-sm text-foreground"
+										className="flex items-center gap-3 text-xs sm:text-sm text-foreground"
 									>
-										<span className="mt-0.5 w-5 h-5 rounded-full bg-brand flex items-center justify-center shrink-0">
+										<span className="mt-0.5 size-4 sm:size-5 rounded-full bg-brand flex items-center justify-center shrink-0">
 											{ICONS.check}
 										</span>
 										{t(key)}
@@ -432,7 +432,7 @@ export default async function HomePage() {
 			</section>
 
 			{/* ─── How it works ─── */}
-			<section className="py-24 bg-white">
+			<section className="py-12 md:py-24 bg-white">
 				<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 					<div className="text-center space-y-4 mb-16">
 						<h2 className="text-3xl sm:text-4xl font-bold text-foreground">
