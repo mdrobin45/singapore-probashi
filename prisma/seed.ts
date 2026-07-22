@@ -25,10 +25,10 @@ async function main() {
   await prisma.sharePurchaseRequest.deleteMany();
   await prisma.shareOwnership.deleteMany();
   await prisma.depositRequest.deleteMany();
-  await prisma.ticketBookingRequest.deleteMany();
-  await prisma.ticketReferral.deleteMany();
-  await prisma.airTicketListing.deleteMany();
+  await prisma.checkout.deleteMany();
+  await prisma.airTicketRequest.deleteMany();
   await prisma.taxiRequest.deleteMany();
+  await prisma.taxiVendor.deleteMany();
   await prisma.lostFoundPost.deleteMany();
   await prisma.notification.deleteMany({ where: { user: { email: { in: SEED_EMAILS } } } });
   await prisma.blogCategory.deleteMany();
@@ -284,113 +284,16 @@ async function main() {
     data: { userId: user3.id, amount: 1000.00, paymentMethod: "NAGAD",         txId: "NGD-DEP-003",  status: "PENDING" },
   });
 
-  // ── Air Ticket Listings ───────────────────────────────────────────────────
-  const ticket1 = await prisma.airTicketListing.create({
-    data: {
-      airline: "Biman Bangladesh Airlines",
-      origin: "Singapore (SIN)",
-      destination: "Dhaka (DAC)",
-      departDate: new Date("2026-08-15T06:00:00Z"),
-      returnDate: new Date("2026-09-01T06:00:00Z"),
-      price: 450.00,
-      seats: 20,
-      status: "PUBLISHED",
-    },
+  // ── Taxi Vendors ──────────────────────────────────────────────────────────
+  const vendor1 = await prisma.taxiVendor.create({
+    data: { name: "City Cabs Singapore", phone: "+6591234567", vehicleType: "Sedan" },
   });
-
-  const ticket2 = await prisma.airTicketListing.create({
-    data: {
-      airline: "Singapore Airlines",
-      origin: "Singapore (SIN)",
-      destination: "Dhaka (DAC)",
-      departDate: new Date("2026-07-20T14:00:00Z"),
-      price: 680.00,
-      seats: 8,
-      status: "PUBLISHED",
-    },
-  });
-
-  const ticket3 = await prisma.airTicketListing.create({
-    data: {
-      airline: "Air Asia",
-      origin: "Singapore (SIN)",
-      destination: "Dhaka (DAC)",
-      departDate: new Date("2026-09-05T10:00:00Z"),
-      price: 380.00,
-      seats: 15,
-      status: "PUBLISHED",
-    },
-  });
-
-  // ── Ticket Referral Codes ─────────────────────────────────────────────────
-  // user is a referral agent for ticket1 — earns commission per booking
-  const referral1 = await prisma.ticketReferral.create({
-    data: {
-      referrerId: user.id,
-      listingId: ticket1.id,
-      referralCode: "JAKARIA-BG001",
-      bookingCount: 2,
-      totalEarnings: 45.00,  // e.g. 5% of 450 × 2 bookings
-    },
-  });
-
-  // user2 is a referral agent for ticket2
-  await prisma.ticketReferral.create({
-    data: {
-      referrerId: user2.id,
-      listingId: ticket2.id,
-      referralCode: "MAHBUB-SQ002",
-      bookingCount: 1,
-      totalEarnings: 34.00,
-    },
-  });
-
-  // moderator is a referral agent for ticket3
-  await prisma.ticketReferral.create({
-    data: {
-      referrerId: moderator.id,
-      listingId: ticket3.id,
-      referralCode: "TASNIM-AK003",
-      bookingCount: 0,
-      totalEarnings: 0,
-    },
-  });
-
-  // ── Ticket Booking Requests ───────────────────────────────────────────────
-  // user3 booked via user's referral
-  await prisma.ticketBookingRequest.create({
-    data: {
-      userId: user3.id,
-      listingId: ticket1.id,
-      passengers: 1,
-      totalPrice: 450.00,
-      referralCode: referral1.referralCode,
-      status: "CONFIRMED",
-    },
-  });
-  // user2 booked direct (no referral)
-  await prisma.ticketBookingRequest.create({
-    data: {
-      userId: user2.id,
-      listingId: ticket2.id,
-      passengers: 2,
-      totalPrice: 1360.00,
-      status: "PENDING",
-    },
-  });
-  // user pending on ticket3
-  await prisma.ticketBookingRequest.create({
-    data: {
-      userId: user.id,
-      listingId: ticket3.id,
-      passengers: 1,
-      totalPrice: 380.00,
-      status: "PENDING",
-    },
+  await prisma.taxiVendor.create({
+    data: { name: "Comfort Rides", phone: "+6598765432", vehicleType: "MPV / Minivan" },
   });
 
   // ── Taxi Requests ─────────────────────────────────────────────────────────
-  await prisma.taxiRequest.create({
+  const taxi1 = await prisma.taxiRequest.create({
     data: {
       userId: user.id,
       pickupLocation: "Block 22, Geylang Lorong 14",
@@ -398,7 +301,9 @@ async function main() {
       date: new Date("2026-06-20T04:30:00Z"),
       passengerCount: 1,
       notes: "Very early morning, please be on time",
-      status: "PENDING",
+      status: "ASSIGNED",
+      price: 35.00,
+      assignedVendorId: vendor1.id,
     },
   });
   await prisma.taxiRequest.create({
@@ -409,6 +314,8 @@ async function main() {
       date: new Date("2026-06-18T08:00:00Z"),
       passengerCount: 3,
       status: "CONFIRMED",
+      price: 28.00,
+      assignedVendorId: vendor1.id,
       adminNote: "Driver: Karim, +65 9123 4567",
     },
   });
@@ -420,6 +327,73 @@ async function main() {
       date: new Date("2026-06-25T10:00:00Z"),
       passengerCount: 2,
       status: "PENDING",
+    },
+  });
+
+  // ── Air Ticket Requests ───────────────────────────────────────────────────
+  const airTicket1 = await prisma.airTicketRequest.create({
+    data: {
+      userId: user.id,
+      origin: "Singapore (SIN)",
+      destination: "Dhaka (DAC)",
+      departDate: new Date("2026-08-15T06:00:00Z"),
+      returnDate: new Date("2026-09-01T06:00:00Z"),
+      passengers: 1,
+      status: "ASSIGNED",
+      price: 450.00,
+      assignedManagerId: admin.id,
+    },
+  });
+  await prisma.airTicketRequest.create({
+    data: {
+      userId: user2.id,
+      origin: "Singapore (SIN)",
+      destination: "Dhaka (DAC)",
+      departDate: new Date("2026-07-20T14:00:00Z"),
+      passengers: 2,
+      status: "PENDING",
+    },
+  });
+  await prisma.airTicketRequest.create({
+    data: {
+      userId: user3.id,
+      origin: "Singapore (SIN)",
+      destination: "Dhaka (DAC)",
+      departDate: new Date("2026-09-05T10:00:00Z"),
+      passengers: 1,
+      status: "PENDING",
+    },
+  });
+
+  // ── Checkout (combined taxi + air ticket payment demo) ───────────────────
+  await prisma.checkout.create({
+    data: {
+      token: "demo-awaiting-payment-token",
+      userId: user.id,
+      createdById: admin.id,
+      subtotal: 485.00,
+      discountAmount: 10.00,
+      totalAmount: 475.00,
+      status: "AWAITING_PAYMENT",
+      expiresAt: new Date("2026-09-01T00:00:00Z"),
+      items: {
+        create: [
+          {
+            itemType: "TAXI",
+            taxiRequestId: taxi1.id,
+            description: "Taxi: Geylang → Changi Airport Terminal 2",
+            unitPrice: 35.00,
+            lineTotal: 35.00,
+          },
+          {
+            itemType: "AIR_TICKET",
+            airTicketRequestId: airTicket1.id,
+            description: "Flight: Singapore (SIN) → Dhaka (DAC)",
+            unitPrice: 450.00,
+            lineTotal: 450.00,
+          },
+        ],
+      },
     },
   });
 
@@ -973,8 +947,8 @@ Complete your evening adhkar, pray Isha, and sleep in a state of wudu. This rout
   console.log("└─────────────┴────────────────────────┴───────────────┘");
   console.log("\n  Seeded:  3 projects  |  5 share ownerships");
   console.log("           3 purchase requests  |  2 resell listings  |  1 trade");
-  console.log("           3 air tickets  |  3 referral codes  |  3 bookings");
-  console.log("           3 deposit requests  |  3 taxi requests");
+  console.log("           2 taxi vendors  |  3 taxi requests  |  3 air ticket requests");
+  console.log("           3 deposit requests  |  1 checkout");
   console.log("           8 lost & found posts  |  8 notifications");
   console.log("           2 apply services\n");
 }

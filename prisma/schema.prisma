@@ -63,7 +63,7 @@ enum DepositStatus {
   REJECTED
 }
 
-enum TaxiStatus {
+enum BookingStatus {
   PENDING
   ASSIGNED
   CONFIRMED
@@ -71,10 +71,20 @@ enum TaxiStatus {
   COMPLETED
 }
 
-enum TicketBookingStatus {
-  PENDING
-  CONFIRMED
+enum CheckoutStatus {
+  DRAFT
+  AWAITING_PAYMENT
+  PROOF_SUBMITTED
+  PAID
+  REJECTED
   CANCELLED
+}
+
+enum CheckoutItemType {
+  TAXI
+  AIR_TICKET
+  SERVICE
+  CUSTOM
 }
 
 enum ContentStatus {
@@ -136,11 +146,16 @@ model User {
   ownedShares          ShareOwnership[]
   depositRequests      DepositRequest[]
   withdrawalRequests   WithdrawalRequest[]
-  ticketBookings       TicketBookingRequest[]
-  referrals            TicketReferral[]
   taxiRequests         TaxiRequest[]
   managedTaxiRequests  TaxiRequest[]          @relation("TaxiManagerAssignment")
   processedTaxiRequests TaxiRequest[]         @relation("TaxiProcessedBy")
+  airTicketRequests        AirTicketRequest[]
+  managedAirTicketRequests AirTicketRequest[] @relation("AirTicketManagerAssignment")
+  processedAirTicketRequests AirTicketRequest[] @relation("AirTicketProcessedBy")
+  checkouts            Checkout[]
+  createdCheckouts     Checkout[]             @relation("CheckoutCreatedBy")
+  processedCheckouts   Checkout[]             @relation("CheckoutProcessedBy")
+  serviceRequests      ServiceRequest[]
   blogPosts            Blog[]
   islamicArticles      IslamicArticle[]
   pdfDocuments         PdfDocument[]
@@ -401,48 +416,28 @@ model WithdrawalRequest {
 // AIR TICKET MODULE
 // ─────────────────────────────────────────────
 
-model AirTicketListing {
-  id          String        @id @default(cuid())
-  airline     String
-  origin      String
-  destination String
-  departDate  DateTime
-  returnDate  DateTime?
-  price       Decimal       @db.Decimal(10, 2)
-  seats       Int
-  status      ContentStatus @default(PUBLISHED)
-  createdAt   DateTime      @default(now())
+model AirTicketRequest {
+  id                String        @id @default(cuid())
+  userId            String
+  origin            String
+  destination       String
+  departDate        DateTime
+  returnDate        DateTime?
+  passengers        Int           @default(1)
+  notes             String?
+  status            BookingStatus @default(PENDING)
+  adminNote         String?
+  price             Decimal?      @db.Decimal(10, 2)
+  assignedManagerId String?
+  processedById     String?
+  processedAt       DateTime?
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
 
-  bookings  TicketBookingRequest[]
-  referrals TicketReferral[]
-}
-
-model TicketBookingRequest {
-  id         String              @id @default(cuid())
-  userId     String
-  listingId  String
-  passengers Int                 @default(1)
-  totalPrice Decimal             @db.Decimal(10, 2)
-  referralCode String?
-  status     TicketBookingStatus @default(PENDING)
-  notes      String?
-  createdAt  DateTime            @default(now())
-
-  user    User             @relation(fields: [userId], references: [id])
-  listing AirTicketListing @relation(fields: [listingId], references: [id])
-}
-
-model TicketReferral {
-  id           String   @id @default(cuid())
-  referrerId   String
-  listingId    String
-  referralCode String   @unique
-  bookingCount Int      @default(0)
-  totalEarnings Decimal @db.Decimal(10, 2) @default(0)
-  createdAt    DateTime @default(now())
-
-  referrer User             @relation(fields: [referrerId], references: [id])
-  listing  AirTicketListing @relation(fields: [listingId], references: [id])
+  user            User          @relation(fields: [userId], references: [id])
+  assignedManager User?         @relation("AirTicketManagerAssignment", fields: [assignedManagerId], references: [id])
+  processedBy     User?         @relation("AirTicketProcessedBy", fields: [processedById], references: [id])
+  checkoutItem    CheckoutItem?
 }
 
 // ─────────────────────────────────────────────
@@ -450,27 +445,28 @@ model TicketReferral {
 // ─────────────────────────────────────────────
 
 model TaxiRequest {
-  id                String     @id @default(cuid())
+  id                String        @id @default(cuid())
   userId            String
   pickupLocation    String
   destination       String
   date              DateTime
-  passengerCount    Int        @default(1)
+  passengerCount    Int           @default(1)
   notes             String?
-  status            TaxiStatus @default(PENDING)
+  status            BookingStatus @default(PENDING)
   adminNote         String?
-  price             Decimal?   @db.Decimal(10, 2)
+  price             Decimal?      @db.Decimal(10, 2)
   assignedVendorId  String?
   assignedManagerId String?
   processedById     String?
   processedAt       DateTime?
-  createdAt         DateTime   @default(now())
-  updatedAt         DateTime   @updatedAt
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
 
-  user            User        @relation(fields: [userId], references: [id])
-  assignedVendor  TaxiVendor? @relation(fields: [assignedVendorId], references: [id])
-  assignedManager User?       @relation("TaxiManagerAssignment", fields: [assignedManagerId], references: [id])
-  processedBy     User?       @relation("TaxiProcessedBy", fields: [processedById], references: [id])
+  user            User          @relation(fields: [userId], references: [id])
+  assignedVendor  TaxiVendor?   @relation(fields: [assignedVendorId], references: [id])
+  assignedManager User?         @relation("TaxiManagerAssignment", fields: [assignedManagerId], references: [id])
+  processedBy     User?         @relation("TaxiProcessedBy", fields: [processedById], references: [id])
+  checkoutItem    CheckoutItem?
 }
 
 model TaxiVendor {
@@ -483,6 +479,54 @@ model TaxiVendor {
   updatedAt   DateTime @updatedAt
 
   taxiRequests TaxiRequest[]
+}
+
+// ─────────────────────────────────────────────
+// CHECKOUT (multi-item WhatsApp-negotiated payment)
+// ─────────────────────────────────────────────
+
+model Checkout {
+  id             String         @id @default(cuid())
+  token          String         @unique
+  userId         String
+  subtotal       Decimal        @db.Decimal(12, 2)
+  discountAmount Decimal        @db.Decimal(12, 2) @default(0)
+  totalAmount    Decimal        @db.Decimal(12, 2)
+  status         CheckoutStatus @default(DRAFT)
+  paymentMethod  PaymentMethod?
+  txId           String?
+  screenshotUrl  String?
+  adminNote      String?
+  createdById    String
+  processedById  String?
+  processedAt    DateTime?
+  expiresAt      DateTime?
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  user        User           @relation(fields: [userId], references: [id])
+  createdBy   User           @relation("CheckoutCreatedBy", fields: [createdById], references: [id])
+  processedBy User?          @relation("CheckoutProcessedBy", fields: [processedById], references: [id])
+  items       CheckoutItem[]
+}
+
+model CheckoutItem {
+  id                 String           @id @default(cuid())
+  checkoutId         String
+  itemType           CheckoutItemType
+  taxiRequestId      String?          @unique
+  airTicketRequestId String?          @unique
+  serviceRequestId   String?          @unique
+  description        String
+  quantity            Int             @default(1)
+  unitPrice           Decimal         @db.Decimal(12, 2)
+  lineTotal           Decimal         @db.Decimal(12, 2)
+  createdAt           DateTime        @default(now())
+
+  checkout         Checkout          @relation(fields: [checkoutId], references: [id], onDelete: Cascade)
+  taxiRequest      TaxiRequest?      @relation(fields: [taxiRequestId], references: [id])
+  airTicketRequest AirTicketRequest? @relation(fields: [airTicketRequestId], references: [id])
+  serviceRequest   ServiceRequest?   @relation(fields: [serviceRequestId], references: [id])
 }
 
 // ─────────────────────────────────────────────
@@ -697,6 +741,7 @@ model ApplyService {
 model ServiceRequest {
   id            String      @id @default(cuid())
   serviceId     String
+  userId        String?     // nullable — submission doesn't require login; admin can link to a customer account for checkout bundling
 
   fullName      String
   phone         String
@@ -713,7 +758,9 @@ model ServiceRequest {
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt
 
-  service ApplyService @relation(fields: [serviceId], references: [id])
+  service      ApplyService  @relation(fields: [serviceId], references: [id])
+  user         User?         @relation(fields: [userId], references: [id])
+  checkoutItem CheckoutItem?
 
   @@index([serviceId])
   @@index([email])

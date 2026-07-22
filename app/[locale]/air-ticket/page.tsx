@@ -1,39 +1,18 @@
-import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/session";
 import { getTranslations } from "next-intl/server";
-import { BookingForm } from "./booking-form";
-
-async function getListings() {
-  return prisma.airTicketListing.findMany({
-    where: { status: "PUBLISHED" },
-    orderBy: { departDate: "asc" },
-    include: {
-      _count: { select: { bookings: true } },
-    },
-  });
-}
-
-async function getMyReferrals(userId: string) {
-  return prisma.ticketReferral.findMany({
-    where: { referrerId: userId },
-    include: {
-      listing: { select: { airline: true, destination: true, price: true, departDate: true } },
-    },
-    orderBy: { createdAt: "desc" },
-  });
-}
-
-function formatDate(d: Date) {
-  return d.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
-}
+import { AirTicketRequestForm } from "./air-ticket-form";
+import { Link } from "@/i18n/navigation";
 
 export default async function AirTicketPage() {
-  const [listings, session, t] = await Promise.all([
-    getListings(),
-    getSession(),
-    getTranslations("airTicket"),
-  ]);
-  const myReferrals = session ? await getMyReferrals(session.userId) : [];
+  const session = await getSession();
+  const t = await getTranslations("airTicket");
+
+  const HOW_IT_WORKS = [
+    t("howStep1"),
+    t("howStep2"),
+    t("howStep3"),
+    t("howStep4"),
+  ];
 
   return (
     <div className="min-h-screen bg-muted">
@@ -43,134 +22,70 @@ export default async function AirTicketPage() {
           <span className="inline-block text-xs font-bold uppercase tracking-wider text-brand bg-brand-50 px-3 py-1 rounded-full mb-3">
             {t("badge")}
           </span>
-          <h1 className="text-3xl font-bold text-foreground">{t("title")}</h1>
-          <p className="text-muted-foreground mt-2 max-w-xl">
-            {t("subtitle")}
-          </p>
+          <h1 className="text-3xl font-bold text-foreground">{t("heroTitle")}</h1>
+          <p className="text-muted-foreground mt-2 max-w-xl">{t("heroSubtitle")}</p>
         </div>
       </div>
 
-      {/* Listings */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-        {listings.length === 0 ? (
-          <div className="text-center py-20 text-muted-foreground">
-            {t("noFlights")}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+
+          {/* Left: info */}
+          <div className="lg:col-span-1 space-y-5">
+            {/* How it works */}
+            <div className="bg-white rounded-2xl border border-border p-6">
+              <h2 className="font-semibold text-foreground mb-4">{t("howItWorks")}</h2>
+              <ol className="space-y-3">
+                {HOW_IT_WORKS.map((step, i) => (
+                  <li key={i} className="flex gap-3">
+                    <span className="w-6 h-6 rounded-full bg-brand-50 text-brand text-xs font-bold flex items-center justify-center shrink-0">
+                      {i + 1}
+                    </span>
+                    <p className="text-sm text-muted-foreground">{step}</p>
+                  </li>
+                ))}
+              </ol>
+            </div>
+
+            {/* Contact */}
+            <div className="bg-brand-50 rounded-2xl border border-brand-100 p-5">
+              <p className="text-sm font-semibold text-brand mb-2">{t("urgentBooking")}</p>
+              <p className="text-xs text-muted-foreground mb-3">{t("urgentBookingDesc")}</p>
+              <a
+                href="https://wa.me/+65XXXXXXXX"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 text-xs font-semibold text-white bg-[#25D366] px-4 py-2 rounded-lg hover:bg-[#1ebe5a] transition-colors"
+              >
+                <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z" />
+                </svg>
+                {t("whatsappUs")}
+              </a>
+            </div>
           </div>
-        ) : (
-          <div className="space-y-4">
-            {listings.map((l) => (
-              <div key={l.id} className="bg-white rounded-2xl border border-border overflow-hidden">
-                <div className="p-6">
-                  <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-5">
-                    {/* Flight info */}
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-3">
-                        <div className="w-8 h-8 rounded-lg bg-brand-50 flex items-center justify-center">
-                          <svg className="w-4 h-4 text-brand" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
-                          </svg>
-                        </div>
-                        <span className="font-semibold text-foreground">{l.airline}</span>
-                        {l.returnDate && (
-                          <span className="text-xs bg-blue-100 text-blue-700 font-semibold px-2 py-0.5 rounded-full">{t("returnBadge")}</span>
-                        )}
-                      </div>
 
-                      <div className="flex items-center gap-4">
-                        <div className="text-center">
-                          <p className="text-lg font-bold text-foreground">{l.origin.split("(")[1]?.replace(")", "") ?? l.origin}</p>
-                          <p className="text-xs text-muted-foreground">{l.origin.split("(")[0]?.trim()}</p>
-                        </div>
-                        <div className="flex-1 flex flex-col items-center gap-1">
-                          <div className="w-full flex items-center gap-1">
-                            <div className="flex-1 h-px bg-border" />
-                            <svg className="w-4 h-4 text-brand" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-                            </svg>
-                            <div className="flex-1 h-px bg-border" />
-                          </div>
-                          <p className="text-[11px] text-muted-foreground">{t("direct")}</p>
-                        </div>
-                        <div className="text-center">
-                          <p className="text-lg font-bold text-foreground">{l.destination.split("(")[1]?.replace(")", "") ?? l.destination}</p>
-                          <p className="text-xs text-muted-foreground">{l.destination.split("(")[0]?.trim()}</p>
-                        </div>
-                      </div>
-
-                      <div className="flex flex-wrap gap-4 mt-4 text-xs text-muted-foreground">
-                        <span>📅 {t("depart")}: <strong className="text-foreground">{formatDate(l.departDate)}</strong></span>
-                        {l.returnDate && <span>📅 {t("return")}: <strong className="text-foreground">{formatDate(l.returnDate)}</strong></span>}
-                        <span>💺 {t("seatsLeft")}: <strong className="text-foreground">{l.seats}</strong></span>
-                        <span>📋 {t("bookings")}: <strong className="text-foreground">{l._count.bookings}</strong></span>
-                      </div>
-                    </div>
-
-                    {/* Price & book */}
-                    <div className="flex flex-col items-end gap-3 shrink-0">
-                      <div className="text-right">
-                        <p className="text-3xl font-bold text-brand">৳{Number(l.price).toFixed(0)}</p>
-                        <p className="text-xs text-muted-foreground">{t("perPerson")}</p>
-                      </div>
-                      {session ? (
-                        l.seats > 0 ? (
-                          <BookingForm listingId={l.id} price={Number(l.price)} airline={l.airline} destination={l.destination} />
-                        ) : (
-                          <span className="text-xs text-red-500 font-semibold">{t("fullyBooked")}</span>
-                        )
-                      ) : (
-                        <a href="/login" className="bg-brand text-white text-sm font-semibold px-6 py-2.5 rounded-xl hover:bg-brand-dark transition-colors">
-                          {t("loginToBook")}
-                        </a>
-                      )}
-                    </div>
-                  </div>
+          {/* Right: form */}
+          <div className="lg:col-span-2">
+            {session ? (
+              <AirTicketRequestForm />
+            ) : (
+              <div className="bg-white rounded-2xl border border-border p-10 text-center">
+                <div className="text-5xl mb-4">✈️</div>
+                <h2 className="font-bold text-foreground text-xl mb-2">{t("loginToBookTitle")}</h2>
+                <p className="text-muted-foreground text-sm mb-6">{t("loginToBookDesc")}</p>
+                <div className="flex justify-center gap-3">
+                  <Link href="/login" className="bg-brand text-white font-semibold px-6 py-2.5 rounded-xl hover:bg-brand-dark transition-colors text-sm">
+                    {t("loginBtn")}
+                  </Link>
+                  <Link href="/register" className="border border-border text-foreground font-semibold px-6 py-2.5 rounded-xl hover:bg-muted transition-colors text-sm">
+                    {t("registerBtn")}
+                  </Link>
                 </div>
               </div>
-            ))}
+            )}
           </div>
-        )}
-
-        {/* Info box */}
-        <div className="mt-8 bg-blue-50 border border-blue-200 rounded-2xl p-6">
-          <h3 className="font-semibold text-blue-900 mb-2">{t("howItWorks.title")}</h3>
-          <ol className="space-y-1.5 text-sm text-blue-800">
-            <li>1. {t("howItWorks.step1")}</li>
-            <li>2. {t("howItWorks.step2")}</li>
-            <li>3. {t("howItWorks.step3")}</li>
-            <li>4. {t("howItWorks.step4")}</li>
-          </ol>
         </div>
-
-        {/* My Referral Codes */}
-        {session && myReferrals.length > 0 && (
-          <div className="mt-6 bg-white rounded-2xl border border-border overflow-hidden">
-            <div className="px-6 py-4 border-b border-border">
-              <h3 className="font-semibold text-foreground">{t("referrals.title")}</h3>
-              <p className="text-xs text-muted-foreground mt-0.5">{t("referrals.subtitle")}</p>
-            </div>
-            <div className="divide-y divide-border">
-              {myReferrals.map((r) => (
-                <div key={r.id} className="px-6 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                  <div>
-                    <p className="text-sm font-medium text-foreground">{r.listing.airline} → {r.listing.destination}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {t("depart")} {formatDate(r.listing.departDate)} · ৳{Number(r.listing.price).toFixed(0)}/{t("perPerson")}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-4">
-                    <div className="text-right">
-                      <p className="text-xs text-muted-foreground">{r.bookingCount} {t("bookings")}</p>
-                      <p className="text-xs font-semibold text-green-600">৳{Number(r.totalEarnings).toFixed(2)} {t("referrals.earned")}</p>
-                    </div>
-                    <code className="text-sm font-mono font-bold text-brand bg-brand-50 border border-brand/20 px-3 py-1.5 rounded-lg">
-                      {r.referralCode}
-                    </code>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );

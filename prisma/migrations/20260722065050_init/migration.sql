@@ -23,10 +23,13 @@ CREATE TYPE "WalletTxType" AS ENUM ('DEPOSIT', 'WITHDRAWAL', 'SHARE_PURCHASE', '
 CREATE TYPE "DepositStatus" AS ENUM ('PENDING', 'APPROVED', 'REJECTED');
 
 -- CreateEnum
-CREATE TYPE "TaxiStatus" AS ENUM ('PENDING', 'ASSIGNED', 'CONFIRMED', 'CANCELLED', 'COMPLETED');
+CREATE TYPE "BookingStatus" AS ENUM ('PENDING', 'ASSIGNED', 'CONFIRMED', 'CANCELLED', 'COMPLETED');
 
 -- CreateEnum
-CREATE TYPE "TicketBookingStatus" AS ENUM ('PENDING', 'CONFIRMED', 'CANCELLED');
+CREATE TYPE "CheckoutStatus" AS ENUM ('DRAFT', 'AWAITING_PAYMENT', 'PROOF_SUBMITTED', 'PAID', 'REJECTED', 'CANCELLED');
+
+-- CreateEnum
+CREATE TYPE "CheckoutItemType" AS ENUM ('TAXI', 'AIR_TICKET', 'SERVICE', 'CUSTOM');
 
 -- CreateEnum
 CREATE TYPE "ContentStatus" AS ENUM ('DRAFT', 'PUBLISHED', 'ARCHIVED');
@@ -277,47 +280,25 @@ CREATE TABLE "WithdrawalRequest" (
 );
 
 -- CreateTable
-CREATE TABLE "AirTicketListing" (
+CREATE TABLE "AirTicketRequest" (
     "id" TEXT NOT NULL,
-    "airline" TEXT NOT NULL,
+    "userId" TEXT NOT NULL,
     "origin" TEXT NOT NULL,
     "destination" TEXT NOT NULL,
     "departDate" TIMESTAMP(3) NOT NULL,
     "returnDate" TIMESTAMP(3),
-    "price" DECIMAL(10,2) NOT NULL,
-    "seats" INTEGER NOT NULL,
-    "status" "ContentStatus" NOT NULL DEFAULT 'PUBLISHED',
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-
-    CONSTRAINT "AirTicketListing_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "TicketBookingRequest" (
-    "id" TEXT NOT NULL,
-    "userId" TEXT NOT NULL,
-    "listingId" TEXT NOT NULL,
     "passengers" INTEGER NOT NULL DEFAULT 1,
-    "totalPrice" DECIMAL(10,2) NOT NULL,
-    "referralCode" TEXT,
-    "status" "TicketBookingStatus" NOT NULL DEFAULT 'PENDING',
     "notes" TEXT,
+    "status" "BookingStatus" NOT NULL DEFAULT 'PENDING',
+    "adminNote" TEXT,
+    "price" DECIMAL(10,2),
+    "assignedManagerId" TEXT,
+    "processedById" TEXT,
+    "processedAt" TIMESTAMP(3),
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
 
-    CONSTRAINT "TicketBookingRequest_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "TicketReferral" (
-    "id" TEXT NOT NULL,
-    "referrerId" TEXT NOT NULL,
-    "listingId" TEXT NOT NULL,
-    "referralCode" TEXT NOT NULL,
-    "bookingCount" INTEGER NOT NULL DEFAULT 0,
-    "totalEarnings" DECIMAL(10,2) NOT NULL DEFAULT 0,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-
-    CONSTRAINT "TicketReferral_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "AirTicketRequest_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -329,7 +310,7 @@ CREATE TABLE "TaxiRequest" (
     "date" TIMESTAMP(3) NOT NULL,
     "passengerCount" INTEGER NOT NULL DEFAULT 1,
     "notes" TEXT,
-    "status" "TaxiStatus" NOT NULL DEFAULT 'PENDING',
+    "status" "BookingStatus" NOT NULL DEFAULT 'PENDING',
     "adminNote" TEXT,
     "price" DECIMAL(10,2),
     "assignedVendorId" TEXT,
@@ -353,6 +334,46 @@ CREATE TABLE "TaxiVendor" (
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "TaxiVendor_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "Checkout" (
+    "id" TEXT NOT NULL,
+    "token" TEXT NOT NULL,
+    "userId" TEXT NOT NULL,
+    "subtotal" DECIMAL(12,2) NOT NULL,
+    "discountAmount" DECIMAL(12,2) NOT NULL DEFAULT 0,
+    "totalAmount" DECIMAL(12,2) NOT NULL,
+    "status" "CheckoutStatus" NOT NULL DEFAULT 'DRAFT',
+    "paymentMethod" "PaymentMethod",
+    "txId" TEXT,
+    "screenshotUrl" TEXT,
+    "adminNote" TEXT,
+    "createdById" TEXT NOT NULL,
+    "processedById" TEXT,
+    "processedAt" TIMESTAMP(3),
+    "expiresAt" TIMESTAMP(3),
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "Checkout_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "CheckoutItem" (
+    "id" TEXT NOT NULL,
+    "checkoutId" TEXT NOT NULL,
+    "itemType" "CheckoutItemType" NOT NULL,
+    "taxiRequestId" TEXT,
+    "airTicketRequestId" TEXT,
+    "serviceRequestId" TEXT,
+    "description" TEXT NOT NULL,
+    "quantity" INTEGER NOT NULL DEFAULT 1,
+    "unitPrice" DECIMAL(12,2) NOT NULL,
+    "lineTotal" DECIMAL(12,2) NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "CheckoutItem_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -542,6 +563,7 @@ CREATE TABLE "ApplyService" (
 CREATE TABLE "ServiceRequest" (
     "id" TEXT NOT NULL,
     "serviceId" TEXT NOT NULL,
+    "userId" TEXT,
     "fullName" TEXT NOT NULL,
     "phone" TEXT NOT NULL,
     "email" TEXT NOT NULL,
@@ -616,7 +638,16 @@ CREATE UNIQUE INDEX "Wallet_userId_key" ON "Wallet"("userId");
 CREATE INDEX "WalletTransaction_walletId_idx" ON "WalletTransaction"("walletId");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "TicketReferral_referralCode_key" ON "TicketReferral"("referralCode");
+CREATE UNIQUE INDEX "Checkout_token_key" ON "Checkout"("token");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "CheckoutItem_taxiRequestId_key" ON "CheckoutItem"("taxiRequestId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "CheckoutItem_airTicketRequestId_key" ON "CheckoutItem"("airTicketRequestId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "CheckoutItem_serviceRequestId_key" ON "CheckoutItem"("serviceRequestId");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "BlogCategory_name_key" ON "BlogCategory"("name");
@@ -736,16 +767,13 @@ ALTER TABLE "WithdrawalRequest" ADD CONSTRAINT "WithdrawalRequest_userId_fkey" F
 ALTER TABLE "WithdrawalRequest" ADD CONSTRAINT "WithdrawalRequest_processedById_fkey" FOREIGN KEY ("processedById") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "TicketBookingRequest" ADD CONSTRAINT "TicketBookingRequest_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "AirTicketRequest" ADD CONSTRAINT "AirTicketRequest_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "TicketBookingRequest" ADD CONSTRAINT "TicketBookingRequest_listingId_fkey" FOREIGN KEY ("listingId") REFERENCES "AirTicketListing"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "AirTicketRequest" ADD CONSTRAINT "AirTicketRequest_assignedManagerId_fkey" FOREIGN KEY ("assignedManagerId") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "TicketReferral" ADD CONSTRAINT "TicketReferral_referrerId_fkey" FOREIGN KEY ("referrerId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "TicketReferral" ADD CONSTRAINT "TicketReferral_listingId_fkey" FOREIGN KEY ("listingId") REFERENCES "AirTicketListing"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "AirTicketRequest" ADD CONSTRAINT "AirTicketRequest_processedById_fkey" FOREIGN KEY ("processedById") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "TaxiRequest" ADD CONSTRAINT "TaxiRequest_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -758,6 +786,27 @@ ALTER TABLE "TaxiRequest" ADD CONSTRAINT "TaxiRequest_assignedManagerId_fkey" FO
 
 -- AddForeignKey
 ALTER TABLE "TaxiRequest" ADD CONSTRAINT "TaxiRequest_processedById_fkey" FOREIGN KEY ("processedById") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Checkout" ADD CONSTRAINT "Checkout_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Checkout" ADD CONSTRAINT "Checkout_createdById_fkey" FOREIGN KEY ("createdById") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Checkout" ADD CONSTRAINT "Checkout_processedById_fkey" FOREIGN KEY ("processedById") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "CheckoutItem" ADD CONSTRAINT "CheckoutItem_checkoutId_fkey" FOREIGN KEY ("checkoutId") REFERENCES "Checkout"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "CheckoutItem" ADD CONSTRAINT "CheckoutItem_taxiRequestId_fkey" FOREIGN KEY ("taxiRequestId") REFERENCES "TaxiRequest"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "CheckoutItem" ADD CONSTRAINT "CheckoutItem_airTicketRequestId_fkey" FOREIGN KEY ("airTicketRequestId") REFERENCES "AirTicketRequest"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "CheckoutItem" ADD CONSTRAINT "CheckoutItem_serviceRequestId_fkey" FOREIGN KEY ("serviceRequestId") REFERENCES "ServiceRequest"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Blog" ADD CONSTRAINT "Blog_authorId_fkey" FOREIGN KEY ("authorId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -788,6 +837,9 @@ ALTER TABLE "AuditLog" ADD CONSTRAINT "AuditLog_userId_fkey" FOREIGN KEY ("userI
 
 -- AddForeignKey
 ALTER TABLE "ServiceRequest" ADD CONSTRAINT "ServiceRequest_serviceId_fkey" FOREIGN KEY ("serviceId") REFERENCES "ApplyService"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "ServiceRequest" ADD CONSTRAINT "ServiceRequest_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "ApplyApplication" ADD CONSTRAINT "ApplyApplication_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

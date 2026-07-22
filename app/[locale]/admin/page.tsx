@@ -98,8 +98,9 @@ export default async function AdminDashboard() {
 
   const quickLinks = [
     { href: "/admin/shares",    label: "Shares",      icon: "📈" },
-    { href: "/admin/tickets",   label: "Tickets",     icon: "✈️" },
+    { href: "/admin/air-ticket",label: "Tickets",     icon: "✈️" },
     { href: "/admin/taxi",      label: "Taxi",        icon: "🚕" },
+    { href: "/admin/checkouts", label: "Checkouts",   icon: "🧾" },
     { href: "/admin/blog",      label: "Blog",        icon: "📝" },
     { href: "/admin/islamic",   label: "Islamic",     icon: "🌙" },
     { href: "/admin/lost-found",label: "Lost/Found",  icon: "🔍" },
