@@ -1,7 +1,9 @@
 import { getCurrencySettings, getLiveBdtRate } from "@/lib/currency";
+import { getCommissionRate } from "@/lib/commission";
 import { prisma } from "@/lib/prisma";
 import { CurrencySettingsForm } from "./currency-form";
 import { BankRatesForm } from "./bank-rates-form";
+import { CommissionSettingsForm } from "./commission-form";
 
 async function getBankRates() {
   try {
@@ -13,10 +15,11 @@ async function getBankRates() {
 }
 
 export default async function AdminSettingsPage() {
-  const [settings, liveRate, banks] = await Promise.all([
+  const [settings, liveRate, banks, commissionRate] = await Promise.all([
     getCurrencySettings(),
     getLiveBdtRate(),
     getBankRates(),
+    getCommissionRate(),
   ]);
 
   return (
@@ -67,6 +70,28 @@ export default async function AdminSettingsPage() {
         </div>
         <div className="p-6">
           <BankRatesForm banks={banks} />
+        </div>
+      </div>
+
+      {/* Agent commission rate */}
+      <div className="bg-white rounded-xl border border-border overflow-hidden">
+        <div className="px-6 py-5 border-b border-border">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-purple-50 flex items-center justify-center">
+              <svg className="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12v6a2 2 0 01-2 2H6a2 2 0 01-2-2v-6M2 7h20M12 3v4M8 7l4-4 4 4" />
+              </svg>
+            </div>
+            <div>
+              <h2 className="font-semibold text-foreground">Agent Commission</h2>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Global rate agents earn on referred taxi, air ticket, service, and share purchase requests
+              </p>
+            </div>
+          </div>
+        </div>
+        <div className="p-6">
+          <CommissionSettingsForm rate={commissionRate} />
         </div>
       </div>
     </div>

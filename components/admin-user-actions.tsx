@@ -7,6 +7,7 @@ import {
   toggleUserActiveAction,
   verifyUserAction,
   changeUserRoleAction,
+  toggleAgentAction,
 } from "@/app/actions/admin-users";
 
 type User = {
@@ -14,6 +15,8 @@ type User = {
   role: string;
   isVerified: boolean;
   isActive: boolean;
+  isAgent: boolean;
+  referralCode: string | null;
 };
 
 type Props = {
@@ -40,8 +43,9 @@ export function UserActionsMenu({ user, actorRole }: Props) {
   const [toggleState, toggleAction, togglePending] = useActionState(toggleUserActiveAction, null);
   const [verifyState, verifyAction, verifyPending] = useActionState(verifyUserAction, null);
   const [roleState, roleAction, rolePending] = useActionState(changeUserRoleAction, null);
+  const [agentState, agentAction, agentPending] = useActionState(toggleAgentAction, null);
 
-  const feedback = deleteState ?? toggleState ?? verifyState ?? roleState;
+  const feedback = deleteState ?? toggleState ?? verifyState ?? roleState ?? agentState;
 
   // Refresh server component data whenever an action succeeds
   useEffect(() => {
@@ -121,6 +125,38 @@ export function UserActionsMenu({ user, actorRole }: Props) {
                 {togglePending ? "Updating…" : user.isActive ? "Ban user" : "Unban user"}
               </button>
             </form>
+          )}
+
+          {/* Agent / referral commission */}
+          {canManage && (
+            <form action={agentAction} onSubmit={() => setOpen(false)}>
+              <input type="hidden" name="userId" value={user.id} />
+              <input type="hidden" name="isAgent" value={String(user.isAgent)} />
+              <button
+                type="submit"
+                disabled={agentPending}
+                className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-foreground hover:bg-muted transition-colors disabled:opacity-50"
+              >
+                <svg className="w-4 h-4 text-brand shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M20 12v6a2 2 0 01-2 2H6a2 2 0 01-2-2v-6M2 7h20M12 3v4M8 7l4-4 4 4" />
+                </svg>
+                {agentPending ? "Updating…" : user.isAgent ? "Remove agent status" : "Make agent"}
+              </button>
+            </form>
+          )}
+          {user.isAgent && user.referralCode && (
+            <div className="px-4 py-2 flex items-center justify-between gap-2 border-t border-border">
+              <code className="text-xs font-mono font-semibold text-brand bg-brand-50 border border-brand/20 px-2 py-1 rounded-lg truncate">
+                {user.referralCode}
+              </code>
+              <button
+                type="button"
+                onClick={() => navigator.clipboard.writeText(user.referralCode!)}
+                className="text-xs text-muted-foreground hover:text-foreground shrink-0"
+              >
+                Copy
+              </button>
+            </div>
           )}
 
           {/* Change role — SUPER_ADMIN only */}

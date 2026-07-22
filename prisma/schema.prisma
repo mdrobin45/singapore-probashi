@@ -55,6 +55,7 @@ enum WalletTxType {
   SHARE_PURCHASE
   SHARE_SALE
   REFUND
+  COMMISSION
 }
 
 enum DepositStatus {
@@ -135,12 +136,18 @@ model User {
   role         Role     @default(USER)
   isVerified   Boolean  @default(false)
   isActive     Boolean  @default(true)
+  isAgent      Boolean  @default(false)
+  referralCode String?  @unique
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
   otpTokens            OtpToken[]
   wallet               Wallet?
   sharePurchases       SharePurchaseRequest[]
+  referredSharePurchases SharePurchaseRequest[] @relation("SharePurchaseReferrer")
+  referredTaxiRequests   TaxiRequest[]          @relation("TaxiReferrer")
+  referredAirTicketRequests AirTicketRequest[]  @relation("AirTicketReferrer")
+  referredServiceRequests   ServiceRequest[]    @relation("ServiceReferrer")
   shareListings        ShareListing[]
   shareTrades          ShareTrade[]         @relation("BuyerTrades")
   ownedShares          ShareOwnership[]
@@ -279,12 +286,14 @@ model SharePurchaseRequest {
   screenshotUrl String?
   status        PurchaseStatus @default(PENDING)
   adminNote     String?
+  referredById  String?
   processedById String?
   processedAt   DateTime?
   createdAt     DateTime       @default(now())
 
   buyer       User     @relation(fields: [buyerId], references: [id])
   project     Project  @relation(fields: [projectId], references: [id])
+  referredBy  User?    @relation("SharePurchaseReferrer", fields: [referredById], references: [id])
   processedBy User?    @relation("PurchaseProcessor", fields: [processedById], references: [id])
 }
 
@@ -429,6 +438,7 @@ model AirTicketRequest {
   adminNote         String?
   price             Decimal?      @db.Decimal(10, 2)
   assignedManagerId String?
+  referredById      String?
   processedById     String?
   processedAt       DateTime?
   createdAt         DateTime      @default(now())
@@ -436,6 +446,7 @@ model AirTicketRequest {
 
   user            User          @relation(fields: [userId], references: [id])
   assignedManager User?         @relation("AirTicketManagerAssignment", fields: [assignedManagerId], references: [id])
+  referredBy      User?         @relation("AirTicketReferrer", fields: [referredById], references: [id])
   processedBy     User?         @relation("AirTicketProcessedBy", fields: [processedById], references: [id])
   checkoutItem    CheckoutItem?
 }
@@ -457,6 +468,7 @@ model TaxiRequest {
   price             Decimal?      @db.Decimal(10, 2)
   assignedVendorId  String?
   assignedManagerId String?
+  referredById      String?
   processedById     String?
   processedAt       DateTime?
   createdAt         DateTime      @default(now())
@@ -465,6 +477,7 @@ model TaxiRequest {
   user            User          @relation(fields: [userId], references: [id])
   assignedVendor  TaxiVendor?   @relation(fields: [assignedVendorId], references: [id])
   assignedManager User?         @relation("TaxiManagerAssignment", fields: [assignedManagerId], references: [id])
+  referredBy      User?         @relation("TaxiReferrer", fields: [referredById], references: [id])
   processedBy     User?         @relation("TaxiProcessedBy", fields: [processedById], references: [id])
   checkoutItem    CheckoutItem?
 }
@@ -755,11 +768,13 @@ model ServiceRequest {
 
   status        ApplyStatus @default(PENDING)
   adminNote     String?
+  referredById  String?
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt
 
   service      ApplyService  @relation(fields: [serviceId], references: [id])
   user         User?         @relation(fields: [userId], references: [id])
+  referredBy   User?         @relation("ServiceReferrer", fields: [referredById], references: [id])
   checkoutItem CheckoutItem?
 
   @@index([serviceId])

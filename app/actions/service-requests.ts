@@ -5,6 +5,7 @@ import { getSession } from "@/lib/session";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
+import { resolveReferralCode } from "@/lib/commission";
 
 type State = { error?: string; success?: boolean } | null;
 
@@ -39,8 +40,13 @@ export async function submitServiceRequestAction(_prev: State, formData: FormDat
   const workPermitUrl = (formData.get("workPermitUrl") as string) || null;
   const otherUrl      = (formData.get("otherUrl")      as string) || null;
 
+  const { referredById, error: referralError } = await resolveReferralCode(
+    formData.get("referralCode") as string | null
+  );
+  if (referralError) return { error: referralError };
+
   await prisma.serviceRequest.create({
-    data: { serviceId, fullName, phone, email, passportUrl, nidUrl, photoUrl, workPermitUrl, otherUrl },
+    data: { serviceId, fullName, phone, email, passportUrl, nidUrl, photoUrl, workPermitUrl, otherUrl, referredById },
   });
 
   revalidatePath("/admin/apply");

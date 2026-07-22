@@ -6,6 +6,7 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { randomBytes } from "crypto";
 import { z } from "zod";
+import { creditCommission } from "@/lib/commission";
 
 async function requireAdmin() {
   const session = await getSession();
@@ -286,7 +287,15 @@ export async function approveCheckoutAction(id: string) {
     const checkout = await tx.checkout.update({
       where: { id },
       data: { status: "PAID", processedById: session.userId, processedAt: new Date() },
-      include: { items: true },
+      include: {
+        items: {
+          include: {
+            taxiRequest: { select: { referredById: true } },
+            airTicketRequest: { select: { referredById: true } },
+            serviceRequest: { select: { referredById: true } },
+          },
+        },
+      },
     });
 
     for (const item of checkout.items) {
@@ -299,6 +308,17 @@ export async function approveCheckoutAction(id: string) {
       if (item.serviceRequestId) {
         await tx.serviceRequest.update({ where: { id: item.serviceRequestId }, data: { status: "IN_PROGRESS" } });
       }
+
+      const referredById =
+        item.taxiRequest?.referredById ??
+        item.airTicketRequest?.referredById ??
+        item.serviceRequest?.referredById ??
+        null;
+      await creditCommission(tx, {
+        referredById,
+        amount: Number(item.lineTotal),
+        description: item.description,
+      });
     }
 
     await tx.notification.create({

@@ -224,6 +224,19 @@ export function PurchaseForm({ projectId, sharePrice, availableShares, hasPendin
           </div>
         )}
 
+        {/* Referral code */}
+        <div>
+          <label className="block text-sm font-medium text-foreground mb-1.5">
+            {t("referralCode")} <span className="text-muted-foreground font-normal">({t("referralCodeOptional")})</span>
+          </label>
+          <input
+            name="referralCode"
+            type="text"
+            placeholder={t("referralCodePlaceholder")}
+            className="w-full px-3.5 py-2.5 rounded-lg border border-border text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-brand/30 focus:border-brand text-sm transition-colors uppercase"
+          />
+        </div>
+
         {/* Error */}
         {state?.error && (
           <div className="rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700">

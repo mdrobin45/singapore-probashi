@@ -5,6 +5,7 @@ import { getSession } from "@/lib/session";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { Role } from "../../generated/prisma/enums";
+import { generateReferralCode } from "@/lib/commission";
 
 type ActionState = { error?: string; success?: string } | null;
 
@@ -138,4 +139,34 @@ export async function changeUserRoleAction(
   await prisma.user.update({ where: { id: userId }, data: { role: newRole as Role } });
   revalidatePath("/", "layout");
   return { success: `Role changed to ${newRole.replace("_", " ")}.` };
+}
+
+// ── Toggle agent status (referral commission) ────────────────────────────────
+
+export async function toggleAgentAction(
+  _prev: ActionState,
+  formData: FormData
+): Promise<ActionState> {
+  const session = await requireAdminSession();
+  const userId = formData.get("userId") as string;
+  const currentlyAgent = formData.get("isAgent") === "true";
+
+  const target = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { id: true, role: true, fullName: true, referralCode: true },
+  });
+  if (!target) return { error: "User not found." };
+  if (!canManage(session.role, target.role))
+    return { error: "You don't have permission to manage this user." };
+
+  if (!currentlyAgent) {
+    const referralCode = target.referralCode ?? (await generateReferralCode(target.fullName));
+    await prisma.user.update({ where: { id: userId }, data: { isAgent: true, referralCode } });
+    revalidatePath("/", "layout");
+    return { success: `${target.fullName} is now an agent — code ${referralCode}.` };
+  }
+
+  await prisma.user.update({ where: { id: userId }, data: { isAgent: false } });
+  revalidatePath("/", "layout");
+  return { success: "Agent status removed." };
 }

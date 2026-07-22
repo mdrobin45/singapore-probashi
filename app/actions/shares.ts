@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/session";
 import { redirect } from "next/navigation";
 import { z } from "zod";
+import { resolveReferralCode } from "@/lib/commission";
 
 type ActionState = { error?: string; success?: boolean; message?: string } | null;
 
@@ -60,6 +61,11 @@ export async function requestSharePurchaseAction(
     }
   }
 
+  const { referredById, error: referralError } = await resolveReferralCode(
+    formData.get("referralCode") as string | null
+  );
+  if (referralError) return { error: referralError };
+
   await prisma.sharePurchaseRequest.create({
     data: {
       buyerId: session.userId,
@@ -70,6 +76,7 @@ export async function requestSharePurchaseAction(
       txId: txId ?? null,
       screenshotUrl: screenshotUrl ?? null,
       status: "PENDING",
+      referredById,
     },
   });
 

@@ -5,6 +5,7 @@ import { getSession } from "@/lib/session";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
+import { resolveReferralCode } from "@/lib/commission";
 
 type ActionState = { error?: string; success?: boolean; message?: string } | null;
 type BookingStatus = "PENDING" | "ASSIGNED" | "CONFIRMED" | "CANCELLED" | "COMPLETED";
@@ -45,6 +46,11 @@ export async function requestAirTicketAction(
 
   const { origin, destination, departDate, returnDate, passengers, notes } = parse.data;
 
+  const { referredById, error: referralError } = await resolveReferralCode(
+    formData.get("referralCode") as string | null
+  );
+  if (referralError) return { error: referralError };
+
   await prisma.airTicketRequest.create({
     data: {
       userId: session.userId,
@@ -54,6 +60,7 @@ export async function requestAirTicketAction(
       returnDate: returnDate ? new Date(returnDate) : null,
       passengers,
       notes: notes ?? null,
+      referredById,
     },
   });
 

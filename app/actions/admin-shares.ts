@@ -5,6 +5,7 @@ import { getSession } from "@/lib/session";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
+import { creditCommission } from "@/lib/commission";
 
 type ActionState = { error?: string; success?: boolean; shareNumbersCreated?: number } | null;
 
@@ -110,6 +111,13 @@ export async function processPurchaseAction(
       await tx.shareCertificate.updateMany({
         where: { id: { in: availableCerts.map((c) => c.id) } },
         data: { ownerId: request.buyerId, issuedAt: new Date() },
+      });
+
+      // Referral commission, if this purchase was referred by an agent
+      await creditCommission(tx, {
+        referredById: request.referredById,
+        amount: Number(request.totalAmount),
+        description: `Share purchase — ${request.project.name}`,
       });
 
       // Notify buyer

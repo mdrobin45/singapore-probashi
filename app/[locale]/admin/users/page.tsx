@@ -8,6 +8,7 @@ async function getUsers() {
     select: {
       id: true, fullName: true, email: true, nidNumber: true,
       phone: true, role: true, isVerified: true, isActive: true, createdAt: true,
+      isAgent: true, referralCode: true,
       wallet: { select: { balance: true } },
     },
   });
@@ -97,6 +98,12 @@ export default async function AdminUsersPage() {
                           Banned
                         </span>
                       )}
+                      {u.isAgent && (
+                        <span className="inline-flex items-center gap-1 text-xs text-brand">
+                          <span className="w-1.5 h-1.5 rounded-full bg-brand inline-block" />
+                          Agent
+                        </span>
+                      )}
                     </div>
                   </td>
                   <td className="px-4 py-3.5 text-muted-foreground text-xs hidden lg:table-cell">
@@ -104,7 +111,10 @@ export default async function AdminUsersPage() {
                   </td>
                   <td className="px-4 py-3.5 text-center">
                     <UserActionsMenu
-                      user={{ id: u.id, role: u.role, isVerified: u.isVerified, isActive: u.isActive }}
+                      user={{
+                        id: u.id, role: u.role, isVerified: u.isVerified, isActive: u.isActive,
+                        isAgent: u.isAgent, referralCode: u.referralCode,
+                      }}
                       actorRole={actorRole}
                     />
                   </td>

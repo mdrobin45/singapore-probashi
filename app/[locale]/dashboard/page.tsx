@@ -72,6 +72,7 @@ export default async function DashboardPage() {
     SHARE_PURCHASE: t("txSharePurchase"),
     SHARE_SALE: t("txShareSale"),
     REFUND: t("txRefund"),
+    COMMISSION: t("txCommission"),
   };
 
   return (
@@ -241,8 +242,8 @@ export default async function DashboardPage() {
                     <p className="text-xs text-muted-foreground">{tx.description}</p>
                   </div>
                   <div className="text-right">
-                    <p className={`text-sm font-semibold ${["DEPOSIT", "SHARE_SALE", "REFUND"].includes(tx.type) ? "text-green-600" : "text-red-600"}`}>
-                      {["DEPOSIT", "SHARE_SALE", "REFUND"].includes(tx.type) ? "+" : "-"}৳{Number(tx.amount).toFixed(2)}
+                    <p className={`text-sm font-semibold ${["DEPOSIT", "SHARE_SALE", "REFUND", "COMMISSION"].includes(tx.type) ? "text-green-600" : "text-red-600"}`}>
+                      {["DEPOSIT", "SHARE_SALE", "REFUND", "COMMISSION"].includes(tx.type) ? "+" : "-"}৳{Number(tx.amount).toFixed(2)}
                     </p>
                     <p className="text-[11px] text-muted-foreground">
                       {tx.createdAt.toLocaleDateString("en-GB", { day: "2-digit", month: "short" })}

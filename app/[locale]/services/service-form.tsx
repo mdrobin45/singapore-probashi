@@ -147,6 +147,10 @@ export function ServiceRequestForm({ services }: { services: Service[] }) {
                     <input name="email" type="email" required placeholder="you@email.com" className={INPUT} />
                   </div>
                 </div>
+                <div>
+                  <label className="block text-xs font-semibold text-foreground mb-1.5">Referral Code <span className="text-muted-foreground font-normal">(optional)</span></label>
+                  <input name="referralCode" type="text" placeholder="e.g. JAKARIA-A1B2" className={`${INPUT} uppercase`} />
+                </div>
               </div>
 
               {/* Documents */}

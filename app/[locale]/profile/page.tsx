@@ -4,6 +4,7 @@ import { getSession } from "@/lib/session";
 import { getTranslations } from "next-intl/server";
 import { redirect } from "next/navigation";
 import { AvatarUpload } from "./avatar-upload";
+import { ReferralCard } from "./referral-card";
 
 export default async function ProfilePage() {
 	const session = await getSession();
@@ -19,6 +20,8 @@ export default async function ProfilePage() {
 			role: true,
 			isVerified: true,
 			isActive: true,
+			isAgent: true,
+			referralCode: true,
 			createdAt: true,
 			profilePhoto: true,
 			wallet: { select: { balance: true } },
@@ -117,6 +120,16 @@ export default async function ProfilePage() {
 						))}
 					</div>
 				</div>
+
+				{user.isAgent && user.referralCode && (
+					<ReferralCard
+						code={user.referralCode}
+						title={t("agentReferralTitle")}
+						hint={t("agentReferralHint")}
+						copyLabel={t("copyCode")}
+						copiedLabel={t("copied")}
+					/>
+				)}
 
 				{/* Activity stats */}
 				<div className="grid grid-cols-3 gap-4 mb-5">

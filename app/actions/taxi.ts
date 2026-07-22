@@ -5,6 +5,7 @@ import { getSession } from "@/lib/session";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
+import { resolveReferralCode } from "@/lib/commission";
 
 type ActionState = { error?: string; success?: boolean; message?: string } | null;
 type TaxiStatus = "PENDING" | "ASSIGNED" | "CONFIRMED" | "CANCELLED" | "COMPLETED";
@@ -43,6 +44,11 @@ export async function requestTaxiAction(
 
   const { pickupLocation, destination, date, passengerCount, notes } = parse.data;
 
+  const { referredById, error: referralError } = await resolveReferralCode(
+    formData.get("referralCode") as string | null
+  );
+  if (referralError) return { error: referralError };
+
   await prisma.taxiRequest.create({
     data: {
       userId: session.userId,
@@ -51,6 +57,7 @@ export async function requestTaxiAction(
       date: new Date(date),
       passengerCount,
       notes: notes ?? null,
+      referredById,
     },
   });
 

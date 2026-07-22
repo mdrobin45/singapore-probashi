@@ -54,6 +54,29 @@ export async function saveCurrencySettingsAction(_prev: State, formData: FormDat
   return { success: true };
 }
 
+// ── Commission rate ────────────────────────────────────────────────────────────
+
+export async function saveCommissionRateAction(_prev: State, formData: FormData): Promise<State> {
+  const session = await getSession();
+  if (!session || !["SUPER_ADMIN", "ADMIN"].includes(session.role)) {
+    return { error: "Unauthorized." };
+  }
+
+  const rate = parseFloat(formData.get("rate") as string);
+  if (isNaN(rate) || rate < 0 || rate > 100) {
+    return { error: "Enter a valid rate between 0 and 100." };
+  }
+
+  await prisma.siteSetting.upsert({
+    where: { key: "commission_rate" },
+    create: { key: "commission_rate", value: String(rate) },
+    update: { value: String(rate) },
+  });
+
+  revalidatePath("/admin/settings");
+  return { success: true };
+}
+
 // ── Bank rates ────────────────────────────────────────────────────────────────
 
 async function authAdmin() {

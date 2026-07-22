@@ -105,6 +105,18 @@ export function AirTicketRequestForm() {
               className="w-full px-3.5 py-2.5 rounded-xl border border-border text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-brand/30 focus:border-brand text-sm resize-none transition-colors"
             />
           </div>
+
+          <div className="sm:col-span-2">
+            <label className="block text-sm font-medium text-foreground mb-1.5">
+              {t("referralCode")} <span className="text-muted-foreground font-normal">({t("notesOptional")})</span>
+            </label>
+            <input
+              name="referralCode"
+              type="text"
+              placeholder={t("referralCodePlaceholder")}
+              className="w-full px-3.5 py-2.5 rounded-xl border border-border text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-brand/30 focus:border-brand text-sm transition-colors uppercase"
+            />
+          </div>
         </div>
 
         {state?.error && (
