@@ -62,7 +62,8 @@ export async function requestSharePurchaseAction(
   }
 
   const { referredById, error: referralError } = await resolveReferralCode(
-    formData.get("referralCode") as string | null
+    formData.get("referralCode") as string | null,
+    session.userId
   );
   if (referralError) return { error: referralError };
 

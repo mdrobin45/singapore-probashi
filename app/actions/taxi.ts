@@ -45,7 +45,8 @@ export async function requestTaxiAction(
   const { pickupLocation, destination, date, passengerCount, notes } = parse.data;
 
   const { referredById, error: referralError } = await resolveReferralCode(
-    formData.get("referralCode") as string | null
+    formData.get("referralCode") as string | null,
+    session.userId
   );
   if (referralError) return { error: referralError };
 

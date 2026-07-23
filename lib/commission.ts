@@ -50,25 +50,41 @@ export async function creditCommission(
   });
 }
 
-// Resolves an optional referral code entered on a public form to the referring
-// agent's user id. Returns an error message (rather than silently ignoring) so a
-// mistyped code doesn't go unnoticed by the customer.
+// Resolves who should be credited as the referrer for a submission.
+// - If a referral code was entered, it must resolve to an active agent (returns a
+//   friendly error otherwise, so a mistyped code doesn't go unnoticed) — this lets
+//   one agent credit a *different* agent on a request they're handling for them.
+// - If no code was entered but the submitter (when logged in) is themselves an
+//   agent, they're credited automatically — agents don't need to enter their own
+//   code to earn commission on requests they submit directly.
 export async function resolveReferralCode(
-  code: string | undefined | null
+  code: string | undefined | null,
+  submitterId?: string | null
 ): Promise<{ referredById?: string; error?: string }> {
   const trimmed = code?.trim();
-  if (!trimmed) return {};
 
-  const agent = await prisma.user.findUnique({
-    where: { referralCode: trimmed.toUpperCase() },
-    select: { id: true, isAgent: true },
-  });
+  if (trimmed) {
+    const agent = await prisma.user.findUnique({
+      where: { referralCode: trimmed.toUpperCase() },
+      select: { id: true, isAgent: true },
+    });
 
-  if (!agent || !agent.isAgent) {
-    return { error: "Referral code not found — check with your agent or leave this blank." };
+    if (!agent || !agent.isAgent) {
+      return { error: "Referral code not found — check with your agent or leave this blank." };
+    }
+
+    return { referredById: agent.id };
   }
 
-  return { referredById: agent.id };
+  if (submitterId) {
+    const submitter = await prisma.user.findUnique({
+      where: { id: submitterId },
+      select: { isAgent: true },
+    });
+    if (submitter?.isAgent) return { referredById: submitterId };
+  }
+
+  return {};
 }
 
 const CODE_CHARS = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // no ambiguous 0/O/1/I
