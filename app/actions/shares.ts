@@ -230,7 +230,10 @@ export async function createShareBuyRequestAction(
 
   if (!parse.success) return { error: parse.error.issues[0].message };
 
-  const { name, shareNumber, size, price, preferredDate } = parse.data;
+  const { name, shareNumber, size, price: priceSgd, preferredDate } = parse.data;
+
+  const rate = await getShareSgdRate();
+  const price = sgdToBdt(priceSgd, rate);
 
   await prisma.shareBuyRequest.create({
     data: {

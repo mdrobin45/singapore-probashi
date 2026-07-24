@@ -1,4 +1,5 @@
 import { getSession } from "@/lib/session";
+import { getShareSgdRate } from "@/lib/share-pricing";
 import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { BuyRequestForm } from "./buy-request-form";
@@ -8,7 +9,7 @@ export default async function BuyRequestPage() {
   const session = await getSession();
   if (!session) redirect("/login");
 
-  const t = await getTranslations("shares");
+  const [t, rate] = await Promise.all([getTranslations("shares"), getShareSgdRate()]);
 
   return (
     <div className="min-h-screen bg-muted">
@@ -29,7 +30,7 @@ export default async function BuyRequestPage() {
             </p>
           </div>
 
-          <BuyRequestForm defaultName={session.fullName} />
+          <BuyRequestForm defaultName={session.fullName} rate={rate} />
         </div>
 
         {/* Info */}
