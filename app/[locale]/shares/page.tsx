@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/session";
+import { getShareSgdRate, sgdToBdt } from "@/lib/share-pricing";
 import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { SecondaryMarket } from "./secondary-market";
@@ -18,7 +19,7 @@ async function getSecondaryListings() {
     orderBy: { createdAt: "desc" },
     include: {
       seller: { select: { fullName: true } },
-      project: { select: { name: true, sharePrice: true } },
+      project: { select: { name: true, sharePriceSgd: true } },
     },
   });
 }
@@ -31,15 +32,16 @@ export default async function SharesPage({
   const { tab } = await searchParams;
   const activeTab = tab === "secondary" ? "secondary" : "primary";
 
-  const [projects, secondaryListings, session, t] = await Promise.all([
+  const [projects, secondaryListings, session, t, rate] = await Promise.all([
     getPrimaryData(),
     getSecondaryListings(),
     getSession(),
     getTranslations("shares"),
+    getShareSgdRate(),
   ]);
 
   const totalValue = projects.reduce(
-    (sum, p) => sum + Number(p.sharePrice) * p.totalShares,
+    (sum, p) => sum + sgdToBdt(Number(p.sharePriceSgd) * p.totalShares, rate),
     0
   );
 
@@ -134,7 +136,7 @@ export default async function SharesPage({
                   const soldPct = Math.round(
                     ((project.totalShares - project.availableShares) / project.totalShares) * 100
                   );
-                  const totalProjectValue = Number(project.sharePrice) * project.totalShares;
+                  const totalProjectValue = sgdToBdt(Number(project.sharePriceSgd) * project.totalShares, rate);
 
                   return (
                     <div key={project.id} className="bg-white rounded-2xl border border-border overflow-hidden flex flex-col hover:shadow-md transition-shadow">
@@ -165,8 +167,8 @@ export default async function SharesPage({
 
                       <div className="px-6 py-4 border-b border-border grid grid-cols-3 gap-3 text-center">
                         <div>
-                          <p className="text-base font-bold text-foreground">৳{Number(project.sharePrice).toFixed(0)}</p>
-                          <p className="text-[11px] text-muted-foreground">{t("perShare")}</p>
+                          <p className="text-base font-bold text-foreground">${Number(project.sharePriceSgd).toFixed(2)}</p>
+                          <p className="text-[11px] text-muted-foreground">{t("perShare")} · ≈ ৳{sgdToBdt(Number(project.sharePriceSgd), rate).toFixed(0)}</p>
                         </div>
                         <div>
                           <p className="text-base font-bold text-foreground">{project.availableShares.toLocaleString()}</p>
@@ -209,7 +211,7 @@ export default async function SharesPage({
             )}
           </>
         ) : (
-          <SecondaryMarket listings={secondaryListings} session={session} />
+          <SecondaryMarket listings={secondaryListings} session={session} rate={rate} />
         )}
       </div>
     </div>

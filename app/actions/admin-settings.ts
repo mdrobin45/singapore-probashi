@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/session";
 import { revalidatePath } from "next/cache";
 import { COMMISSION_MODULES, saveCommissionSetting, type CommissionMode } from "@/lib/commission";
+import { saveShareSgdRate } from "@/lib/share-pricing";
 
 type State = { error?: string; success?: boolean } | null;
 
@@ -86,6 +87,28 @@ export async function saveCommissionSettingsAction(_prev: State, formData: FormD
   await Promise.all(parsed.map((p) => saveCommissionSetting(p.module, p.mode, p.value)));
 
   revalidatePath("/admin/settings");
+  return { success: true };
+}
+
+// ── Share pricing rate (SGD → BDT, always admin-defined, never live) ──────────
+
+export async function saveShareRateAction(_prev: State, formData: FormData): Promise<State> {
+  const session = await getSession();
+  if (!session || !["SUPER_ADMIN", "ADMIN"].includes(session.role)) {
+    return { error: "Unauthorized." };
+  }
+
+  const rate = parseFloat(formData.get("rate") as string);
+  if (isNaN(rate) || rate <= 0) {
+    return { error: "Enter a valid positive rate." };
+  }
+
+  await saveShareSgdRate(rate);
+
+  revalidatePath("/admin/settings");
+  revalidatePath("/shares");
+  revalidatePath("/");
+
   return { success: true };
 }
 

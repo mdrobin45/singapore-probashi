@@ -278,6 +278,8 @@
 		"sharesAvailableCount": "{count} shares available",
 		"totalAmount": "Total Amount",
 		"perSharePrice": "৳{price} per share",
+		"perSharePriceSgd": "${price} SGD per share",
+		"sgdRateHint": "1 SGD = ৳{rate} BDT",
 		"buySharesButton": "Buy {qty} Share{plural} · ৳{total}",
 		"purchaseReviewNotice": "Your request will be reviewed by an admin before shares are transferred.",
 		"referralCode": "Referral Code",

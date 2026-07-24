@@ -1,6 +1,7 @@
 import { MRTMapButton } from "@/components/mrt-map-button";
 import { Link } from "@/i18n/navigation";
 import { prisma } from "@/lib/prisma";
+import { getShareSgdRate, sgdToBdt } from "@/lib/share-pricing";
 import { getTranslations } from "next-intl/server";
 
 function getFeaturedProjects() {
@@ -180,9 +181,10 @@ const ICONS = {
 };
 
 export default async function HomePage() {
-	const [t, featuredProjects] = await Promise.all([
+	const [t, featuredProjects, shareRate] = await Promise.all([
 		getTranslations("home"),
 		getFeaturedProjects(),
+		getShareSgdRate(),
 	]);
 
 	const services = [
@@ -410,7 +412,10 @@ export default async function HomePage() {
 										</div>
 										<div className="text-right">
 											<p className="font-bold text-sm text-foreground">
-												৳{Number(project.sharePrice).toFixed(2)}
+												${Number(project.sharePriceSgd).toFixed(2)}
+											</p>
+											<p className="text-[11px] text-muted-foreground">
+												≈ ৳{sgdToBdt(Number(project.sharePriceSgd), shareRate).toFixed(0)}
 											</p>
 										</div>
 									</div>

@@ -2,6 +2,7 @@
 
 import { useActionState, useState, useRef } from "react";
 import { requestSharePurchaseAction } from "@/app/actions/shares";
+import { sgdToBdt } from "@/lib/share-pricing-utils";
 import { useTranslations } from "next-intl";
 
 const PAYMENT_METHODS = [
@@ -14,12 +15,13 @@ const PAYMENT_METHODS = [
 
 type Props = {
   projectId: string;
-  sharePrice: number;
+  sharePriceSgd: number;
+  rate: number;
   availableShares: number;
   hasPending: boolean;
 };
 
-export function PurchaseForm({ projectId, sharePrice, availableShares, hasPending }: Props) {
+export function PurchaseForm({ projectId, sharePriceSgd, rate, availableShares, hasPending }: Props) {
   const t = useTranslations("shares");
   const [state, action, pending] = useActionState(requestSharePurchaseAction, null);
   const [qty, setQty] = useState(1);
@@ -30,7 +32,8 @@ export function PurchaseForm({ projectId, sharePrice, availableShares, hasPendin
   const [screenshotBase64, setScreenshotBase64] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
-  const total = qty * sharePrice;
+  const totalSgd = qty * sharePriceSgd;
+  const total = sgdToBdt(totalSgd, rate);
   const selectedMethod = PAYMENT_METHODS.find((m) => m.value === method);
 
   if (hasPending) {
@@ -68,7 +71,8 @@ export function PurchaseForm({ projectId, sharePrice, availableShares, hasPendin
     <div className="bg-white rounded-2xl border border-border overflow-hidden sticky top-24">
       <div className="px-6 py-5 border-b border-border">
         <h3 className="font-bold text-foreground text-lg">{t("buyShares")}</h3>
-        <p className="text-xs text-muted-foreground mt-0.5">{t("perSharePrice", { price: sharePrice.toFixed(2) })}</p>
+        <p className="text-xs text-muted-foreground mt-0.5">{t("perSharePriceSgd", { price: sharePriceSgd.toFixed(2) })}</p>
+        <p className="text-[11px] text-muted-foreground/70 mt-0.5">{t("sgdRateHint", { rate: rate.toFixed(2) })}</p>
       </div>
 
       <form action={action} className="p-6 space-y-5">

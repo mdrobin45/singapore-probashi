@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { getShareSgdRate, sgdToBdt } from "@/lib/share-pricing";
 import { ProcessPurchaseForm } from "./process-form";
 
 async function getPurchaseRequests() {
@@ -6,7 +7,7 @@ async function getPurchaseRequests() {
     orderBy: [{ status: "asc" }, { createdAt: "desc" }],
     include: {
       buyer: { select: { fullName: true, email: true, nidNumber: true } },
-      project: { select: { name: true, sharePrice: true } },
+      project: { select: { name: true, sharePriceSgd: true } },
     },
   });
 }
@@ -26,7 +27,7 @@ const METHOD_LABELS: Record<string, string> = {
 };
 
 export default async function AdminPurchasesPage() {
-  const requests = await getPurchaseRequests();
+  const [requests, rate] = await Promise.all([getPurchaseRequests(), getShareSgdRate()]);
   const pending = requests.filter((r) => r.status === "PENDING");
 
   return (
@@ -65,7 +66,10 @@ export default async function AdminPurchasesPage() {
                   </td>
                   <td className="px-4 py-3.5">
                     <p className="font-medium text-foreground max-w-40 truncate">{r.project.name}</p>
-                    <p className="text-xs text-muted-foreground">৳{Number(r.project.sharePrice).toFixed(2)}/share</p>
+                    <p className="text-xs text-muted-foreground">
+                      ${Number(r.project.sharePriceSgd).toFixed(2)} SGD/share
+                      <span className="text-muted-foreground/70"> (≈ ৳{sgdToBdt(Number(r.project.sharePriceSgd), rate).toFixed(2)})</span>
+                    </p>
                   </td>
                   <td className="px-4 py-3.5 font-medium text-foreground">{r.quantity}</td>
                   <td className="px-4 py-3.5 font-semibold text-foreground">৳{Number(r.totalAmount).toFixed(2)}</td>

@@ -1,9 +1,11 @@
 import { getCurrencySettings, getLiveBdtRate } from "@/lib/currency";
 import { getAllCommissionSettings } from "@/lib/commission";
+import { getShareSgdRate } from "@/lib/share-pricing";
 import { prisma } from "@/lib/prisma";
 import { CurrencySettingsForm } from "./currency-form";
 import { BankRatesForm } from "./bank-rates-form";
 import { CommissionSettingsForm } from "./commission-form";
+import { SharePricingForm } from "./share-pricing-form";
 
 async function getBankRates() {
   try {
@@ -15,11 +17,12 @@ async function getBankRates() {
 }
 
 export default async function AdminSettingsPage() {
-  const [settings, liveRate, banks, commissionSettings] = await Promise.all([
+  const [settings, liveRate, banks, commissionSettings, shareRate] = await Promise.all([
     getCurrencySettings(),
     getLiveBdtRate(),
     getBankRates(),
     getAllCommissionSettings(),
+    getShareSgdRate(),
   ]);
 
   return (
@@ -48,6 +51,28 @@ export default async function AdminSettingsPage() {
         </div>
         <div className="p-6">
           <CurrencySettingsForm settings={settings} liveRate={liveRate} />
+        </div>
+      </div>
+
+      {/* Share pricing rate */}
+      <div className="bg-white rounded-xl border border-border overflow-hidden">
+        <div className="px-6 py-5 border-b border-border">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-amber-50 flex items-center justify-center">
+              <svg className="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+              </svg>
+            </div>
+            <div>
+              <h2 className="font-semibold text-foreground">Share Pricing (SGD → BDT)</h2>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Share prices are listed in SGD; this rate converts the actual BDT charged at purchase
+              </p>
+            </div>
+          </div>
+        </div>
+        <div className="p-6">
+          <SharePricingForm rate={shareRate} />
         </div>
       </div>
 

@@ -221,7 +221,7 @@ model Project {
   description      String
   imageUrl         String?
   totalShares      Int
-  sharePrice       Decimal       @db.Decimal(12, 2)
+  sharePriceSgd    Decimal       @db.Decimal(12, 2) // per-share list price in SGD — actual payment is converted to BDT at purchase time, see lib/share-pricing.ts
   availableShares  Int
   status           ProjectStatus @default(ACTIVE)
   createdById      String

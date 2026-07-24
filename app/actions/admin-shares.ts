@@ -161,7 +161,7 @@ const projectSchema = z.object({
   name: z.string().min(3, "Name must be at least 3 characters"),
   description: z.string().min(10, "Description must be at least 10 characters"),
   totalShares: z.coerce.number().int().min(1),
-  sharePrice: z.coerce.number().min(0.01),
+  sharePriceSgd: z.coerce.number().min(0.01),
 });
 
 export async function createProjectAction(
@@ -174,12 +174,12 @@ export async function createProjectAction(
     name: formData.get("name"),
     description: formData.get("description"),
     totalShares: formData.get("totalShares"),
-    sharePrice: formData.get("sharePrice"),
+    sharePriceSgd: formData.get("sharePriceSgd"),
   });
 
   if (!parse.success) return { error: parse.error.issues[0].message };
 
-  const { name, description, totalShares, sharePrice } = parse.data;
+  const { name, description, totalShares, sharePriceSgd } = parse.data;
   const imageUrl = (formData.get("imageUrl") as string) || null;
 
   const numbersRaw = formData.get("shareNumbers") as string;
@@ -195,7 +195,7 @@ export async function createProjectAction(
       description,
       imageUrl: imageUrl || undefined,
       totalShares,
-      sharePrice,
+      sharePriceSgd,
       availableShares: totalShares,
       createdById: session.userId,
     },

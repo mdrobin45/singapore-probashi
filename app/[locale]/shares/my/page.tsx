@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/session";
+import { getShareSgdRate, sgdToBdt } from "@/lib/share-pricing";
 import { Link } from "@/i18n/navigation";
 import { redirect } from "next/navigation";
 
@@ -8,12 +9,12 @@ async function getMyShareData(userId: string) {
     prisma.shareOwnership.findMany({
       where: { ownerId: userId },
       orderBy: { acquiredAt: "desc" },
-      include: { project: { select: { name: true, sharePrice: true, status: true } } },
+      include: { project: { select: { name: true, sharePriceSgd: true, status: true } } },
     }),
     prisma.sharePurchaseRequest.findMany({
       where: { buyerId: userId },
       orderBy: { createdAt: "desc" },
-      include: { project: { select: { name: true, sharePrice: true } } },
+      include: { project: { select: { name: true, sharePriceSgd: true } } },
     }),
     prisma.shareListing.findMany({
       where: { sellerId: userId },
@@ -59,7 +60,10 @@ export default async function MySharesPage() {
   const session = await getSession();
   if (!session) redirect("/login");
 
-  const { ownerships, purchases, listings, certificates, buyRequests } = await getMyShareData(session.userId);
+  const [{ ownerships, purchases, listings, certificates, buyRequests }, rate] = await Promise.all([
+    getMyShareData(session.userId),
+    getShareSgdRate(),
+  ]);
 
   // Group certificates by projectId
   const certsByProject = certificates.reduce<Record<string, number[]>>((acc, c) => {
@@ -69,7 +73,7 @@ export default async function MySharesPage() {
   }, {});
 
   const totalValue = ownerships.reduce(
-    (sum, o) => sum + o.quantity * Number(o.project.sharePrice),
+    (sum, o) => sum + sgdToBdt(Number(o.project.sharePriceSgd) * o.quantity, rate),
     0
   );
   const totalShares = ownerships.reduce((sum, o) => sum + o.quantity, 0);
@@ -151,9 +155,12 @@ export default async function MySharesPage() {
                         <td className="px-4 py-3.5 text-xs font-mono text-brand">
                           {formatShareNumbers(certsByProject[o.projectId] ?? [])}
                         </td>
-                        <td className="px-4 py-3.5 text-muted-foreground">৳{Number(o.project.sharePrice).toFixed(0)}</td>
+                        <td className="px-4 py-3.5 text-muted-foreground">
+                          ${Number(o.project.sharePriceSgd).toFixed(2)}
+                          <span className="text-muted-foreground/70"> (≈ ৳{sgdToBdt(Number(o.project.sharePriceSgd), rate).toFixed(0)})</span>
+                        </td>
                         <td className="px-4 py-3.5 font-semibold text-foreground">
-                          ৳{(o.quantity * Number(o.project.sharePrice)).toFixed(2)}
+                          ৳{sgdToBdt(Number(o.project.sharePriceSgd) * o.quantity, rate).toFixed(2)}
                         </td>
                         <td className="px-4 py-3.5">
                           <Link

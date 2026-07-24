@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { getShareSgdRate, sgdToBdt } from "@/lib/share-pricing";
 import { CreateProjectForm } from "./create-form";
 import { ResellActions } from "./resell-actions";
 import Link from "next/link";
@@ -26,7 +27,7 @@ async function getData() {
       orderBy: { createdAt: "desc" },
       include: {
         seller: { select: { fullName: true, email: true, phone: true } },
-        project: { select: { name: true, sharePrice: true } },
+        project: { select: { name: true, sharePriceSgd: true } },
       },
     }),
     prisma.shareTrade.findMany({
@@ -60,7 +61,10 @@ const STATUS_STYLES: Record<string, string> = {
 };
 
 export default async function AdminSharesPage() {
-  const { projects, pendingListings, pendingTrades, pendingBuyRequests } = await getData();
+  const [{ projects, pendingListings, pendingTrades, pendingBuyRequests }, rate] = await Promise.all([
+    getData(),
+    getShareSgdRate(),
+  ]);
 
   return (
     <div className="max-w-6xl mx-auto space-y-8">
@@ -125,7 +129,7 @@ export default async function AdminSharesPage() {
                     <div className="flex gap-4 mt-2 text-xs">
                       <span>Qty: <strong className="text-foreground">{l.quantity}</strong></span>
                       <span>Asking: <strong className="text-foreground">৳{Number(l.askingPrice).toFixed(2)}</strong></span>
-                      <span>Market: <strong className="text-foreground">৳{Number(l.project.sharePrice).toFixed(2)}</strong></span>
+                      <span>Market: <strong className="text-foreground">৳{sgdToBdt(Number(l.project.sharePriceSgd), rate).toFixed(2)}</strong></span>
                       <span>Total: <strong className="text-foreground">৳{(l.quantity * Number(l.askingPrice)).toFixed(2)}</strong></span>
                     </div>
                   </div>
@@ -196,8 +200,8 @@ export default async function AdminSharesPage() {
                 </div>
                 <div className="grid grid-cols-4 gap-3 text-center mb-3">
                   <div>
-                    <p className="font-bold text-foreground">৳{Number(p.sharePrice).toFixed(0)}</p>
-                    <p className="text-[11px] text-muted-foreground">Price</p>
+                    <p className="font-bold text-foreground">${Number(p.sharePriceSgd).toFixed(2)}</p>
+                    <p className="text-[11px] text-muted-foreground">≈ ৳{sgdToBdt(Number(p.sharePriceSgd), rate).toFixed(0)}</p>
                   </div>
                   <div>
                     <p className="font-bold text-foreground">{p.totalShares}</p>

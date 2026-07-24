@@ -2,6 +2,7 @@
 
 import { useActionState, useState } from "react";
 import { requestShareTradeAction } from "@/app/actions/shares";
+import { sgdToBdt } from "@/lib/share-pricing-utils";
 import { Link } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
 import type { SessionPayload } from "@/lib/session";
@@ -13,7 +14,7 @@ type Listing = {
   status: string;
   createdAt: Date;
   seller: { fullName: string };
-  project: { name: string; sharePrice: unknown };
+  project: { name: string; sharePriceSgd: unknown };
 };
 
 const PAYMENT_METHODS = [
@@ -24,7 +25,7 @@ const PAYMENT_METHODS = [
   { value: "WALLET", label: "Platform Wallet", needsTxId: false },
 ];
 
-function TradeForm({ listing }: { listing: Listing }) {
+function TradeForm({ listing, rate }: { listing: Listing; rate: number }) {
   const t = useTranslations("shares");
   const [state, action, pending] = useActionState(requestShareTradeAction, null);
   const [qty, setQty] = useState(1);
@@ -39,7 +40,7 @@ function TradeForm({ listing }: { listing: Listing }) {
   }
 
   const askingPrice = Number(listing.askingPrice);
-  const marketPrice = Number(listing.project.sharePrice);
+  const marketPrice = sgdToBdt(Number(listing.project.sharePriceSgd), rate);
   const premium = askingPrice > marketPrice
     ? `+${(((askingPrice - marketPrice) / marketPrice) * 100).toFixed(1)}%`
     : askingPrice < marketPrice
@@ -110,11 +111,11 @@ function TradeForm({ listing }: { listing: Listing }) {
   );
 }
 
-function ListingCard({ listing, session }: { listing: Listing; session: SessionPayload | null }) {
+function ListingCard({ listing, session, rate }: { listing: Listing; session: SessionPayload | null; rate: number }) {
   const t = useTranslations("shares");
   const [expanded, setExpanded] = useState(false);
   const askingPrice = Number(listing.askingPrice);
-  const marketPrice = Number(listing.project.sharePrice);
+  const marketPrice = sgdToBdt(Number(listing.project.sharePriceSgd), rate);
   const diff = askingPrice - marketPrice;
   const pct = ((diff / marketPrice) * 100).toFixed(1);
 
@@ -168,7 +169,7 @@ function ListingCard({ listing, session }: { listing: Listing; session: SessionP
 
         {expanded && session && (
           <div className="mt-5 pt-5 border-t border-border">
-            <TradeForm listing={listing} />
+            <TradeForm listing={listing} rate={rate} />
           </div>
         )}
       </div>
@@ -179,9 +180,11 @@ function ListingCard({ listing, session }: { listing: Listing; session: SessionP
 export function SecondaryMarket({
   listings,
   session,
+  rate,
 }: {
   listings: Listing[];
   session: SessionPayload | null;
+  rate: number;
 }) {
   const t = useTranslations("shares");
 
@@ -207,7 +210,7 @@ export function SecondaryMarket({
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {listings.map((l) => (
-          <ListingCard key={l.id} listing={l} session={session} />
+          <ListingCard key={l.id} listing={l} session={session} rate={rate} />
         ))}
       </div>
     </div>

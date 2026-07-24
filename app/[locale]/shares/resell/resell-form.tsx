@@ -2,21 +2,24 @@
 
 import { useActionState, useState } from "react";
 import { createShareListingAction } from "@/app/actions/shares";
+import { sgdToBdt } from "@/lib/share-pricing-utils";
 import { useTranslations } from "next-intl";
 
 type Ownership = {
   id: string;
   quantity: number;
   purchasePrice: unknown;
-  project: { id: string; name: string; sharePrice: unknown; status: string };
+  project: { id: string; name: string; sharePriceSgd: unknown; status: string };
 };
 
 export function ResellForm({
   ownerships,
   selectedId,
+  rate,
 }: {
   ownerships: Ownership[];
   selectedId: string | null;
+  rate: number;
 }) {
   const t = useTranslations("shares");
   const [state, action, pending] = useActionState(createShareListingAction, null);
@@ -25,7 +28,7 @@ export function ResellForm({
   const [price, setPrice] = useState("");
 
   const selected = ownerships.find((o) => o.id === ownershipId);
-  const marketPrice = selected ? Number(selected.project.sharePrice) : 0;
+  const marketPrice = selected ? sgdToBdt(Number(selected.project.sharePriceSgd), rate) : 0;
   const total = qty * Number(price || 0);
 
   if (state?.success) {

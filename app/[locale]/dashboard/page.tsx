@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/session";
+import { getShareSgdRate, sgdToBdt } from "@/lib/share-pricing";
 import { getTranslations } from "next-intl/server";
 import { redirect } from "next/navigation";
 import { Link } from "@/i18n/navigation";
@@ -19,7 +20,7 @@ async function getDashboardData(userId: string) {
       }),
       prisma.shareOwnership.findMany({
         where: { ownerId: userId },
-        include: { project: { select: { name: true, sharePrice: true, status: true } } },
+        include: { project: { select: { name: true, sharePriceSgd: true, status: true } } },
       }),
       prisma.sharePurchaseRequest.findMany({
         where: { buyerId: userId, status: "PENDING" },
@@ -47,11 +48,11 @@ export default async function DashboardPage() {
 
   const t = await getTranslations("dashboard");
 
-  const { user, wallet, ownerships, pendingPurchases, recentNotifications, pendingDeposits } =
-    await getDashboardData(session.userId);
+  const [{ user, wallet, ownerships, pendingPurchases, recentNotifications, pendingDeposits }, shareRate] =
+    await Promise.all([getDashboardData(session.userId), getShareSgdRate()]);
 
   const portfolioValue = ownerships.reduce(
-    (sum, o) => sum + o.quantity * Number(o.project.sharePrice),
+    (sum, o) => sum + sgdToBdt(Number(o.project.sharePriceSgd) * o.quantity, shareRate),
     0
   );
   const totalShares = ownerships.reduce((sum, o) => sum + o.quantity, 0);
@@ -180,13 +181,14 @@ export default async function DashboardPage() {
                     <div className="flex-1 min-w-0">
                       <p className="font-medium text-foreground text-sm truncate">{o.project.name}</p>
                       <p className="text-xs text-muted-foreground mt-0.5">
-                        {o.quantity} {t("shares")} · ৳{Number(o.project.sharePrice).toFixed(0)}/{t("share")}
+                        {o.quantity} {t("shares")} · ${Number(o.project.sharePriceSgd).toFixed(2)}/{t("share")}
+                        <span className="text-muted-foreground/70"> (≈ ৳{sgdToBdt(Number(o.project.sharePriceSgd), shareRate).toFixed(0)})</span>
                       </p>
                     </div>
                     <div className="flex items-center gap-3 shrink-0">
                       <div className="text-right">
                         <p className="font-semibold text-foreground text-sm">
-                          ৳{(o.quantity * Number(o.project.sharePrice)).toFixed(2)}
+                          ৳{sgdToBdt(Number(o.project.sharePriceSgd) * o.quantity, shareRate).toFixed(2)}
                         </p>
                         <p className="text-xs text-muted-foreground">{t("currentValue")}</p>
                       </div>

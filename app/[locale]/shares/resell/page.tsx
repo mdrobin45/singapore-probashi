@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/session";
+import { getShareSgdRate } from "@/lib/share-pricing";
 import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { ResellForm } from "./resell-form";
@@ -16,11 +17,14 @@ export default async function ResellPage({
   const { ownershipId } = await searchParams;
   const t = await getTranslations("shares");
 
-  const ownerships = await prisma.shareOwnership.findMany({
-    where: { ownerId: session.userId },
-    include: { project: { select: { id: true, name: true, sharePrice: true, status: true } } },
-    orderBy: { acquiredAt: "desc" },
-  });
+  const [ownerships, rate] = await Promise.all([
+    prisma.shareOwnership.findMany({
+      where: { ownerId: session.userId },
+      include: { project: { select: { id: true, name: true, sharePriceSgd: true, status: true } } },
+      orderBy: { acquiredAt: "desc" },
+    }),
+    getShareSgdRate(),
+  ]);
 
   const selected = ownershipId
     ? ownerships.find((o) => o.id === ownershipId) ?? null
@@ -53,7 +57,7 @@ export default async function ResellPage({
               </Link>
             </div>
           ) : (
-            <ResellForm ownerships={ownerships} selectedId={ownershipId ?? null} />
+            <ResellForm ownerships={ownerships} selectedId={ownershipId ?? null} rate={rate} />
           )}
         </div>
 

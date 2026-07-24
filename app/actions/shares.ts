@@ -5,6 +5,7 @@ import { getSession } from "@/lib/session";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { resolveReferralCode } from "@/lib/commission";
+import { getShareSgdRate, sgdToBdt } from "@/lib/share-pricing";
 
 type ActionState = { error?: string; success?: boolean; message?: string } | null;
 
@@ -41,7 +42,7 @@ export async function requestSharePurchaseAction(
 
   const project = await prisma.project.findUnique({
     where: { id: projectId, status: "ACTIVE" },
-    select: { id: true, name: true, sharePrice: true, availableShares: true },
+    select: { id: true, name: true, sharePriceSgd: true, availableShares: true },
   });
 
   if (!project) return { error: "Project not found or no longer active." };
@@ -49,7 +50,8 @@ export async function requestSharePurchaseAction(
     return { error: `Only ${project.availableShares} shares available.` };
   }
 
-  const totalAmount = Number(project.sharePrice) * quantity;
+  const rate = await getShareSgdRate();
+  const totalAmount = sgdToBdt(Number(project.sharePriceSgd) * quantity, rate);
 
   if (paymentMethod === "WALLET") {
     const wallet = await prisma.wallet.findUnique({

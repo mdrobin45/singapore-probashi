@@ -110,8 +110,8 @@ export function CreateProjectForm() {
             <input name="totalShares" type="number" required min={1} placeholder="1000" className={INPUT} />
           </div>
           <div>
-            <label className="block text-xs font-medium text-foreground mb-1">Price (৳)</label>
-            <input name="sharePrice" type="number" required min={0.01} step={0.01} placeholder="100.00" className={INPUT} />
+            <label className="block text-xs font-medium text-foreground mb-1">Price per Share (SGD)</label>
+            <input name="sharePriceSgd" type="number" required min={0.01} step={0.01} placeholder="5.99" className={INPUT} />
           </div>
         </div>
 

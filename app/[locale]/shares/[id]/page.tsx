@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/session";
+import { getShareSgdRate, sgdToBdt } from "@/lib/share-pricing";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
@@ -36,17 +37,18 @@ export default async function ShareDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const [project, session, t] = await Promise.all([
+  const [project, session, t, rate] = await Promise.all([
     getProject(id),
     getSession(),
     getTranslations("shares"),
+    getShareSgdRate(),
   ]);
 
   if (!project) notFound();
 
   const soldShares = project.totalShares - project.availableShares;
   const soldPct = Math.round((soldShares / project.totalShares) * 100);
-  const totalValue = Number(project.sharePrice) * project.totalShares;
+  const totalValue = sgdToBdt(Number(project.sharePriceSgd) * project.totalShares, rate);
 
   const [ownership, pendingRequest] = session
     ? await Promise.all([
@@ -91,7 +93,7 @@ export default async function ShareDetailPage({
               {/* Stats row */}
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-px bg-border">
                 {[
-                  { label: t("sharePrice"), value: `৳${Number(project.sharePrice).toFixed(2)}` },
+                  { label: t("sharePrice"), value: `$${Number(project.sharePriceSgd).toFixed(2)} (≈ ৳${sgdToBdt(Number(project.sharePriceSgd), rate).toFixed(2)})` },
                   { label: t("totalShares"), value: project.totalShares.toLocaleString() },
                   { label: t("available"), value: project.availableShares.toLocaleString() },
                   { label: t("totalFund"), value: `৳${totalValue.toLocaleString()}` },
@@ -144,7 +146,7 @@ export default async function ShareDetailPage({
                   </div>
                   <div>
                     <p className="text-xl font-bold text-green-700">
-                      ৳{(ownership.quantity * Number(project.sharePrice)).toFixed(2)}
+                      ৳{sgdToBdt(Number(project.sharePriceSgd) * ownership.quantity, rate).toFixed(2)}
                     </p>
                     <p className="text-xs text-green-600">{t("currentValue")}</p>
                   </div>
@@ -167,7 +169,8 @@ export default async function ShareDetailPage({
             {session ? (
               <PurchaseForm
                 projectId={project.id}
-                sharePrice={Number(project.sharePrice)}
+                sharePriceSgd={Number(project.sharePriceSgd)}
+                rate={rate}
                 availableShares={project.availableShares}
                 hasPending={!!pendingRequest}
               />

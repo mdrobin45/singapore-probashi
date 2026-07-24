@@ -278,6 +278,8 @@
     "sharesAvailableCount": "{count}টি শেয়ার উপলব্ধ",
     "totalAmount": "মোট পরিমাণ",
     "perSharePrice": "প্রতি শেয়ার ৳{price}",
+    "perSharePriceSgd": "প্রতি শেয়ার ${price} SGD",
+    "sgdRateHint": "1 SGD = ৳{rate} BDT",
     "buySharesButton": "{qty}টি শেয়ার কিনুন · ৳{total}",
     "purchaseReviewNotice": "শেয়ার হস্তান্তরের আগে আপনার অনুরোধ একজন অ্যাডমিন দ্বারা পর্যালোচনা করা হবে।",
     "referralCode": "রেফারেল কোড",
