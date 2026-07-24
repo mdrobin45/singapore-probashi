@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/session";
 import { UserActionsMenu } from "@/components/admin-user-actions";
+import { CreateUserModal } from "./create-user-modal";
 
 async function getUsers() {
   return prisma.user.findMany({
@@ -27,19 +28,22 @@ export default async function AdminUsersPage() {
 
   return (
     <div className="max-w-7xl mx-auto">
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-6 gap-4">
         <div>
           <h1 className="text-2xl font-bold text-foreground">Users</h1>
           <p className="text-sm text-muted-foreground">{users.length} total members</p>
         </div>
-        {/* Role legend */}
-        <div className="hidden sm:flex items-center gap-3 text-[11px] font-medium text-muted-foreground">
-          <span className="flex items-center gap-1.5">
-            <span className="w-2 h-2 rounded-full bg-green-500" />You can manage
-          </span>
-          <span className="flex items-center gap-1.5">
-            <span className="w-2 h-2 rounded-full bg-gray-300" />Read-only
-          </span>
+        <div className="flex items-center gap-4">
+          {/* Role legend */}
+          <div className="hidden sm:flex items-center gap-3 text-[11px] font-medium text-muted-foreground">
+            <span className="flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-green-500" />You can manage
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-gray-300" />Read-only
+            </span>
+          </div>
+          <CreateUserModal actorRole={actorRole} />
         </div>
       </div>
 

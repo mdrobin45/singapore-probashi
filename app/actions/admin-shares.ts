@@ -118,6 +118,7 @@ export async function processPurchaseAction(
         referredById: request.referredById,
         amount: Number(request.totalAmount),
         description: `Share purchase — ${request.project.name}`,
+        module: "SHARE",
       });
 
       // Notify buyer

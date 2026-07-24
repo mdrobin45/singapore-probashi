@@ -314,11 +314,15 @@ export async function approveCheckoutAction(id: string) {
         item.airTicketRequest?.referredById ??
         item.serviceRequest?.referredById ??
         null;
-      await creditCommission(tx, {
-        referredById,
-        amount: Number(item.lineTotal),
-        description: item.description,
-      });
+      const commissionModule = item.taxiRequestId ? "TAXI" : item.airTicketRequestId ? "AIR_TICKET" : item.serviceRequestId ? "SERVICE" : null;
+      if (referredById && commissionModule) {
+        await creditCommission(tx, {
+          referredById,
+          amount: Number(item.lineTotal),
+          description: item.description,
+          module: commissionModule,
+        });
+      }
     }
 
     await tx.notification.create({

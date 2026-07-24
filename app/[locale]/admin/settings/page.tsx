@@ -1,5 +1,5 @@
 import { getCurrencySettings, getLiveBdtRate } from "@/lib/currency";
-import { getCommissionRate } from "@/lib/commission";
+import { getAllCommissionSettings } from "@/lib/commission";
 import { prisma } from "@/lib/prisma";
 import { CurrencySettingsForm } from "./currency-form";
 import { BankRatesForm } from "./bank-rates-form";
@@ -15,11 +15,11 @@ async function getBankRates() {
 }
 
 export default async function AdminSettingsPage() {
-  const [settings, liveRate, banks, commissionRate] = await Promise.all([
+  const [settings, liveRate, banks, commissionSettings] = await Promise.all([
     getCurrencySettings(),
     getLiveBdtRate(),
     getBankRates(),
-    getCommissionRate(),
+    getAllCommissionSettings(),
   ]);
 
   return (
@@ -85,13 +85,13 @@ export default async function AdminSettingsPage() {
             <div>
               <h2 className="font-semibold text-foreground">Agent Commission</h2>
               <p className="text-xs text-muted-foreground mt-0.5">
-                Global rate agents earn on referred taxi, air ticket, service, and share purchase requests
+                Set a percentage or fixed ৳ amount agents earn per module, on referred requests
               </p>
             </div>
           </div>
         </div>
         <div className="p-6">
-          <CommissionSettingsForm rate={commissionRate} />
+          <CommissionSettingsForm settings={commissionSettings} />
         </div>
       </div>
     </div>

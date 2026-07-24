@@ -3,6 +3,7 @@
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/session";
 import { revalidatePath } from "next/cache";
+import { COMMISSION_MODULES, saveCommissionSetting, type CommissionMode } from "@/lib/commission";
 
 type State = { error?: string; success?: boolean } | null;
 
@@ -54,24 +55,35 @@ export async function saveCurrencySettingsAction(_prev: State, formData: FormDat
   return { success: true };
 }
 
-// ── Commission rate ────────────────────────────────────────────────────────────
+// ── Commission rates (per module: taxi / air ticket / service / share) ────────
 
-export async function saveCommissionRateAction(_prev: State, formData: FormData): Promise<State> {
+export async function saveCommissionSettingsAction(_prev: State, formData: FormData): Promise<State> {
   const session = await getSession();
   if (!session || !["SUPER_ADMIN", "ADMIN"].includes(session.role)) {
     return { error: "Unauthorized." };
   }
 
-  const rate = parseFloat(formData.get("rate") as string);
-  if (isNaN(rate) || rate < 0 || rate > 100) {
-    return { error: "Enter a valid rate between 0 and 100." };
+  const parsed: { module: (typeof COMMISSION_MODULES)[number]["module"]; mode: CommissionMode; value: number }[] = [];
+
+  for (const { module, label } of COMMISSION_MODULES) {
+    const key = module.toLowerCase();
+    const mode = formData.get(`${key}_mode`) as string;
+    const value = parseFloat(formData.get(`${key}_value`) as string);
+
+    if (mode !== "PERCENTAGE" && mode !== "FIXED") {
+      return { error: `Invalid commission mode for ${label}.` };
+    }
+    if (isNaN(value) || value < 0) {
+      return { error: `Enter a valid ${label} commission value.` };
+    }
+    if (mode === "PERCENTAGE" && value > 100) {
+      return { error: `${label} percentage can't exceed 100.` };
+    }
+
+    parsed.push({ module, mode, value });
   }
 
-  await prisma.siteSetting.upsert({
-    where: { key: "commission_rate" },
-    create: { key: "commission_rate", value: String(rate) },
-    update: { value: String(rate) },
-  });
+  await Promise.all(parsed.map((p) => saveCommissionSetting(p.module, p.mode, p.value)));
 
   revalidatePath("/admin/settings");
   return { success: true };

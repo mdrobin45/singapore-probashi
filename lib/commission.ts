@@ -1,26 +1,62 @@
 import { prisma } from "@/lib/prisma";
+import { COMMISSION_MODULES, type CommissionModule, type CommissionMode, type CommissionSetting } from "@/lib/commission-types";
+
+export type { CommissionModule, CommissionMode, CommissionSetting } from "@/lib/commission-types";
+export { COMMISSION_MODULES } from "@/lib/commission-types";
 
 // Derives the transaction-client type generically from prisma.$transaction's
 // own signature, since the generator doesn't export a named TransactionClient type.
 type TxClient = Parameters<Parameters<typeof prisma.$transaction>[0]>[0];
 
-export async function getCommissionRate(): Promise<number> {
+const MODULE_DEFAULTS: Record<CommissionModule, CommissionSetting> = {
+  TAXI: { mode: "PERCENTAGE", value: 5 },
+  AIR_TICKET: { mode: "PERCENTAGE", value: 5 },
+  SERVICE: { mode: "PERCENTAGE", value: 5 },
+  SHARE: { mode: "PERCENTAGE", value: 5 },
+};
+
+function settingKeys(module: CommissionModule) {
+  const key = module.toLowerCase();
+  return { modeKey: `commission_${key}_mode`, valueKey: `commission_${key}_value` };
+}
+
+export async function getCommissionSetting(module: CommissionModule): Promise<CommissionSetting> {
   try {
-    const row = await prisma.siteSetting.findUnique({ where: { key: "commission_rate" } });
-    return row ? parseFloat(row.value) : 5;
+    const { modeKey, valueKey } = settingKeys(module);
+    const rows = await prisma.siteSetting.findMany({ where: { key: { in: [modeKey, valueKey] } } });
+    const map = Object.fromEntries(rows.map((r) => [r.key, r.value]));
+    const mode = map[modeKey] === "FIXED" ? "FIXED" : map[modeKey] === "PERCENTAGE" ? "PERCENTAGE" : MODULE_DEFAULTS[module].mode;
+    const value = map[valueKey] !== undefined ? parseFloat(map[valueKey]) : MODULE_DEFAULTS[module].value;
+    return { mode, value: isNaN(value) ? MODULE_DEFAULTS[module].value : value };
   } catch {
-    return 5;
+    return MODULE_DEFAULTS[module];
   }
+}
+
+export async function getAllCommissionSettings(): Promise<Record<CommissionModule, CommissionSetting>> {
+  const entries = await Promise.all(
+    COMMISSION_MODULES.map(async ({ module }) => [module, await getCommissionSetting(module)] as const)
+  );
+  return Object.fromEntries(entries) as Record<CommissionModule, CommissionSetting>;
+}
+
+export async function saveCommissionSetting(module: CommissionModule, mode: CommissionMode, value: number): Promise<void> {
+  const { modeKey, valueKey } = settingKeys(module);
+  await prisma.$transaction([
+    prisma.siteSetting.upsert({ where: { key: modeKey }, create: { key: modeKey, value: mode }, update: { value: mode } }),
+    prisma.siteSetting.upsert({ where: { key: valueKey }, create: { key: valueKey, value: String(value) }, update: { value: String(value) } }),
+  ]);
 }
 
 export async function creditCommission(
   tx: TxClient,
-  { referredById, amount, description }: { referredById: string | null; amount: number; description: string }
+  { referredById, amount, description, module }: { referredById: string | null; amount: number; description: string; module: CommissionModule }
 ): Promise<void> {
   if (!referredById) return;
 
-  const rate = await getCommissionRate();
-  const commissionAmount = Math.round(amount * (rate / 100) * 100) / 100;
+  const setting = await getCommissionSetting(module);
+  const commissionAmount =
+    setting.mode === "FIXED" ? Math.round(setting.value * 100) / 100 : Math.round(amount * (setting.value / 100) * 100) / 100;
   if (commissionAmount <= 0) return;
 
   const wallet = await tx.wallet.findUnique({ where: { userId: referredById } });
