@@ -131,7 +131,6 @@ function LoginForm() {
           <input
             type="checkbox"
             name="rememberMe"
-            defaultChecked
             className="w-4 h-4 rounded border-border text-brand accent-brand"
           />
           <span className="text-sm text-foreground">Remember me</span>
