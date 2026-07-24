@@ -107,6 +107,16 @@ export function CreateUserModal({ actorRole }: { actorRole: string }) {
                 </select>
               </div>
 
+              <label className="flex items-center gap-2.5 px-3 py-2.5 rounded-lg border border-border bg-muted/30 cursor-pointer">
+                <input type="checkbox" name="isAgent" className="w-4 h-4 accent-brand" />
+                <span className="text-xs font-medium text-foreground">
+                  Make this user an agent
+                  <span className="block text-[11px] text-muted-foreground font-normal">
+                    Generates a referral code immediately — they earn commission on referred requests.
+                  </span>
+                </span>
+              </label>
+
               <div>
                 <label className="block text-xs font-semibold text-foreground mb-1.5">Password</label>
                 <div className="flex gap-2">

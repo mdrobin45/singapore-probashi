@@ -69,6 +69,9 @@ export async function createUserAction(
   const existing = await prisma.user.findUnique({ where: { email }, select: { id: true } });
   if (existing) return { error: "A user with this email already exists." };
 
+  const makeAgent = formData.get("isAgent") === "on";
+  const referralCode = makeAgent ? await generateReferralCode(fullName) : null;
+
   const passwordHash = await bcrypt.hash(password, 12);
 
   await prisma.$transaction(async (tx) => {
@@ -81,13 +84,19 @@ export async function createUserAction(
         role: role as Role,
         isVerified: true,
         isActive: true,
+        isAgent: makeAgent,
+        referralCode,
       },
     });
     await tx.wallet.create({ data: { userId: user.id } });
   });
 
   revalidatePath("/", "layout");
-  return { success: `Account created for ${fullName}. Share the password with them directly.` };
+  return {
+    success: makeAgent
+      ? `Account created for ${fullName} as an agent — referral code ${referralCode}. Share the password with them directly.`
+      : `Account created for ${fullName}. Share the password with them directly.`,
+  };
 }
 
 // ── Delete user ───────────────────────────────────────────────────────────────
