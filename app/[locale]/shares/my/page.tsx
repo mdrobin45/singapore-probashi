@@ -157,7 +157,7 @@ export default async function MySharesPage() {
                         </td>
                         <td className="px-4 py-3.5 text-muted-foreground">
                           ${Number(o.project.sharePriceSgd).toFixed(2)}
-                          <span className="text-muted-foreground/70"> (≈ ৳{sgdToBdt(Number(o.project.sharePriceSgd), rate).toFixed(0)})</span>
+                          <span className="text-muted-foreground/70"> (1 SGD = ৳{rate.toFixed(2)})</span>
                         </td>
                         <td className="px-4 py-3.5 font-semibold text-foreground">
                           ৳{sgdToBdt(Number(o.project.sharePriceSgd) * o.quantity, rate).toFixed(2)}

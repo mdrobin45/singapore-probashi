@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { getShareSgdRate, sgdToBdt } from "@/lib/share-pricing";
+import { getShareSgdRate } from "@/lib/share-pricing";
 import { ProcessPurchaseForm } from "./process-form";
 
 async function getPurchaseRequests() {
@@ -68,7 +68,7 @@ export default async function AdminPurchasesPage() {
                     <p className="font-medium text-foreground max-w-40 truncate">{r.project.name}</p>
                     <p className="text-xs text-muted-foreground">
                       ${Number(r.project.sharePriceSgd).toFixed(2)} SGD/share
-                      <span className="text-muted-foreground/70"> (≈ ৳{sgdToBdt(Number(r.project.sharePriceSgd), rate).toFixed(2)})</span>
+                      <span className="text-muted-foreground/70"> (1 SGD = ৳{rate.toFixed(2)})</span>
                     </p>
                   </td>
                   <td className="px-4 py-3.5 font-medium text-foreground">{r.quantity}</td>

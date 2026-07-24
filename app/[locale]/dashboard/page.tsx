@@ -182,7 +182,7 @@ export default async function DashboardPage() {
                       <p className="font-medium text-foreground text-sm truncate">{o.project.name}</p>
                       <p className="text-xs text-muted-foreground mt-0.5">
                         {o.quantity} {t("shares")} · ${Number(o.project.sharePriceSgd).toFixed(2)}/{t("share")}
-                        <span className="text-muted-foreground/70"> (≈ ৳{sgdToBdt(Number(o.project.sharePriceSgd), shareRate).toFixed(0)})</span>
+                        <span className="text-muted-foreground/70"> (1 SGD = ৳{shareRate.toFixed(2)})</span>
                       </p>
                     </div>
                     <div className="flex items-center gap-3 shrink-0">

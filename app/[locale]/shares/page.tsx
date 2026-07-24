@@ -168,7 +168,7 @@ export default async function SharesPage({
                       <div className="px-6 py-4 border-b border-border grid grid-cols-3 gap-3 text-center">
                         <div>
                           <p className="text-base font-bold text-foreground">${Number(project.sharePriceSgd).toFixed(2)}</p>
-                          <p className="text-[11px] text-muted-foreground">{t("perShare")} · ≈ ৳{sgdToBdt(Number(project.sharePriceSgd), rate).toFixed(0)}</p>
+                          <p className="text-[11px] text-muted-foreground">{t("perShare")} · 1 SGD = ৳{rate.toFixed(2)}</p>
                         </div>
                         <div>
                           <p className="text-base font-bold text-foreground">{project.availableShares.toLocaleString()}</p>

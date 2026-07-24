@@ -201,7 +201,7 @@ export default async function AdminSharesPage() {
                 <div className="grid grid-cols-4 gap-3 text-center mb-3">
                   <div>
                     <p className="font-bold text-foreground">${Number(p.sharePriceSgd).toFixed(2)}</p>
-                    <p className="text-[11px] text-muted-foreground">≈ ৳{sgdToBdt(Number(p.sharePriceSgd), rate).toFixed(0)}</p>
+                    <p className="text-[11px] text-muted-foreground">1 SGD = ৳{rate.toFixed(2)}</p>
                   </div>
                   <div>
                     <p className="font-bold text-foreground">{p.totalShares}</p>

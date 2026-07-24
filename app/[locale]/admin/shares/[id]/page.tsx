@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { getShareSgdRate, sgdToBdt } from "@/lib/share-pricing";
+import { getShareSgdRate } from "@/lib/share-pricing";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { ScreenshotViewer } from "./screenshot-viewer";
@@ -113,7 +113,7 @@ export default async function AdminProjectDetailPage({
       {/* Stats grid */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {[
-          { label: "Share Price", value: `$${Number(project.sharePriceSgd).toFixed(2)} SGD (≈ ৳${sgdToBdt(Number(project.sharePriceSgd), rate).toFixed(2)})` },
+          { label: "Share Price", value: `$${Number(project.sharePriceSgd).toFixed(2)} SGD (1 SGD = ৳${rate.toFixed(2)})` },
           { label: "Total Shares", value: project.totalShares.toLocaleString() },
           { label: "Sold Shares", value: soldShares.toLocaleString() },
           { label: "Available", value: project.availableShares.toLocaleString() },
