@@ -46,6 +46,7 @@ enum PaymentMethod {
   BKASH
   NAGAD
   ROCKET
+  GCASH
   WALLET
 }
 

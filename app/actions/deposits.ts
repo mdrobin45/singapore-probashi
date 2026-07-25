@@ -10,7 +10,7 @@ type ActionState = { error?: string; success?: boolean } | null;
 
 const depositSchema = z.object({
   amount: z.coerce.number().min(10, "Minimum deposit is ৳10"),
-  paymentMethod: z.enum(["BANK_TRANSFER", "BKASH", "NAGAD", "ROCKET"]),
+  paymentMethod: z.enum(["BANK_TRANSFER", "BKASH", "NAGAD", "ROCKET", "GCASH"]),
   txId: z.string().optional(),
   screenshotUrl: z.string().optional(),
 });
