@@ -1,8 +1,6 @@
 "use client";
 
-import { useTranslations } from "next-intl";
-import { Link } from "@/i18n/navigation";
-import { LanguageToggle } from "@/components/google-translate";
+import Link from "next/link";
 import Image from "next/image";
 import { useState, useRef, useEffect } from "react";
 import type { SessionPayload } from "@/lib/session";
@@ -16,7 +14,6 @@ function getInitials(fullName: string) {
 }
 
 function AvatarDropdown({ user }: { user: SessionPayload }) {
-	const t = useTranslations("nav");
 	const [open, setOpen] = useState(false);
 	const ref = useRef<HTMLDivElement>(null);
 	const isAdmin = ADMIN_ROLES.includes(user.role);
@@ -110,7 +107,7 @@ function AvatarDropdown({ user }: { user: SessionPayload }) {
 									d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25"
 								/>
 							</svg>
-							{t("dashboard")}
+							Dashboard
 						</Link>
 						<Link
 							href="/profile"
@@ -130,7 +127,7 @@ function AvatarDropdown({ user }: { user: SessionPayload }) {
 									d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z"
 								/>
 							</svg>
-							{t("profile")}
+							Profile
 						</Link>
 					</div>
 
@@ -260,7 +257,7 @@ function AvatarDropdown({ user }: { user: SessionPayload }) {
 										d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9"
 									/>
 								</svg>
-								{t("logout")}
+								Logout
 							</button>
 						</form>
 					</div>
@@ -271,18 +268,17 @@ function AvatarDropdown({ user }: { user: SessionPayload }) {
 }
 
 export function Navbar({ user }: { user: SessionPayload | null }) {
-	const t = useTranslations("nav");
 	const [open, setOpen] = useState(false);
 	const isAdmin = user ? ADMIN_ROLES.includes(user.role) : false;
 
 	const navLinks = [
-		{ href: "/shares", label: t("shares") },
-		{ href: "/services", label: t("services") },
-		{ href: "/taxi", label: t("taxiRent") },
-		{ href: "/air-ticket", label: t("airTicket") },
-		{ href: "/currency", label: t("currency") },
-		{ href: "/islamic-center", label: t("islamicCenter") },
-		{ href: "/lost-found", label: t("lostFound") },
+		{ href: "/shares", label: "Shares" },
+		{ href: "/services", label: "Services" },
+		{ href: "/taxi", label: "Taxi Rent" },
+		{ href: "/air-ticket", label: "Air Ticket" },
+		{ href: "/currency", label: "Currency" },
+		{ href: "/islamic-center", label: "Islamic Center" },
+		{ href: "/lost-found", label: "Lost & Found" },
 	];
 
 	return (
@@ -314,9 +310,8 @@ export function Navbar({ user }: { user: SessionPayload | null }) {
 						))}
 					</nav>
 
-					{/* Mobile right: lang toggle + tappable avatar */}
+					{/* Mobile right: tappable avatar */}
 					<div className="flex lg:hidden items-center gap-2">
-						<LanguageToggle />
 						{user && (
 							<Link
 								href={isAdmin ? "/admin" : "/dashboard"}
@@ -367,7 +362,6 @@ export function Navbar({ user }: { user: SessionPayload | null }) {
 
 					{/* Desktop right side */}
 					<div className="hidden lg:flex items-center gap-3">
-						<LanguageToggle />
 						{user ? (
 							<AvatarDropdown user={user} />
 						) : (
@@ -376,13 +370,13 @@ export function Navbar({ user }: { user: SessionPayload | null }) {
 									href="/login"
 									className="px-5 py-2 text-sm font-semibold text-brand border border-brand rounded-full hover:bg-brand-50 transition-colors"
 								>
-									{t("login")}
+									Login
 								</Link>
 								<Link
 									href="/register"
 									className="px-5 py-2 text-sm font-semibold text-white bg-brand rounded-full hover:bg-brand-dark transition-colors"
 								>
-									{t("register")}
+									Register Free
 								</Link>
 							</>
 						)}

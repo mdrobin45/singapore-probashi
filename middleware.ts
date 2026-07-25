@@ -1,13 +1,9 @@
-import createMiddleware from "next-intl/middleware";
-import { routing } from "./i18n/routing";
-import { NextRequest } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { refreshSessionToken, COOKIE_NAME } from "@/lib/session-edge";
 import { REFERRAL_COOKIE_NAME, REFERRAL_COOKIE_MAX_AGE } from "@/lib/referral-constants";
 
-const intlMiddleware = createMiddleware(routing);
-
 export default async function middleware(request: NextRequest) {
-  const response = intlMiddleware(request);
+  const response = NextResponse.next();
 
   // Capture an agent's referral link (?ref=CODE) on any page. First click
   // wins for the life of the cookie — a later ?ref= visit before signup

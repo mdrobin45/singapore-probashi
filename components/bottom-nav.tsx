@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { usePathname, Link } from "@/i18n/navigation";
-import { LanguageToggle } from "@/components/google-translate";
+import { usePathname } from "next/navigation";
+import Link from "next/link";
 import type { SessionPayload } from "@/lib/session";
 
 const ADMIN_ROLES = ["SUPER_ADMIN", "ADMIN", "MODERATOR"];
@@ -222,11 +222,6 @@ export function BottomNav({ user }: { user: SessionPayload | null }) {
             })}
           </div>
 
-          {/* Language toggle */}
-          <div className="pt-4 border-t border-border flex items-center justify-between">
-            <p className="text-sm font-medium text-muted-foreground">Language</p>
-            <LanguageToggle />
-          </div>
         </div>
       </div>
 

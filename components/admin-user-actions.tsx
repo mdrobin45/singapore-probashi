@@ -2,7 +2,6 @@
 
 import { useActionState, useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useLocale } from "next-intl";
 import {
   deleteUserAction,
   toggleUserActiveAction,
@@ -33,14 +32,13 @@ const ALL_ROLES = ["USER", "MODERATOR", "ADMIN", "SUPER_ADMIN"];
 
 export function UserActionsMenu({ user, actorRole }: Props) {
   const router = useRouter();
-  const locale = useLocale();
   const [open, setOpen] = useState(false);
   const [showRoleSelect, setShowRoleSelect] = useState(false);
   const [copied, setCopied] = useState<"code" | "link" | null>(null);
   const ref = useRef<HTMLDivElement>(null);
 
   const origin = process.env.NEXT_PUBLIC_BASE_URL ?? "http://localhost:3000";
-  const referralLink = user.referralCode ? `${origin}/${locale}/register?ref=${user.referralCode}` : "";
+  const referralLink = user.referralCode ? `${origin}/register?ref=${user.referralCode}` : "";
 
   function copy(text: string, which: "code" | "link") {
     navigator.clipboard.writeText(text);
