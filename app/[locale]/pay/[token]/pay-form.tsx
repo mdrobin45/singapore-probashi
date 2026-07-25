@@ -8,6 +8,7 @@ const METHODS = [
   { value: "BKASH", label: "bKash", account: "01700-000000 (Agent)" },
   { value: "NAGAD", label: "Nagad", account: "01800-000000 (Agent)" },
   { value: "ROCKET", label: "Rocket", account: "01900-000000 (Agent)" },
+  { value: "GCASH", label: "GCash", account: "0917-000-0000 (Agent)" },
   { value: "BANK_TRANSFER", label: "Bank Transfer", account: "DBS Bank: 123-456789-0" },
 ];
 

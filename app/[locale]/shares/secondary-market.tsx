@@ -21,6 +21,7 @@ const PAYMENT_METHODS = [
   { value: "BKASH", label: "bKash", needsTxId: true },
   { value: "NAGAD", label: "Nagad", needsTxId: true },
   { value: "ROCKET", label: "Rocket", needsTxId: true },
+  { value: "GCASH", label: "GCash", needsTxId: true },
   { value: "BANK_TRANSFER", label: "Bank Transfer", needsTxId: true },
   { value: "WALLET", label: "Platform Wallet", needsTxId: false },
 ];

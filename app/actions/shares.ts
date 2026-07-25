@@ -12,7 +12,7 @@ type ActionState = { error?: string; success?: boolean; message?: string } | nul
 const purchaseSchema = z.object({
   projectId: z.string().min(1),
   quantity: z.coerce.number().int().min(1, "Quantity must be at least 1"),
-  paymentMethod: z.enum(["BANK_TRANSFER", "BKASH", "NAGAD", "ROCKET", "WALLET"]),
+  paymentMethod: z.enum(["BANK_TRANSFER", "BKASH", "NAGAD", "ROCKET", "GCASH", "WALLET"]),
   txId: z.string().optional(),
   screenshotUrl: z.string().optional(),
 });
@@ -139,7 +139,7 @@ export async function createShareListingAction(
 const tradeSchema = z.object({
   listingId: z.string().min(1),
   quantity: z.coerce.number().int().min(1),
-  paymentMethod: z.enum(["BANK_TRANSFER", "BKASH", "NAGAD", "ROCKET", "WALLET"]),
+  paymentMethod: z.enum(["BANK_TRANSFER", "BKASH", "NAGAD", "ROCKET", "GCASH", "WALLET"]),
   txId: z.string().optional(),
 });
 

@@ -9,6 +9,7 @@ const METHODS = [
   { value: "BKASH", label: "bKash" },
   { value: "NAGAD", label: "Nagad" },
   { value: "ROCKET", label: "Rocket" },
+  { value: "GCASH", label: "GCash" },
   { value: "BANK_TRANSFER", label: "Bank Transfer" },
 ];
 

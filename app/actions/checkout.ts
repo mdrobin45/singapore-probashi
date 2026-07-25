@@ -230,7 +230,7 @@ export async function generatePaymentLinkAction(checkoutId: string): Promise<{ e
 // ─── Public: customer submits payment proof ────────────────────────────────────
 
 const proofSchema = z.object({
-  paymentMethod: z.enum(["BANK_TRANSFER", "BKASH", "NAGAD", "ROCKET"]),
+  paymentMethod: z.enum(["BANK_TRANSFER", "BKASH", "NAGAD", "ROCKET", "GCASH"]),
   txId: z.string().optional(),
   screenshotUrl: z.string().optional(),
 });
