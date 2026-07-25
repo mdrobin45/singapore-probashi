@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { createSession } from "@/lib/session";
+import { attachReferralIfNeeded } from "@/lib/commission";
+import { REFERRAL_COOKIE_NAME } from "@/lib/referral-constants";
 
 export async function GET(req: NextRequest) {
   const base = process.env.NEXT_PUBLIC_BASE_URL ?? "http://localhost:3000";
@@ -71,6 +73,9 @@ export async function GET(req: NextRequest) {
     return NextResponse.redirect(new URL("/login?error=banned", req.url));
   }
 
+  const refCode = req.cookies.get(REFERRAL_COOKIE_NAME)?.value;
+  if (refCode) await attachReferralIfNeeded(user.id, refCode);
+
   await createSession({
     userId: user.id,
     role: user.role,
@@ -78,5 +83,7 @@ export async function GET(req: NextRequest) {
     fullName: user.fullName,
   });
 
-  return NextResponse.redirect(new URL("/dashboard", req.url));
+  const response = NextResponse.redirect(new URL("/dashboard", req.url));
+  if (refCode) response.cookies.delete(REFERRAL_COOKIE_NAME);
+  return response;
 }

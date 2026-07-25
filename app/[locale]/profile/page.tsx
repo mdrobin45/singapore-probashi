@@ -128,6 +128,7 @@ export default async function ProfilePage() {
 						hint={t("agentReferralHint")}
 						copyLabel={t("copyCode")}
 						copiedLabel={t("copied")}
+						linkLabel={t("agentReferralLinkLabel")}
 					/>
 				)}
 

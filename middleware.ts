@@ -2,11 +2,27 @@ import createMiddleware from "next-intl/middleware";
 import { routing } from "./i18n/routing";
 import { NextRequest } from "next/server";
 import { refreshSessionToken, COOKIE_NAME } from "@/lib/session-edge";
+import { REFERRAL_COOKIE_NAME, REFERRAL_COOKIE_MAX_AGE } from "@/lib/referral-constants";
 
 const intlMiddleware = createMiddleware(routing);
 
 export default async function middleware(request: NextRequest) {
   const response = intlMiddleware(request);
+
+  // Capture an agent's referral link (?ref=CODE) on any page. First click
+  // wins for the life of the cookie — a later ?ref= visit before signup
+  // never overwrites an already-captured code. Actually attaching the
+  // referral to the account happens at signup/login, see app/actions/auth.ts.
+  const refParam = request.nextUrl.searchParams.get("ref");
+  if (refParam && !request.cookies.get(REFERRAL_COOKIE_NAME)?.value) {
+    response.cookies.set(REFERRAL_COOKIE_NAME, refParam, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      maxAge: REFERRAL_COOKIE_MAX_AGE,
+      path: "/",
+    });
+  }
 
   // Slide the session's inactivity window forward on every active request —
   // this is what actually logs someone out after a few idle minutes: if they

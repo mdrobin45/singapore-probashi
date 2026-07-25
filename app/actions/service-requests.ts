@@ -5,7 +5,7 @@ import { getSession } from "@/lib/session";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
-import { resolveReferralCode } from "@/lib/commission";
+import { getReferredByAgentId } from "@/lib/commission";
 
 type State = { error?: string; success?: boolean } | null;
 
@@ -40,14 +40,10 @@ export async function submitServiceRequestAction(_prev: State, formData: FormDat
   const workPermitUrl = (formData.get("workPermitUrl") as string) || null;
   const otherUrl      = (formData.get("otherUrl")      as string) || null;
 
-  // Login isn't required to submit this form, but if the submitter happens to be
-  // signed in, still block them from using their own referral code.
+  // Login isn't required to submit this form — an anonymous submitter simply
+  // has no referrer, since a referral must already be tied to their account.
   const session = await getSession();
-  const { referredById, error: referralError } = await resolveReferralCode(
-    formData.get("referralCode") as string | null,
-    session?.userId
-  );
-  if (referralError) return { error: referralError };
+  const referredById = session ? await getReferredByAgentId(session.userId) : null;
 
   await prisma.serviceRequest.create({
     data: { serviceId, fullName, phone, email, passportUrl, nidUrl, photoUrl, workPermitUrl, otherUrl, referredById },

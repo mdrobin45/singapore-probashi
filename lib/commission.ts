@@ -86,41 +86,34 @@ export async function creditCommission(
   });
 }
 
-// Resolves who should be credited as the referrer for a submission.
-// - If a referral code was entered, it must resolve to an active agent (returns a
-//   friendly error otherwise, so a mistyped code doesn't go unnoticed) — this lets
-//   one agent credit a *different* agent on a request they're handling for them.
-// - If no code was entered but the submitter (when logged in) is themselves an
-//   agent, they're credited automatically — agents don't need to enter their own
-//   code to earn commission on requests they submit directly.
-export async function resolveReferralCode(
-  code: string | undefined | null,
-  submitterId?: string | null
-): Promise<{ referredById?: string; error?: string }> {
-  const trimmed = code?.trim();
+// Reads the buyer's own persistent referrer, set once at signup/login via
+// attachReferralIfNeeded() below — purchases no longer take a manual referral
+// code, they just inherit whoever referred the buyer's account.
+export async function getReferredByAgentId(userId: string): Promise<string | null> {
+  const user = await prisma.user.findUnique({ where: { id: userId }, select: { referredByAgentId: true } });
+  return user?.referredByAgentId ?? null;
+}
 
-  if (trimmed) {
-    const agent = await prisma.user.findUnique({
-      where: { referralCode: trimmed.toUpperCase() },
-      select: { id: true, isAgent: true },
-    });
+// Called right after a successful signup or login. If this user doesn't
+// already have a referrer (first-referrer-wins, permanent), and a valid
+// referral code is present (from the `sp_ref` cookie set by an agent's
+// referral link — see middleware.ts), permanently links them to that agent.
+// A user can never refer themselves, and a stale/invalid code is silently
+// ignored rather than blocking sign-in.
+export async function attachReferralIfNeeded(userId: string, refCode: string | undefined | null): Promise<void> {
+  const trimmed = refCode?.trim();
+  if (!trimmed) return;
 
-    if (!agent || !agent.isAgent) {
-      return { error: "Referral code not found — check with your agent or leave this blank." };
-    }
+  const user = await prisma.user.findUnique({ where: { id: userId }, select: { referredByAgentId: true } });
+  if (!user || user.referredByAgentId) return;
 
-    return { referredById: agent.id };
-  }
+  const agent = await prisma.user.findUnique({
+    where: { referralCode: trimmed.toUpperCase() },
+    select: { id: true, isAgent: true },
+  });
+  if (!agent || !agent.isAgent || agent.id === userId) return;
 
-  if (submitterId) {
-    const submitter = await prisma.user.findUnique({
-      where: { id: submitterId },
-      select: { isAgent: true },
-    });
-    if (submitter?.isAgent) return { referredById: submitterId };
-  }
-
-  return {};
+  await prisma.user.update({ where: { id: userId }, data: { referredByAgentId: agent.id } });
 }
 
 const CODE_CHARS = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // no ambiguous 0/O/1/I

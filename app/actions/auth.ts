@@ -3,9 +3,24 @@
 import { prisma } from "@/lib/prisma";
 import { createSession } from "@/lib/session";
 import { generateOTP, sendOTPEmail } from "@/lib/email";
+import { attachReferralIfNeeded } from "@/lib/commission";
+import { REFERRAL_COOKIE_NAME } from "@/lib/referral-constants";
 import bcrypt from "bcryptjs";
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { z } from "zod";
+
+// Attaches the permanent referrer (if any, and if not already set) from the
+// ?ref= link the user clicked, then clears the cookie — its job is done
+// whether or not it actually attached anything.
+async function attachReferralFromCookie(userId: string) {
+  const jar = await cookies();
+  const refCode = jar.get(REFERRAL_COOKIE_NAME)?.value;
+  if (refCode) {
+    await attachReferralIfNeeded(userId, refCode);
+    jar.delete(REFERRAL_COOKIE_NAME);
+  }
+}
 
 type ActionState = {
   error?: string;
@@ -128,6 +143,8 @@ export async function verifyOtpAction(
     return created;
   });
 
+  await attachReferralFromCookie(user.id);
+
   await createSession({
     userId: user.id,
     role: user.role,
@@ -222,6 +239,8 @@ export async function loginAction(
   }
 
   if (!user.isActive) return { error: "Your account has been deactivated. Contact support." };
+
+  await attachReferralFromCookie(user.id);
 
   await createSession(
     { userId: user.id, role: user.role, email: user.email, fullName: user.fullName },

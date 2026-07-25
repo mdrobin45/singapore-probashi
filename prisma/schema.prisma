@@ -138,6 +138,12 @@ model User {
   isActive     Boolean  @default(true)
   isAgent      Boolean  @default(false)
   referralCode String?  @unique
+  // Set once, permanently, the first time this user signs up or logs in
+  // after clicking an agent's referral link — never overwritten afterward.
+  // See lib/commission.ts attachReferralIfNeeded().
+  referredByAgentId String?
+  referredByAgent   User?    @relation("AgentReferrals", fields: [referredByAgentId], references: [id])
+  referredUsers     User[]   @relation("AgentReferrals")
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
