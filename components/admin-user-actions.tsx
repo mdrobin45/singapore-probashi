@@ -2,6 +2,7 @@
 
 import { useActionState, useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useLocale } from "next-intl";
 import {
   deleteUserAction,
   toggleUserActiveAction,
@@ -32,9 +33,20 @@ const ALL_ROLES = ["USER", "MODERATOR", "ADMIN", "SUPER_ADMIN"];
 
 export function UserActionsMenu({ user, actorRole }: Props) {
   const router = useRouter();
+  const locale = useLocale();
   const [open, setOpen] = useState(false);
   const [showRoleSelect, setShowRoleSelect] = useState(false);
+  const [copied, setCopied] = useState<"code" | "link" | null>(null);
   const ref = useRef<HTMLDivElement>(null);
+
+  const origin = process.env.NEXT_PUBLIC_BASE_URL ?? "http://localhost:3000";
+  const referralLink = user.referralCode ? `${origin}/${locale}/register?ref=${user.referralCode}` : "";
+
+  function copy(text: string, which: "code" | "link") {
+    navigator.clipboard.writeText(text);
+    setCopied(which);
+    setTimeout(() => setCopied(null), 1500);
+  }
 
   const canManage = ROLE_RANK[actorRole] > ROLE_RANK[user.role];
   const isSuperAdmin = actorRole === "SUPER_ADMIN";
@@ -145,17 +157,31 @@ export function UserActionsMenu({ user, actorRole }: Props) {
             </form>
           )}
           {user.isAgent && user.referralCode && (
-            <div className="px-4 py-2 flex items-center justify-between gap-2 border-t border-border">
-              <code className="text-xs font-mono font-semibold text-brand bg-brand-50 border border-brand/20 px-2 py-1 rounded-lg truncate">
-                {user.referralCode}
-              </code>
-              <button
-                type="button"
-                onClick={() => navigator.clipboard.writeText(user.referralCode!)}
-                className="text-xs text-muted-foreground hover:text-foreground shrink-0"
-              >
-                Copy
-              </button>
+            <div className="px-4 py-2.5 border-t border-border space-y-2">
+              <div className="flex items-center justify-between gap-2">
+                <code className="text-[11px] font-mono text-foreground bg-muted border border-border px-2 py-1 rounded-lg truncate">
+                  {referralLink}
+                </code>
+                <button
+                  type="button"
+                  onClick={() => copy(referralLink, "link")}
+                  className="text-xs text-muted-foreground hover:text-foreground shrink-0"
+                >
+                  {copied === "link" ? "Copied!" : "Copy link"}
+                </button>
+              </div>
+              <div className="flex items-center justify-between gap-2">
+                <code className="text-xs font-mono font-semibold text-brand bg-brand-50 border border-brand/20 px-2 py-1 rounded-lg truncate">
+                  {user.referralCode}
+                </code>
+                <button
+                  type="button"
+                  onClick={() => copy(user.referralCode!, "code")}
+                  className="text-xs text-muted-foreground hover:text-foreground shrink-0"
+                >
+                  {copied === "code" ? "Copied!" : "Copy code"}
+                </button>
+              </div>
             </div>
           )}
 
