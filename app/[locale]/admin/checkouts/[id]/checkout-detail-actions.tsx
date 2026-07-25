@@ -4,20 +4,48 @@ import { useState, useTransition } from "react";
 import { generatePaymentLinkAction, approveCheckoutAction, rejectCheckoutAction } from "@/app/actions/checkout";
 import { waLink } from "@/lib/whatsapp";
 
-export function GenerateLinkButton({
-  checkoutId,
-  baseUrl,
+// Persistent, always-renderable display of a checkout's pay link — the token
+// lives on the Checkout row itself, so this can be shown any time after
+// generation, not just in the moment right after clicking "Generate".
+export function PaymentLinkCard({
+  url,
   customerName,
   customerPhone,
   total,
 }: {
-  checkoutId: string;
-  baseUrl: string;
+  url: string;
   customerName: string;
   customerPhone: string | null;
   total: number;
 }) {
-  const [token, setToken] = useState<string | null>(null);
+  const message = `Hi ${customerName}, here's your payment link for ৳${total.toFixed(2)}: ${url}`;
+  return (
+    <div className="space-y-2">
+      <div className="flex items-center gap-2">
+        <input readOnly value={url} className="flex-1 text-xs px-3 py-2 border border-border rounded-lg bg-muted/50" />
+        <button
+          type="button"
+          onClick={() => navigator.clipboard.writeText(url)}
+          className="text-xs font-semibold px-3 py-2 border border-border rounded-lg hover:border-brand hover:text-brand transition-colors"
+        >
+          Copy
+        </button>
+      </div>
+      {customerPhone && (
+        <a
+          href={waLink(customerPhone, message)}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-1.5 text-xs font-semibold text-white bg-[#25D366] px-3 py-2 rounded-lg hover:bg-[#1ebe5a] transition-colors"
+        >
+          Send via WhatsApp
+        </a>
+      )}
+    </div>
+  );
+}
+
+export function GenerateLinkButton({ checkoutId }: { checkoutId: string }) {
   const [error, setError] = useState("");
   const [isPending, startTransition] = useTransition();
 
@@ -25,37 +53,11 @@ export function GenerateLinkButton({
     startTransition(async () => {
       const res = await generatePaymentLinkAction(checkoutId);
       if (res.error) setError(res.error);
-      else if (res.token) setToken(res.token);
+      // No client-side success state needed — generating flips the checkout's
+      // status server-side, which revalidates this page and the persistent
+      // PaymentLinkCard (rendered by the parent based on checkout.status/token)
+      // takes over from here.
     });
-  }
-
-  if (token) {
-    const url = `${baseUrl}/pay/${token}`;
-    const message = `Hi ${customerName}, here's your payment link for ৳${total.toFixed(2)}: ${url}`;
-    return (
-      <div className="space-y-2">
-        <div className="flex items-center gap-2">
-          <input readOnly value={url} className="flex-1 text-xs px-3 py-2 border border-border rounded-lg bg-muted/50" />
-          <button
-            type="button"
-            onClick={() => navigator.clipboard.writeText(url)}
-            className="text-xs font-semibold px-3 py-2 border border-border rounded-lg hover:border-brand hover:text-brand transition-colors"
-          >
-            Copy
-          </button>
-        </div>
-        {customerPhone && (
-          <a
-            href={waLink(customerPhone, message)}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 text-xs font-semibold text-white bg-[#25D366] px-3 py-2 rounded-lg hover:bg-[#1ebe5a] transition-colors"
-          >
-            Send via WhatsApp
-          </a>
-        )}
-      </div>
-    );
   }
 
   return (

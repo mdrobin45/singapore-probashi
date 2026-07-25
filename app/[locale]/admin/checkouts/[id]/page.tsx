@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { Link } from "@/i18n/navigation";
 import { notFound } from "next/navigation";
-import { GenerateLinkButton, ReviewActions } from "./checkout-detail-actions";
+import { GenerateLinkButton, PaymentLinkCard, ReviewActions } from "./checkout-detail-actions";
 
 async function getCheckout(id: string) {
   return prisma.checkout.findUnique({
@@ -99,6 +99,19 @@ export default async function AdminCheckoutDetailPage({
         </div>
       </div>
 
+      {/* Payment link — persistent once generated, so it's always findable here */}
+      {checkout.status !== "DRAFT" && checkout.status !== "CANCELLED" && (
+        <div className="bg-white rounded-xl border border-border p-5 mb-5">
+          <h2 className="font-semibold text-foreground text-sm mb-3">Payment Link</h2>
+          <PaymentLinkCard
+            url={`${baseUrl}/pay/${checkout.token}`}
+            customerName={checkout.user.fullName}
+            customerPhone={checkout.user.phone}
+            total={Number(checkout.totalAmount)}
+          />
+        </div>
+      )}
+
       {/* Payment proof, if submitted */}
       {(checkout.status === "PROOF_SUBMITTED" || checkout.status === "PAID" || checkout.status === "REJECTED") && checkout.paymentMethod && (
         <div className="bg-white rounded-xl border border-border p-5 mb-5 space-y-2">
@@ -117,13 +130,7 @@ export default async function AdminCheckoutDetailPage({
       {/* Actions */}
       <div className="bg-white rounded-xl border border-border p-5">
         {checkout.status === "DRAFT" && (
-          <GenerateLinkButton
-            checkoutId={checkout.id}
-            baseUrl={baseUrl}
-            customerName={checkout.user.fullName}
-            customerPhone={checkout.user.phone}
-            total={Number(checkout.totalAmount)}
-          />
+          <GenerateLinkButton checkoutId={checkout.id} />
         )}
         {checkout.status === "AWAITING_PAYMENT" && (
           <p className="text-sm text-muted-foreground">Waiting for the customer to submit payment proof.</p>
