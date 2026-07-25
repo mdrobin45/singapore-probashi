@@ -85,8 +85,8 @@ export function FileViewer({ label, url }: { label: string; url: string | null }
       </button>
 
       {lightbox && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80" onClick={() => setLightbox(false)}>
-          <div className="relative max-w-3xl w-full max-h-[90vh] flex flex-col items-center" onClick={(e) => e.stopPropagation()}>
+        <div className="fixed inset-0 z-60 flex items-center justify-center p-4 pb-20 lg:pb-4 bg-black/80" onClick={() => setLightbox(false)}>
+          <div className="relative max-w-3xl w-full max-h-[calc(100vh-6rem)] lg:max-h-[90vh] flex flex-col items-center" onClick={(e) => e.stopPropagation()}>
             <button
               type="button"
               onClick={() => setLightbox(false)}
