@@ -6,6 +6,7 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { getReferredByAgentId } from "@/lib/commission";
+import { notifyAdmin } from "@/lib/notifications";
 
 type ActionState = { error?: string; success?: boolean; message?: string } | null;
 type BookingStatus = "PENDING" | "ASSIGNED" | "CONFIRMED" | "CANCELLED" | "COMPLETED";
@@ -59,6 +60,19 @@ export async function requestAirTicketAction(
       notes: notes ?? null,
       referredById,
     },
+  });
+
+  await notifyAdmin({
+    subject: `New air ticket request — ${origin} → ${destination}`,
+    heading: "New Air Ticket Request",
+    lines: [
+      { label: "Requested by", value: `${session.fullName} (${session.email})` },
+      { label: "Origin", value: origin },
+      { label: "Destination", value: destination },
+      { label: "Depart", value: new Date(departDate).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }) },
+      { label: "Passengers", value: String(passengers) },
+    ],
+    actionPath: "/admin/air-ticket",
   });
 
   return { success: true, message: "Air ticket request submitted! We'll contact you within 1 hour to discuss options." };

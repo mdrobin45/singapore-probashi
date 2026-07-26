@@ -1,12 +1,14 @@
 import { getCurrencySettings, getLiveBdtRate } from "@/lib/currency";
 import { getAllCommissionSettings, getShareAdminCutPercent } from "@/lib/commission";
 import { getShareSgdRate } from "@/lib/share-pricing";
+import { getAdminNotificationEmail } from "@/lib/notifications";
 import { prisma } from "@/lib/prisma";
 import { CurrencySettingsForm } from "./currency-form";
 import { BankRatesForm } from "./bank-rates-form";
 import { CommissionSettingsForm } from "./commission-form";
 import { SharePricingForm } from "./share-pricing-form";
 import { ShareAdminCutForm } from "./share-admin-cut-form";
+import { NotificationEmailForm } from "./notification-email-form";
 
 async function getBankRates() {
   try {
@@ -18,13 +20,14 @@ async function getBankRates() {
 }
 
 export default async function AdminSettingsPage() {
-  const [settings, liveRate, banks, commissionSettings, shareRate, shareAdminCutPercent] = await Promise.all([
+  const [settings, liveRate, banks, commissionSettings, shareRate, shareAdminCutPercent, notificationEmail] = await Promise.all([
     getCurrencySettings(),
     getLiveBdtRate(),
     getBankRates(),
     getAllCommissionSettings(),
     getShareSgdRate(),
     getShareAdminCutPercent(),
+    getAdminNotificationEmail(),
   ]);
 
   return (
@@ -141,6 +144,28 @@ export default async function AdminSettingsPage() {
         </div>
         <div className="p-6">
           <ShareAdminCutForm percent={shareAdminCutPercent} />
+        </div>
+      </div>
+
+      {/* Admin notification email */}
+      <div className="bg-white rounded-xl border border-border overflow-hidden">
+        <div className="px-6 py-5 border-b border-border">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-rose-50 flex items-center justify-center">
+              <svg className="w-5 h-5 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+              </svg>
+            </div>
+            <div>
+              <h2 className="font-semibold text-foreground">Notification Email</h2>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Where new-request alerts across every module are sent
+              </p>
+            </div>
+          </div>
+        </div>
+        <div className="p-6">
+          <NotificationEmailForm email={notificationEmail} />
         </div>
       </div>
     </div>

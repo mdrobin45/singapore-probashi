@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { createSession } from "@/lib/session";
 import { attachReferralIfNeeded } from "@/lib/commission";
 import { REFERRAL_COOKIE_NAME } from "@/lib/referral-constants";
+import { notifyAdmin } from "@/lib/notifications";
 
 export async function GET(req: NextRequest) {
   const base = process.env.NEXT_PUBLIC_BASE_URL ?? "http://localhost:3000";
@@ -46,8 +47,11 @@ export async function GET(req: NextRequest) {
     where: { OR: [{ googleId }, { email }] },
   });
 
+  let isNewUser = false;
+
   if (!user) {
     // New user via Google — create immediately (no OTP needed)
+    isNewUser = true;
     user = await prisma.$transaction(async (tx) => {
       const created = await tx.user.create({
         data: {
@@ -75,6 +79,19 @@ export async function GET(req: NextRequest) {
 
   const refCode = req.cookies.get(REFERRAL_COOKIE_NAME)?.value;
   if (refCode) await attachReferralIfNeeded(user.id, refCode);
+
+  if (isNewUser) {
+    await notifyAdmin({
+      subject: `New user signup — ${user.fullName}`,
+      heading: "New User Signup",
+      lines: [
+        { label: "Name", value: user.fullName },
+        { label: "Email", value: user.email },
+        { label: "Via", value: "Google" },
+      ],
+      actionPath: "/admin/users",
+    });
+  }
 
   await createSession({
     userId: user.id,

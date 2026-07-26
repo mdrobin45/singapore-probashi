@@ -6,6 +6,7 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import { getReferredByAgentId } from "@/lib/commission";
 import { getShareSgdRate, sgdToBdt } from "@/lib/share-pricing";
+import { notifyAdmin } from "@/lib/notifications";
 
 type ActionState = { error?: string; success?: boolean; message?: string } | null;
 
@@ -101,6 +102,19 @@ export async function requestSharePurchaseAction(
     },
   });
 
+  await notifyAdmin({
+    subject: `New share purchase request — ${project.name}`,
+    heading: "New Share Purchase Request",
+    lines: [
+      { label: "Buyer", value: `${session.fullName} (${session.email})` },
+      { label: "Project", value: project.name },
+      { label: "Shares", value: `${quantity} (#${shareNumbers.map((n) => String(n).padStart(4, "0")).join(", #")})` },
+      { label: "Total", value: `৳${totalAmount.toFixed(2)}` },
+      { label: "Payment", value: paymentMethod },
+    ],
+    actionPath: "/admin/purchases",
+  });
+
   return {
     success: true,
     message: `Purchase request for ${quantity} share${quantity > 1 ? "s" : ""} submitted successfully. You will be notified once approved.`,
@@ -133,7 +147,7 @@ export async function createShareListingAction(
 
   const ownership = await prisma.shareOwnership.findUnique({
     where: { id: ownershipId, ownerId: session.userId },
-    select: { id: true, quantity: true, projectId: true },
+    select: { id: true, quantity: true, projectId: true, project: { select: { name: true } } },
   });
 
   if (!ownership) return { error: "Ownership not found." };
@@ -149,6 +163,18 @@ export async function createShareListingAction(
       askingPrice,
       status: "PENDING",
     },
+  });
+
+  await notifyAdmin({
+    subject: `New resell listing — ${ownership.project.name}`,
+    heading: "New Resell Listing",
+    lines: [
+      { label: "Seller", value: `${session.fullName} (${session.email})` },
+      { label: "Project", value: ownership.project.name },
+      { label: "Quantity", value: String(quantity) },
+      { label: "Asking Price", value: `৳${Number(askingPrice).toFixed(2)}/share` },
+    ],
+    actionPath: "/admin/shares",
   });
 
   return {
@@ -189,7 +215,7 @@ export async function requestShareTradeAction(
 
   const listing = await prisma.shareListing.findUnique({
     where: { id: listingId },
-    select: { id: true, quantity: true, askingPrice: true, sellerId: true, status: true },
+    select: { id: true, quantity: true, askingPrice: true, sellerId: true, status: true, project: { select: { name: true } } },
   });
 
   if (!listing || listing.status !== "APPROVED") {
@@ -214,6 +240,19 @@ export async function requestShareTradeAction(
       txId: txId ?? null,
       status: "PENDING",
     },
+  });
+
+  await notifyAdmin({
+    subject: `New secondary market trade — ${listing.project.name}`,
+    heading: "New Secondary Market Trade",
+    lines: [
+      { label: "Buyer", value: `${session.fullName} (${session.email})` },
+      { label: "Project", value: listing.project.name },
+      { label: "Quantity", value: String(quantity) },
+      { label: "Total", value: `৳${totalAmount.toFixed(2)}` },
+      { label: "Payment", value: paymentMethod },
+    ],
+    actionPath: "/admin/shares",
   });
 
   return {
@@ -263,6 +302,19 @@ export async function createShareBuyRequestAction(
       preferredDate,
       status: "PENDING",
     },
+  });
+
+  await notifyAdmin({
+    subject: `New share buy request — #${shareNumber}`,
+    heading: "New Share Buy Request",
+    lines: [
+      { label: "Buyer", value: `${name} (${session.email})` },
+      { label: "Share #", value: shareNumber },
+      { label: "Size", value: size },
+      { label: "Offered Price", value: `৳${price.toFixed(2)}` },
+      { label: "Preferred Date", value: preferredDate.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }) },
+    ],
+    actionPath: "/admin/shares",
   });
 
   return {

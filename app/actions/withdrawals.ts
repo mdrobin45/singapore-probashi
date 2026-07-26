@@ -5,6 +5,7 @@ import { getSession } from "@/lib/session";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { revalidatePath } from "next/cache";
+import { notifyAdmin } from "@/lib/notifications";
 
 type ActionState = { error?: string; success?: boolean } | null;
 
@@ -47,6 +48,18 @@ export async function requestWithdrawalAction(
       accountName,
       status: "PENDING",
     },
+  });
+
+  await notifyAdmin({
+    subject: `New withdrawal request — ৳${amount.toFixed(2)}`,
+    heading: "New Withdrawal Request",
+    lines: [
+      { label: "User", value: `${session.fullName} (${session.email})` },
+      { label: "Amount", value: `৳${amount.toFixed(2)}` },
+      { label: "Payment", value: paymentMethod },
+      { label: "Account", value: `${accountName} (${accountNumber})` },
+    ],
+    actionPath: "/admin/withdrawals",
   });
 
   revalidatePath("/wallet");

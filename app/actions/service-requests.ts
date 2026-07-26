@@ -6,6 +6,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { getReferredByAgentId } from "@/lib/commission";
+import { notifyAdmin } from "@/lib/notifications";
 
 type State = { error?: string; success?: boolean } | null;
 
@@ -30,7 +31,7 @@ export async function submitServiceRequestAction(_prev: State, formData: FormDat
 
   const service = await prisma.applyService.findUnique({
     where: { id: serviceId, isActive: true },
-    select: { id: true },
+    select: { id: true, name: true },
   });
   if (!service) return { error: "Service not found or unavailable." };
 
@@ -47,6 +48,18 @@ export async function submitServiceRequestAction(_prev: State, formData: FormDat
 
   await prisma.serviceRequest.create({
     data: { serviceId, fullName, phone, email, passportUrl, nidUrl, photoUrl, workPermitUrl, otherUrl, referredById },
+  });
+
+  await notifyAdmin({
+    subject: `New service request — ${service.name}`,
+    heading: "New Service Request",
+    lines: [
+      { label: "Name", value: fullName },
+      { label: "Service", value: service.name },
+      { label: "Phone", value: phone },
+      { label: "Email", value: email },
+    ],
+    actionPath: "/admin/apply",
   });
 
   revalidatePath("/admin/apply");

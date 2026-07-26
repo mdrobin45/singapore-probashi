@@ -5,6 +5,7 @@ import { getSession } from "@/lib/session";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { revalidatePath } from "next/cache";
+import { notifyAdmin } from "@/lib/notifications";
 
 type ActionState = { error?: string; success?: boolean } | null;
 
@@ -53,6 +54,17 @@ export async function requestDepositAction(
       screenshotUrl: screenshotUrl ?? null,
       status: "PENDING",
     },
+  });
+
+  await notifyAdmin({
+    subject: `New deposit request — ৳${amount.toFixed(2)}`,
+    heading: "New Deposit Request",
+    lines: [
+      { label: "User", value: `${session.fullName} (${session.email})` },
+      { label: "Amount", value: `৳${amount.toFixed(2)}` },
+      { label: "Payment", value: paymentMethod },
+    ],
+    actionPath: "/admin/deposits",
   });
 
   revalidatePath("/dashboard");

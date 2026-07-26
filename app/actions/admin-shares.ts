@@ -6,6 +6,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { creditCommission } from "@/lib/commission";
+import { notifyUser } from "@/lib/notifications";
 
 type ActionState = { error?: string; success?: boolean; shareNumbersCreated?: number } | null;
 
@@ -30,7 +31,7 @@ export async function processPurchaseAction(
 
   const request = await prisma.sharePurchaseRequest.findUnique({
     where: { id: requestId, status: "PENDING" },
-    include: { project: true },
+    include: { project: true, buyer: { select: { email: true, fullName: true } } },
   });
 
   if (!request) return { error: "Request not found or already processed." };
@@ -147,6 +148,18 @@ export async function processPurchaseAction(
       const msg = err instanceof Error ? err.message : "Transaction failed.";
       return { error: msg };
     }
+
+    await notifyUser({
+      to: request.buyer.email,
+      subject: `Your share purchase is confirmed — ${request.project.name}`,
+      heading: "Purchase Approved",
+      message: `Hi ${request.buyer.fullName}, your purchase of ${request.quantity} share${request.quantity > 1 ? "s" : ""} in ${request.project.name} has been approved and added to your account.`,
+      lines: [
+        { label: "Project", value: request.project.name },
+        { label: "Shares", value: String(request.quantity) },
+        { label: "Total Paid", value: `৳${Number(request.totalAmount).toFixed(2)}` },
+      ],
+    });
   } else {
     await prisma.sharePurchaseRequest.update({
       where: { id: requestId },

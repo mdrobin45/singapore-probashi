@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/session";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
+import { notifyAdmin } from "@/lib/notifications";
 
 const ADMIN_ROLES = ["SUPER_ADMIN", "ADMIN", "MODERATOR"];
 
@@ -166,6 +167,16 @@ export async function submitApplicationAction(_prev: State, formData: FormData):
       oldPassportUrl: files.oldPassportUrl,
       otherFileUrl: files.otherFileUrl,
     },
+  });
+
+  await notifyAdmin({
+    subject: `New application — ${service.name}`,
+    heading: "New Service Application",
+    lines: [
+      { label: "Applicant", value: `${session.fullName} (${session.email})` },
+      { label: "Service", value: service.name },
+    ],
+    actionPath: "/admin/apply",
   });
 
   revalidatePath("/apply/my");

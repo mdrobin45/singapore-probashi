@@ -19,6 +19,14 @@ function getFrom() {
   return from.includes("<") ? from : `Singapur Probashi <${from}>`;
 }
 
+// Generic send used by every notification (OTP, admin alerts, buyer
+// confirmations). Deliberately does not catch errors — callers that must
+// never fail because of email (e.g. "new request" notifications) should
+// wrap this in their own try/catch.
+export async function sendEmail(to: string, subject: string, html: string): Promise<void> {
+  await getTransporter().sendMail({ from: getFrom(), to, subject, html });
+}
+
 export function generateOTP(): string {
   return Math.floor(100000 + Math.random() * 900000).toString();
 }
@@ -96,5 +104,5 @@ export async function sendOTPEmail(
     </html>
   `;
 
-  await getTransporter().sendMail({ from: getFrom(), to: email, subject, html });
+  await sendEmail(email, subject, html);
 }

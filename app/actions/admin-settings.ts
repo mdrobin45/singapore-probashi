@@ -5,6 +5,7 @@ import { getSession } from "@/lib/session";
 import { revalidatePath } from "next/cache";
 import { COMMISSION_MODULES, saveCommissionSetting, saveShareAdminCutPercent, type CommissionMode } from "@/lib/commission";
 import { saveShareSgdRate } from "@/lib/share-pricing";
+import { saveAdminNotificationEmail } from "@/lib/notifications";
 
 type State = { error?: string; success?: boolean } | null;
 
@@ -108,6 +109,27 @@ export async function saveShareAdminCutAction(_prev: State, formData: FormData):
   revalidatePath("/admin/settings");
   revalidatePath("/admin/purchases");
   revalidatePath("/admin/shares");
+  return { success: true };
+}
+
+// ── Admin notification email ──────────────────────────────────────────────────
+
+const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+export async function saveAdminNotificationEmailAction(_prev: State, formData: FormData): Promise<State> {
+  const session = await getSession();
+  if (!session || !["SUPER_ADMIN", "ADMIN"].includes(session.role)) {
+    return { error: "Unauthorized." };
+  }
+
+  const email = (formData.get("email") as string)?.trim();
+  if (!email || !emailRegex.test(email)) {
+    return { error: "Enter a valid email address." };
+  }
+
+  await saveAdminNotificationEmail(email);
+
+  revalidatePath("/admin/settings");
   return { success: true };
 }
 

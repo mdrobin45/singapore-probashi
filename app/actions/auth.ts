@@ -5,6 +5,7 @@ import { createSession } from "@/lib/session";
 import { generateOTP, sendOTPEmail } from "@/lib/email";
 import { attachReferralIfNeeded } from "@/lib/commission";
 import { REFERRAL_COOKIE_NAME } from "@/lib/referral-constants";
+import { notifyAdmin } from "@/lib/notifications";
 import bcrypt from "bcryptjs";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
@@ -144,6 +145,17 @@ export async function verifyOtpAction(
   });
 
   await attachReferralFromCookie(user.id);
+
+  await notifyAdmin({
+    subject: `New user signup — ${user.fullName}`,
+    heading: "New User Signup",
+    lines: [
+      { label: "Name", value: user.fullName },
+      { label: "Email", value: user.email },
+      { label: "Phone", value: user.phone ?? "—" },
+    ],
+    actionPath: "/admin/users",
+  });
 
   await createSession({
     userId: user.id,

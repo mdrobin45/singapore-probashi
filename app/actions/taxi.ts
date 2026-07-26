@@ -6,6 +6,7 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { getReferredByAgentId } from "@/lib/commission";
+import { notifyAdmin } from "@/lib/notifications";
 
 type ActionState = { error?: string; success?: boolean; message?: string } | null;
 type TaxiStatus = "PENDING" | "ASSIGNED" | "CONFIRMED" | "CANCELLED" | "COMPLETED";
@@ -56,6 +57,19 @@ export async function requestTaxiAction(
       notes: notes ?? null,
       referredById,
     },
+  });
+
+  await notifyAdmin({
+    subject: `New taxi request — ${pickupLocation} → ${destination}`,
+    heading: "New Taxi Request",
+    lines: [
+      { label: "Requested by", value: `${session.fullName} (${session.email})` },
+      { label: "Pickup", value: pickupLocation },
+      { label: "Destination", value: destination },
+      { label: "Date", value: new Date(date).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }) },
+      { label: "Passengers", value: String(passengerCount) },
+    ],
+    actionPath: "/admin/taxi",
   });
 
   return { success: true, message: "Taxi request submitted! We'll contact you within 1 hour to confirm." };
