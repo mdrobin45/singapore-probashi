@@ -185,81 +185,6 @@ export default async function HomePage() {
 		getShareSgdRate(),
 	]);
 
-	const services = [
-		{
-			key: "svc1",
-			icon: ICONS.shares,
-			href: "/shares",
-			bg: "bg-violet-600",
-			title: "Shares",
-			desc: "Invest in community projects. Buy, sell and trade shares with admin-verified transparent transactions.",
-		},
-		{
-			key: "svc2",
-			icon: ICONS.wallet,
-			href: "/wallet",
-			bg: "bg-blue-600",
-			title: "Wallet",
-			desc: "Secure internal wallet for deposits, share purchases and all platform service payments.",
-		},
-		{
-			key: "svc3",
-			icon: ICONS.plane,
-			href: "/air-ticket",
-			bg: "bg-sky-600",
-			title: "Air Tickets",
-			desc: "Book and refer air tickets. Track referrals and earn commissions through your network.",
-		},
-		{
-			key: "svc4",
-			icon: ICONS.taxi,
-			href: "/taxi",
-			bg: "bg-amber-600",
-			title: "Taxi Rental",
-			desc: "Request a taxi with pickup location, destination, date, time, and vehicle type preferences.",
-		},
-		{
-			key: "svc5",
-			icon: ICONS.currency,
-			href: "/currency",
-			bg: "bg-emerald-600",
-			title: "Currency",
-			desc: "Live exchange rates for BDT, SGD and all major currencies. Always up to date.",
-		},
-		{
-			key: "svc6",
-			icon: ICONS.blog,
-			href: "/blog",
-			bg: "bg-orange-600",
-			title: "Blog",
-			desc: "Stay updated with community news, important guides and announcements from our team.",
-		},
-		{
-			key: "svc7",
-			icon: ICONS.islamic,
-			href: "/islamic-center",
-			bg: "bg-teal-600",
-			title: "Islamic Center",
-			desc: "Surah collection, duas, Islamic articles and a full PDF library with an online reader.",
-		},
-		{
-			key: "svc8",
-			icon: ICONS.lost,
-			href: "/lost-found",
-			bg: "bg-rose-600",
-			title: "Lost & Found",
-			desc: "Post lost or found items with images. Share on Facebook and WhatsApp to reach the community.",
-		},
-		{
-			key: "svc9",
-			icon: ICONS.support,
-			href: "/contact",
-			bg: "bg-green-600",
-			title: "Customer Support",
-			desc: "Direct WhatsApp support channel. Get quick help from our team at any time.",
-		},
-	] as const;
-
 	const steps = [
 		{
 			number: "01",
@@ -350,45 +275,6 @@ export default async function HomePage() {
 				</div>
 			</section>
 
-			{/* ─── Services grid ─── */}
-			<section id="services" className="py-12 lg:py-12 md:py-24 bg-white">
-				<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-					<div className="text-center space-y-3 mb-8 lg:mb-16">
-						<h2 className="text-xl sm:text-4xl font-bold text-foreground">
-							Everything You Need in One Place
-						</h2>
-						<p className="text-sm sm:text-lg text-muted-foreground max-w-2xl mx-auto">
-							From financial services to community tools — built specifically for Bangladeshi expatriates in Singapore.
-						</p>
-					</div>
-					{/* Mobile: icon grid (3 cols). Desktop: card grid (3 cols) */}
-					<div className="grid grid-cols-3 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-5">
-						{services.map((svc) => (
-							<Link
-								key={svc.key}
-								href={svc.href}
-								className="group flex flex-col items-center text-center p-3 sm:p-6 rounded-2xl border border-border bg-white hover:border-brand hover:shadow-lg transition-all duration-200 active:scale-95"
-							>
-								<div
-									className={`size-9 sm:w-14 sm:h-14 rounded-xl sm:rounded-2xl ${svc.bg} flex items-center justify-center text-white mb-3`}
-								>
-									{svc.icon}
-								</div>
-								<h3 className="text-[10px] sm:text-base font-semibold text-foreground sm:mb-2 group-hover:text-brand transition-colors leading-tight">
-									{svc.title}
-								</h3>
-								<p className="hidden sm:block text-sm text-muted-foreground leading-relaxed">
-									{svc.desc}
-								</p>
-								<div className="hidden sm:flex items-center gap-1 mt-4 text-sm font-medium text-brand opacity-0 group-hover:opacity-100 transition-opacity">
-									Learn more
-									{ICONS.arrowSm}
-								</div>
-							</Link>
-						))}
-					</div>
-				</div>
-			</section>
 
 			{/* ─── Marketplace highlight ─── */}
 			<section className="py-12 md:py-24 bg-muted">
