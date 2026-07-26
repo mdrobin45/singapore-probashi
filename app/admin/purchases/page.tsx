@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { getShareSgdRate } from "@/lib/share-pricing";
+import { getCommissionSetting, getShareAdminCutPercent, computeCommissionAmount } from "@/lib/commission";
 import { ProcessPurchaseForm } from "./process-form";
 
 async function getPurchaseRequests() {
@@ -8,6 +9,7 @@ async function getPurchaseRequests() {
     include: {
       buyer: { select: { fullName: true, email: true, nidNumber: true } },
       project: { select: { name: true, sharePriceSgd: true } },
+      referredBy: { select: { fullName: true } },
     },
   });
 }
@@ -28,7 +30,12 @@ const METHOD_LABELS: Record<string, string> = {
 };
 
 export default async function AdminPurchasesPage() {
-  const [requests, rate] = await Promise.all([getPurchaseRequests(), getShareSgdRate()]);
+  const [requests, rate, shareCommission, adminCutPercent] = await Promise.all([
+    getPurchaseRequests(),
+    getShareSgdRate(),
+    getCommissionSetting("SHARE"),
+    getShareAdminCutPercent(),
+  ]);
   const pending = requests.filter((r) => r.status === "PENDING");
 
   return (
@@ -51,6 +58,7 @@ export default async function AdminPurchasesPage() {
                 <th className="text-left text-xs font-semibold text-muted-foreground px-4 py-3">Project</th>
                 <th className="text-left text-xs font-semibold text-muted-foreground px-4 py-3">Shares</th>
                 <th className="text-left text-xs font-semibold text-muted-foreground px-4 py-3">Amount</th>
+                <th className="text-left text-xs font-semibold text-muted-foreground px-4 py-3">Commission Split</th>
                 <th className="text-left text-xs font-semibold text-muted-foreground px-4 py-3">Payment</th>
                 <th className="text-left text-xs font-semibold text-muted-foreground px-4 py-3">Status</th>
                 <th className="text-left text-xs font-semibold text-muted-foreground px-4 py-3">Date</th>
@@ -72,8 +80,29 @@ export default async function AdminPurchasesPage() {
                       <span className="text-muted-foreground/70"> (1 SGD = ৳{rate.toFixed(2)})</span>
                     </p>
                   </td>
-                  <td className="px-4 py-3.5 font-medium text-foreground">{r.quantity}</td>
+                  <td className="px-4 py-3.5 font-medium text-foreground">
+                    {r.quantity}
+                    {r.requestedShareNumbers.length > 0 && (
+                      <p className="text-[11px] font-mono text-muted-foreground font-normal mt-0.5 max-w-32 wrap-break-word">
+                        {r.requestedShareNumbers.map((n) => `#${String(n).padStart(4, "0")}`).join(", ")}
+                      </p>
+                    )}
+                  </td>
                   <td className="px-4 py-3.5 font-semibold text-foreground">৳{Number(r.totalAmount).toFixed(2)}</td>
+                  <td className="px-4 py-3.5 text-xs">
+                    {r.referredBy ? (
+                      <p className="text-foreground">
+                        Agent <span className="text-muted-foreground">({r.referredBy.fullName})</span>: <span className="font-semibold">৳{computeCommissionAmount(shareCommission, Number(r.totalAmount)).toFixed(2)}</span>
+                        <span className="text-muted-foreground"> ({shareCommission.mode === "PERCENTAGE" ? `${shareCommission.value}%` : `flat ৳${shareCommission.value}`})</span>
+                      </p>
+                    ) : (
+                      <p className="text-muted-foreground">No referring agent</p>
+                    )}
+                    <p className="text-foreground mt-1">
+                      Platform: <span className="font-semibold">৳{(Number(r.totalAmount) * (adminCutPercent / 100)).toFixed(2)}</span>
+                      <span className="text-muted-foreground"> ({adminCutPercent}%)</span>
+                    </p>
+                  </td>
                   <td className="px-4 py-3.5">
                     <span className="text-xs font-medium text-muted-foreground">{METHOD_LABELS[r.paymentMethod] ?? r.paymentMethod}</span>
                     {r.txId && (
@@ -107,7 +136,7 @@ export default async function AdminPurchasesPage() {
               ))}
               {requests.length === 0 && (
                 <tr>
-                  <td colSpan={8} className="text-center py-12 text-muted-foreground text-sm">
+                  <td colSpan={9} className="text-center py-12 text-muted-foreground text-sm">
                     No purchase requests yet.
                   </td>
                 </tr>

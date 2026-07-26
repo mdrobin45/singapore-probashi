@@ -48,6 +48,40 @@ export async function saveCommissionSetting(module: CommissionModule, mode: Comm
   ]);
 }
 
+// Share purchases only: a separate, purely informational "platform cut"
+// percentage — shown to admins alongside the agent's commission so they can
+// see both sides of the split, e.g. agent 5% / platform 15%. Never paid out
+// to a wallet, just reported (the money was always the platform's; this only
+// makes it visible).
+const SHARE_ADMIN_CUT_KEY = "share_admin_cut_percent";
+const SHARE_ADMIN_CUT_DEFAULT = 15;
+
+export async function getShareAdminCutPercent(): Promise<number> {
+  try {
+    const row = await prisma.siteSetting.findUnique({ where: { key: SHARE_ADMIN_CUT_KEY } });
+    const value = row ? parseFloat(row.value) : NaN;
+    return isNaN(value) ? SHARE_ADMIN_CUT_DEFAULT : value;
+  } catch {
+    return SHARE_ADMIN_CUT_DEFAULT;
+  }
+}
+
+export async function saveShareAdminCutPercent(value: number): Promise<void> {
+  await prisma.siteSetting.upsert({
+    where: { key: SHARE_ADMIN_CUT_KEY },
+    create: { key: SHARE_ADMIN_CUT_KEY, value: String(value) },
+    update: { value: String(value) },
+  });
+}
+
+// Pure calculation shared between the actual crediting logic below and the
+// read-only admin displays that need to show "what would/did the agent earn"
+// without crediting anything.
+export function computeCommissionAmount(setting: CommissionSetting, amount: number): number {
+  const raw = setting.mode === "FIXED" ? setting.value : amount * (setting.value / 100);
+  return Math.round(raw * 100) / 100;
+}
+
 export async function creditCommission(
   tx: TxClient,
   { referredById, amount, description, module }: { referredById: string | null; amount: number; description: string; module: CommissionModule }
@@ -55,8 +89,7 @@ export async function creditCommission(
   if (!referredById) return;
 
   const setting = await getCommissionSetting(module);
-  const commissionAmount =
-    setting.mode === "FIXED" ? Math.round(setting.value * 100) / 100 : Math.round(amount * (setting.value / 100) * 100) / 100;
+  const commissionAmount = computeCommissionAmount(setting, amount);
   if (commissionAmount <= 0) return;
 
   const wallet = await tx.wallet.findUnique({ where: { userId: referredById } });

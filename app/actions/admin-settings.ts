@@ -3,7 +3,7 @@
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/session";
 import { revalidatePath } from "next/cache";
-import { COMMISSION_MODULES, saveCommissionSetting, type CommissionMode } from "@/lib/commission";
+import { COMMISSION_MODULES, saveCommissionSetting, saveShareAdminCutPercent, type CommissionMode } from "@/lib/commission";
 import { saveShareSgdRate } from "@/lib/share-pricing";
 
 type State = { error?: string; success?: boolean } | null;
@@ -87,6 +87,27 @@ export async function saveCommissionSettingsAction(_prev: State, formData: FormD
   await Promise.all(parsed.map((p) => saveCommissionSetting(p.module, p.mode, p.value)));
 
   revalidatePath("/admin/settings");
+  return { success: true };
+}
+
+// ── Share purchase platform cut (informational — never paid out) ─────────────
+
+export async function saveShareAdminCutAction(_prev: State, formData: FormData): Promise<State> {
+  const session = await getSession();
+  if (!session || !["SUPER_ADMIN", "ADMIN"].includes(session.role)) {
+    return { error: "Unauthorized." };
+  }
+
+  const value = parseFloat(formData.get("percent") as string);
+  if (isNaN(value) || value < 0 || value > 100) {
+    return { error: "Enter a valid percentage between 0 and 100." };
+  }
+
+  await saveShareAdminCutPercent(value);
+
+  revalidatePath("/admin/settings");
+  revalidatePath("/admin/purchases");
+  revalidatePath("/admin/shares");
   return { success: true };
 }
 

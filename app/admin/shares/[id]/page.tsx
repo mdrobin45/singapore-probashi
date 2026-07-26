@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { getShareSgdRate } from "@/lib/share-pricing";
+import { getCommissionSetting, getShareAdminCutPercent, computeCommissionAmount } from "@/lib/commission";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { ScreenshotViewer } from "./screenshot-viewer";
@@ -20,6 +21,7 @@ async function getProjectDetail(id: string) {
         include: {
           buyer: { select: { fullName: true, email: true, phone: true } },
           processedBy: { select: { fullName: true } },
+          referredBy: { select: { fullName: true } },
         },
         orderBy: { createdAt: "desc" },
       },
@@ -71,7 +73,12 @@ export default async function AdminProjectDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const [project, rate] = await Promise.all([getProjectDetail(id), getShareSgdRate()]);
+  const [project, rate, shareCommission, adminCutPercent] = await Promise.all([
+    getProjectDetail(id),
+    getShareSgdRate(),
+    getCommissionSetting("SHARE"),
+    getShareAdminCutPercent(),
+  ]);
   if (!project) notFound();
 
   const soldShares = project.totalShares - project.availableShares;
@@ -239,6 +246,7 @@ export default async function AdminProjectDetailPage({
                   <th className="text-left text-xs font-semibold text-muted-foreground px-5 py-3">Buyer</th>
                   <th className="text-left text-xs font-semibold text-muted-foreground px-4 py-3">Qty</th>
                   <th className="text-left text-xs font-semibold text-muted-foreground px-4 py-3">Amount</th>
+                  <th className="text-left text-xs font-semibold text-muted-foreground px-4 py-3">Commission Split</th>
                   <th className="text-left text-xs font-semibold text-muted-foreground px-4 py-3">Payment</th>
                   <th className="text-left text-xs font-semibold text-muted-foreground px-4 py-3">Proof</th>
                   <th className="text-left text-xs font-semibold text-muted-foreground px-4 py-3">Status</th>
@@ -253,8 +261,29 @@ export default async function AdminProjectDetailPage({
                       <p className="text-xs text-muted-foreground">{r.buyer.email}</p>
                       {r.buyer.phone && <p className="text-[11px] text-muted-foreground">{r.buyer.phone}</p>}
                     </td>
-                    <td className="px-4 py-3 font-semibold text-foreground">{r.quantity}</td>
+                    <td className="px-4 py-3 font-semibold text-foreground">
+                      {r.quantity}
+                      {r.requestedShareNumbers.length > 0 && (
+                        <p className="text-[11px] font-mono text-muted-foreground font-normal mt-0.5 max-w-32 wrap-break-word">
+                          {r.requestedShareNumbers.map((n) => `#${String(n).padStart(4, "0")}`).join(", ")}
+                        </p>
+                      )}
+                    </td>
                     <td className="px-4 py-3 font-semibold text-foreground">৳{Number(r.totalAmount).toFixed(2)}</td>
+                    <td className="px-4 py-3 text-xs">
+                      {r.referredBy ? (
+                        <p className="text-foreground">
+                          Agent <span className="text-muted-foreground">({r.referredBy.fullName})</span>: <span className="font-semibold">৳{computeCommissionAmount(shareCommission, Number(r.totalAmount)).toFixed(2)}</span>
+                          <span className="text-muted-foreground"> ({shareCommission.mode === "PERCENTAGE" ? `${shareCommission.value}%` : `flat ৳${shareCommission.value}`})</span>
+                        </p>
+                      ) : (
+                        <p className="text-muted-foreground">No referring agent</p>
+                      )}
+                      <p className="text-foreground mt-1">
+                        Platform: <span className="font-semibold">৳{(Number(r.totalAmount) * (adminCutPercent / 100)).toFixed(2)}</span>
+                        <span className="text-muted-foreground"> ({adminCutPercent}%)</span>
+                      </p>
+                    </td>
                     <td className="px-4 py-3">
                       <p className="text-xs text-foreground">{METHOD_LABELS[r.paymentMethod] ?? r.paymentMethod}</p>
                     </td>

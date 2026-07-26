@@ -287,6 +287,11 @@ model SharePurchaseRequest {
   buyerId       String
   projectId     String
   quantity      Int
+  // The specific admin-created share numbers the buyer picked (quantity is
+  // just this array's length). Empty on legacy rows created before this field
+  // existed — processPurchaseAction falls back to auto-assigning any
+  // available numbers for those.
+  requestedShareNumbers Int[]  @default([])
   totalAmount   Decimal        @db.Decimal(12, 2)
   paymentMethod PaymentMethod
   txId          String?

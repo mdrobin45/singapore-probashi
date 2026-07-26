@@ -11,7 +11,7 @@ type ActionState = { error?: string; success?: boolean; message?: string } | nul
 
 const purchaseSchema = z.object({
   projectId: z.string().min(1),
-  quantity: z.coerce.number().int().min(1, "Quantity must be at least 1"),
+  shareNumbers: z.string().min(1, "Select at least one share number"),
   paymentMethod: z.enum(["BANK_TRANSFER", "BKASH", "NAGAD", "ROCKET", "GCASH", "WALLET"]),
   txId: z.string().optional(),
   screenshotUrl: z.string().optional(),
@@ -26,7 +26,7 @@ export async function requestSharePurchaseAction(
 
   const parse = purchaseSchema.safeParse({
     projectId: formData.get("projectId"),
-    quantity: formData.get("quantity"),
+    shareNumbers: formData.get("shareNumbers"),
     paymentMethod: formData.get("paymentMethod"),
     txId: formData.get("txId") || undefined,
     screenshotUrl: formData.get("screenshotUrl") || undefined,
@@ -34,7 +34,18 @@ export async function requestSharePurchaseAction(
 
   if (!parse.success) return { error: parse.error.issues[0].message };
 
-  const { projectId, quantity, paymentMethod, txId, screenshotUrl } = parse.data;
+  const { projectId, shareNumbers: shareNumbersRaw, paymentMethod, txId, screenshotUrl } = parse.data;
+
+  let shareNumbers: number[];
+  try {
+    const parsed = JSON.parse(shareNumbersRaw);
+    if (!Array.isArray(parsed) || parsed.length === 0) throw new Error();
+    shareNumbers = [...new Set(parsed.map((n) => Number(n)))];
+    if (shareNumbers.some((n) => !Number.isInteger(n) || n <= 0)) throw new Error();
+  } catch {
+    return { error: "Select at least one share number." };
+  }
+  const quantity = shareNumbers.length;
 
   if (paymentMethod !== "WALLET" && !txId && !screenshotUrl) {
     return { error: "Please provide a transaction ID or upload a payment screenshot." };
@@ -48,6 +59,16 @@ export async function requestSharePurchaseAction(
   if (!project) return { error: "Project not found or no longer active." };
   if (project.availableShares < quantity) {
     return { error: `Only ${project.availableShares} shares available.` };
+  }
+
+  const availableCerts = await prisma.shareCertificate.findMany({
+    where: { projectId, shareNumber: { in: shareNumbers }, ownerId: null },
+    select: { shareNumber: true },
+  });
+  if (availableCerts.length < shareNumbers.length) {
+    const availableSet = new Set(availableCerts.map((c) => c.shareNumber));
+    const unavailable = shareNumbers.filter((n) => !availableSet.has(n));
+    return { error: `Share number${unavailable.length > 1 ? "s" : ""} ${unavailable.map((n) => `#${String(n).padStart(4, "0")}`).join(", ")} ${unavailable.length > 1 ? "are" : "is"} no longer available. Please refresh and pick again.` };
   }
 
   const rate = await getShareSgdRate();
@@ -70,6 +91,7 @@ export async function requestSharePurchaseAction(
       buyerId: session.userId,
       projectId,
       quantity,
+      requestedShareNumbers: shareNumbers,
       totalAmount,
       paymentMethod,
       txId: txId ?? null,

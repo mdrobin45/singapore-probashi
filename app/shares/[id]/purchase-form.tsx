@@ -17,13 +17,13 @@ type Props = {
   projectId: string;
   sharePriceSgd: number;
   rate: number;
-  availableShares: number;
+  availableShareNumbers: number[];
   hasPending: boolean;
 };
 
-export function PurchaseForm({ projectId, sharePriceSgd, rate, availableShares, hasPending }: Props) {
+export function PurchaseForm({ projectId, sharePriceSgd, rate, availableShareNumbers, hasPending }: Props) {
   const [state, action, pending] = useActionState(requestSharePurchaseAction, null);
-  const [qty, setQty] = useState(1);
+  const [selected, setSelected] = useState<number[]>([]);
   const [method, setMethod] = useState("BKASH");
   const [proofMode, setProofMode] = useState<"txid" | "screenshot">("txid");
   const [screenshotName, setScreenshotName] = useState<string | null>(null);
@@ -31,9 +31,14 @@ export function PurchaseForm({ projectId, sharePriceSgd, rate, availableShares, 
   const [screenshotBase64, setScreenshotBase64] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
+  const qty = selected.length;
   const totalSgd = qty * sharePriceSgd;
   const total = sgdToBdt(totalSgd, rate);
   const selectedMethod = PAYMENT_METHODS.find((m) => m.value === method);
+
+  function toggle(n: number) {
+    setSelected((prev) => (prev.includes(n) ? prev.filter((x) => x !== n) : [...prev, n].sort((a, b) => a - b)));
+  }
 
   if (hasPending) {
     return (
@@ -76,38 +81,45 @@ export function PurchaseForm({ projectId, sharePriceSgd, rate, availableShares, 
 
       <form action={action} className="p-6 space-y-5">
         <input type="hidden" name="projectId" value={projectId} />
+        <input type="hidden" name="shareNumbers" value={JSON.stringify(selected)} />
 
-        {/* Quantity */}
+        {/* Share number picker */}
         <div>
-          <label className="block text-sm font-medium text-foreground mb-1.5">
-            Number of Shares
-          </label>
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={() => setQty(Math.max(1, qty - 1))}
-              className="w-9 h-9 rounded-lg border border-border flex items-center justify-center text-lg font-medium hover:bg-muted transition-colors"
-            >
-              −
-            </button>
-            <input
-              name="quantity"
-              type="number"
-              value={qty}
-              onChange={(e) => setQty(Math.max(1, Math.min(availableShares, Number(e.target.value))))}
-              min={1}
-              max={availableShares}
-              className="flex-1 text-center px-3 py-2 rounded-lg border border-border text-foreground font-semibold text-lg focus:outline-none focus:ring-2 focus:ring-brand/30 focus:border-brand"
-            />
-            <button
-              type="button"
-              onClick={() => setQty(Math.min(availableShares, qty + 1))}
-              className="w-9 h-9 rounded-lg border border-border flex items-center justify-center text-lg font-medium hover:bg-muted transition-colors"
-            >
-              +
-            </button>
+          <div className="flex items-center justify-between mb-1.5">
+            <label className="text-sm font-medium text-foreground">
+              Select Share Numbers
+            </label>
+            <span className="text-xs text-muted-foreground">{availableShareNumbers.length} available</span>
           </div>
-          <p className="text-xs text-muted-foreground mt-1">{availableShares} shares available</p>
+
+          {availableShareNumbers.length === 0 ? (
+            <p className="text-xs text-muted-foreground border border-border rounded-lg px-3 py-4 text-center">
+              No share numbers available right now.
+            </p>
+          ) : (
+            <div className="grid grid-cols-4 gap-1.5 max-h-56 overflow-y-auto p-1 border border-border rounded-lg">
+              {availableShareNumbers.map((n) => {
+                const isSelected = selected.includes(n);
+                return (
+                  <button
+                    key={n}
+                    type="button"
+                    onClick={() => toggle(n)}
+                    className={`px-2 py-1.5 rounded-md text-xs font-mono font-medium transition-colors ${
+                      isSelected
+                        ? "bg-brand text-white"
+                        : "bg-muted text-muted-foreground hover:bg-brand-50 hover:text-brand"
+                    }`}
+                  >
+                    #{String(n).padStart(4, "0")}
+                  </button>
+                );
+              })}
+            </div>
+          )}
+          <p className="text-xs text-muted-foreground mt-1">
+            {qty} share{qty !== 1 ? "s" : ""} selected
+          </p>
         </div>
 
         {/* Total */}
@@ -236,11 +248,13 @@ export function PurchaseForm({ projectId, sharePriceSgd, rate, availableShares, 
 
         <button
           type="submit"
-          disabled={pending || availableShares === 0}
+          disabled={pending || qty === 0}
           className="w-full bg-brand text-white rounded-xl py-3 text-sm font-semibold hover:bg-brand-dark transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
         >
           {pending
             ? "Submitting…"
+            : qty === 0
+            ? "Select share numbers to continue"
             : `Buy ${qty} Share${qty > 1 ? "s" : ""} · ৳${total.toFixed(2)}`}
         </button>
 

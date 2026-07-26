@@ -98,15 +98,27 @@ export async function processPurchaseAction(
         });
       }
 
-      // Assign available share numbers from the admin-defined pool
-      const availableCerts = await tx.shareCertificate.findMany({
-        where: { projectId: request.projectId, ownerId: null },
-        orderBy: { shareNumber: "asc" },
-        take: request.quantity,
-        select: { id: true },
-      });
+      // Assign the buyer's specifically requested share numbers — falling
+      // back to auto-picking any available numbers for legacy requests
+      // created before buyers could pick specific numbers.
+      const requestedNumbers = request.requestedShareNumbers;
+      const availableCerts = requestedNumbers.length > 0
+        ? await tx.shareCertificate.findMany({
+            where: { projectId: request.projectId, shareNumber: { in: requestedNumbers }, ownerId: null },
+            select: { id: true },
+          })
+        : await tx.shareCertificate.findMany({
+            where: { projectId: request.projectId, ownerId: null },
+            orderBy: { shareNumber: "asc" },
+            take: request.quantity,
+            select: { id: true },
+          });
       if (availableCerts.length < request.quantity) {
-        throw new Error(`Not enough unassigned share numbers. Available: ${availableCerts.length}, needed: ${request.quantity}. Please create share numbers for this project first.`);
+        throw new Error(
+          requestedNumbers.length > 0
+            ? `Some of the requested share numbers are no longer available (${availableCerts.length}/${request.quantity} still free). Ask the buyer to resubmit with different numbers.`
+            : `Not enough unassigned share numbers. Available: ${availableCerts.length}, needed: ${request.quantity}. Please create share numbers for this project first.`
+        );
       }
       await tx.shareCertificate.updateMany({
         where: { id: { in: availableCerts.map((c) => c.id) } },

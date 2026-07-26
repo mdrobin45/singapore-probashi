@@ -30,16 +30,26 @@ async function getMyPendingRequest(projectId: string, userId: string) {
   });
 }
 
+async function getAvailableShareNumbers(projectId: string) {
+  const certs = await prisma.shareCertificate.findMany({
+    where: { projectId, ownerId: null },
+    orderBy: { shareNumber: "asc" },
+    select: { shareNumber: true },
+  });
+  return certs.map((c) => c.shareNumber);
+}
+
 export default async function ShareDetailPage({
   params,
 }: {
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const [project, session, rate] = await Promise.all([
+  const [project, session, rate, availableShareNumbers] = await Promise.all([
     getProject(id),
     getSession(),
     getShareSgdRate(),
+    getAvailableShareNumbers(id),
   ]);
 
   if (!project) notFound();
@@ -169,7 +179,7 @@ export default async function ShareDetailPage({
                 projectId={project.id}
                 sharePriceSgd={Number(project.sharePriceSgd)}
                 rate={rate}
-                availableShares={project.availableShares}
+                availableShareNumbers={availableShareNumbers}
                 hasPending={!!pendingRequest}
               />
             ) : (
