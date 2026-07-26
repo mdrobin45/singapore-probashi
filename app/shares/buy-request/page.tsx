@@ -1,14 +1,10 @@
 import { getSession } from "@/lib/session";
 import { getShareSgdRate } from "@/lib/share-pricing";
-import { redirect } from "next/navigation";
 import { BuyRequestForm } from "./buy-request-form";
 import Link from "next/link";
 
 export default async function BuyRequestPage() {
-  const session = await getSession();
-  if (!session) redirect("/login");
-
-  const rate = await getShareSgdRate();
+  const [session, rate] = await Promise.all([getSession(), getShareSgdRate()]);
 
   return (
     <div className="min-h-screen bg-muted">
@@ -29,7 +25,23 @@ export default async function BuyRequestPage() {
             </p>
           </div>
 
-          <BuyRequestForm defaultName={session.fullName} rate={rate} />
+          {session ? (
+            <BuyRequestForm defaultName={session.fullName} rate={rate} />
+          ) : (
+            <div className="p-10 text-center">
+              <div className="text-5xl mb-4">📈</div>
+              <h2 className="font-bold text-foreground text-xl mb-2">Login to Submit a Buy Request</h2>
+              <p className="text-muted-foreground text-sm mb-6">You need to be logged in to request buying shares.</p>
+              <div className="flex justify-center gap-3">
+                <Link href="/login" className="bg-brand text-white font-semibold px-6 py-2.5 rounded-xl hover:bg-brand-dark transition-colors text-sm">
+                  Login
+                </Link>
+                <Link href="/register" className="border border-border text-foreground font-semibold px-6 py-2.5 rounded-xl hover:bg-muted transition-colors text-sm">
+                  Register
+                </Link>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Info */}
