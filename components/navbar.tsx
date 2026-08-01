@@ -272,6 +272,7 @@ export function Navbar({ user }: { user: SessionPayload | null }) {
 
 	const navLinks = [
 		{ href: "/shares", label: "Shares" },
+		{ href: "/shares/buy-request", label: "Buy Request" },
 		{ href: "/services", label: "Services" },
 		{ href: "/taxi", label: "Taxi Rent" },
 		{ href: "/air-ticket", label: "Air Ticket" },

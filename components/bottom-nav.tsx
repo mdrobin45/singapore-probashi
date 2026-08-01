@@ -67,30 +67,36 @@ const IcoChat     = <svg className="w-4.5 h-4.5" viewBox="0 0 24 24" fill="none"
 const IcoWallet   = <svg className="w-4.5 h-4.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>;
 const IcoChart    = <svg className="w-4.5 h-4.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>;
 const IcoServices = <svg className="w-4.5 h-4.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><path d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>;
+const IcoApply    = <svg className="w-4.5 h-4.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>;
+const IcoRequest  = <svg className="w-4.5 h-4.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-5 8l2 2 4-4"/></svg>;
+const IcoResell   = <svg className="w-4.5 h-4.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 014-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 01-4 4H3"/><circle cx="12" cy="12" r="2.5"/></svg>;
 
 // ── Extra links shown in the sheet (static — for guests) ──────────────────────
 
 const GUEST_LINKS = [
-  { href: "/services",    label: "Services",     icon: IcoServices },
-  { href: "/air-ticket",  label: "Air Ticket",   icon: IcoPlane  },
-  { href: "/currency",    label: "Currency",     icon: IcoCurr   },
-  { href: "/taxi",        label: "Taxi",         icon: IcoTaxi   },
-  { href: "/lost-found",  label: "Lost & Found", icon: IcoSearch },
-  { href: "/contact",     label: "Contact",      icon: IcoChat   },
+  { href: "/shares/buy-request", label: "Buy Shares Request", icon: IcoRequest },
+  { href: "/shares/resell",      label: "Resell Market",      icon: IcoResell  },
+  { href: "/apply",              label: "Apply for Service",  icon: IcoApply   },
+  { href: "/services",           label: "Services",           icon: IcoServices },
+  { href: "/air-ticket",         label: "Air Ticket",         icon: IcoPlane  },
+  { href: "/currency",           label: "Currency",           icon: IcoCurr   },
+  { href: "/taxi",               label: "Taxi",               icon: IcoTaxi   },
+  { href: "/lost-found",         label: "Lost & Found",       icon: IcoSearch },
+  { href: "/contact",            label: "Contact",            icon: IcoChat   },
 ];
 
-const IcoApply    = <svg className="w-4.5 h-4.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>;
-
 const USER_LINKS = [
-  { href: "/shares/my",      label: "My Investments", icon: IcoChart    },
-  { href: "/services",       label: "Services",       icon: IcoServices },
-  { href: "/lost-found/my",  label: "My Lost & Found",icon: IcoSearch   },
-  { href: "/apply",          label: "Apply",          icon: IcoApply    },
-  { href: "/wallet",         label: "Wallet",         icon: IcoWallet   },
-  { href: "/air-ticket",     label: "Air Tickets",    icon: IcoPlane  },
-  { href: "/currency",       label: "Currency",       icon: IcoCurr   },
-  { href: "/taxi",           label: "Taxi",           icon: IcoTaxi   },
-  { href: "/contact",        label: "Contact",        icon: IcoChat   },
+  { href: "/shares/my",          label: "My Investments",     icon: IcoChart    },
+  { href: "/shares/buy-request", label: "Buy Shares Request", icon: IcoRequest  },
+  { href: "/shares/resell",      label: "Resell Market",      icon: IcoResell   },
+  { href: "/services",           label: "Services",           icon: IcoServices },
+  { href: "/lost-found/my",      label: "My Lost & Found",    icon: IcoSearch   },
+  { href: "/apply",              label: "Apply",              icon: IcoApply    },
+  { href: "/wallet",             label: "Wallet",             icon: IcoWallet   },
+  { href: "/air-ticket",         label: "Air Tickets",        icon: IcoPlane  },
+  { href: "/currency",           label: "Currency",           icon: IcoCurr   },
+  { href: "/taxi",               label: "Taxi",               icon: IcoTaxi   },
+  { href: "/contact",            label: "Contact",            icon: IcoChat   },
 ];
 
 // ── Component ─────────────────────────────────────────────────────────────────
