@@ -1,32 +1,26 @@
 "use client";
 
 import { useState } from "react";
-
-type Bank = { id: string; bankName: string; rate: number };
+import Link from "next/link";
 
 type Props = {
-  banks: Bank[];
   defaultRate: number;
   isManual: boolean;
 };
 
-export function BankCalculator({ banks, defaultRate, isManual }: Props) {
+export function BankCalculator({ defaultRate, isManual }: Props) {
   const [amount, setAmount] = useState("1");
   const [reversed, setReversed] = useState(false); // false = SGD→BDT, true = BDT→SGD
-  const [selectedBankId, setSelectedBankId] = useState<string | null>(
-    banks.length > 0 ? banks[0].id : null
-  );
 
-  const selectedBank = banks.find((b) => b.id === selectedBankId) ?? null;
-  const rate = selectedBank?.rate ?? defaultRate;
+  const rate = defaultRate;
 
   const numAmount = parseFloat(amount) || 0;
   const result = reversed ? numAmount / rate : numAmount * rate;
 
   const fromCurrency = reversed ? "BDT" : "SGD";
   const toCurrency = reversed ? "SGD" : "BDT";
-  const fromSymbol = reversed ? "৳" : "S$";
-  const toSymbol = reversed ? "S$" : "৳";
+  const fromSymbol = reversed ? "৳" : "$";
+  const toSymbol = reversed ? "$" : "৳";
 
   return (
     <div className="bg-white rounded-2xl border border-border p-6">
@@ -38,8 +32,8 @@ export function BankCalculator({ banks, defaultRate, isManual }: Props) {
           <label className="block text-xs text-muted-foreground mb-1.5">
             {fromCurrency} Amount
           </label>
-          <div className="relative">
-            <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-sm font-medium text-muted-foreground">
+          <div className="flex items-center rounded-xl border border-border focus-within:border-brand focus-within:ring-2 focus-within:ring-brand/20">
+            <span className="pl-3.5 pr-1.5 text-sm font-medium text-muted-foreground shrink-0">
               {fromSymbol}
             </span>
             <input
@@ -48,7 +42,7 @@ export function BankCalculator({ banks, defaultRate, isManual }: Props) {
               onChange={(e) => setAmount(e.target.value)}
               min={0}
               step="any"
-              className="w-full pl-9 pr-3.5 py-2.5 rounded-xl border border-border text-foreground text-lg font-semibold focus:outline-none focus:border-brand focus:ring-2 focus:ring-brand/20"
+              className="w-full min-w-0 pr-3.5 py-2.5 rounded-r-xl bg-transparent text-foreground text-lg font-semibold focus:outline-none"
             />
           </div>
         </div>
@@ -64,24 +58,6 @@ export function BankCalculator({ banks, defaultRate, isManual }: Props) {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
           </svg>
         </button>
-
-        {/* Bank selector */}
-        {banks.length > 0 && (
-          <div className="w-full sm:w-52">
-            <label className="block text-xs text-muted-foreground mb-1.5">Bank</label>
-            <select
-              value={selectedBankId ?? ""}
-              onChange={(e) => setSelectedBankId(e.target.value)}
-              className="w-full px-3 py-2.5 rounded-xl border border-border text-foreground text-sm focus:outline-none focus:border-brand bg-white"
-            >
-              {banks.map((b) => (
-                <option key={b.id} value={b.id}>
-                  {b.bankName} ({b.rate.toFixed(2)} ৳)
-                </option>
-              ))}
-            </select>
-          </div>
-        )}
       </div>
 
       {/* Result */}
@@ -95,11 +71,23 @@ export function BankCalculator({ banks, defaultRate, isManual }: Props) {
         </p>
         <p className="text-xs text-muted-foreground mt-2">
           Rate: 1 SGD = {rate.toFixed(4)} ৳ BDT
-          {selectedBank ? ` · ${selectedBank.bankName}` : ""}
-          {!selectedBank && (
-            <span className="ml-1 text-brand/70">({isManual ? "Admin rate" : "Live rate"})</span>
-          )}
+          <span className="ml-1 text-brand/70">({isManual ? "Admin rate" : "Live rate"})</span>
         </p>
+      </div>
+
+      <div className="flex flex-col sm:flex-row gap-3 mt-4">
+        <Link
+          href="/dashboard/deposit"
+          className="flex-1 text-center bg-brand text-white text-sm font-semibold px-5 py-2.5 rounded-xl hover:bg-brand-dark transition-colors"
+        >
+          Deposit to Wallet
+        </Link>
+        <Link
+          href="/dashboard/withdraw"
+          className="flex-1 text-center border border-border text-foreground text-sm font-semibold px-5 py-2.5 rounded-xl hover:bg-muted transition-colors"
+        >
+          Withdraw from Wallet
+        </Link>
       </div>
     </div>
   );

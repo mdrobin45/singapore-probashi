@@ -56,7 +56,6 @@ export default async function CurrencyPage() {
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8">
         {/* Calculator */}
         <BankCalculator
-          banks={banks}
           defaultRate={effectiveRate}
           isManual={isManual}
         />
@@ -64,9 +63,12 @@ export default async function CurrencyPage() {
         {/* Bank rate cards */}
         {banks.length > 0 ? (
           <div>
-            <h2 className="text-base font-semibold text-foreground mb-4">
+            <h2 className="text-base font-semibold text-foreground mb-1">
               Bank Rates · 1 SGD = ? ৳ BDT
             </h2>
+            <p className="text-xs text-muted-foreground mb-4">
+              For comparison only. Sending or withdrawing money always uses the rate shown in the calculator above.
+            </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {banks.map((bank) => {
                 const isBest = bank.rate === maxRate;
