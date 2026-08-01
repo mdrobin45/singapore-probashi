@@ -47,6 +47,7 @@ enum PaymentMethod {
   NAGAD
   ROCKET
   GCASH
+  PAYNOW
   WALLET
 }
 
@@ -743,6 +744,22 @@ model BankRate {
   sortOrder Int      @default(0)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+// ─────────────────────────────────────────────
+// PAYMENT ACCOUNTS (admin-managed deposit receiving accounts)
+// ─────────────────────────────────────────────
+
+model PaymentAccount {
+  id            String        @id @default(cuid())
+  method        PaymentMethod
+  label         String
+  accountNumber String
+  accountName   String?
+  isActive      Boolean       @default(true)
+  sortOrder     Int           @default(0)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
 }
 
 // ─────────────────────────────────────────────

@@ -268,7 +268,6 @@ function AvatarDropdown({ user }: { user: SessionPayload }) {
 }
 
 export function Navbar({ user }: { user: SessionPayload | null }) {
-	const [open, setOpen] = useState(false);
 	const isAdmin = user ? ADMIN_ROLES.includes(user.role) : false;
 
 	const navLinks = [
@@ -328,36 +327,6 @@ export function Navbar({ user }: { user: SessionPayload | null }) {
 								Login
 							</Link>
 						)}
-						<button
-							onClick={() => setOpen(!open)}
-							className="w-8 h-8 flex items-center justify-center shrink-0 text-foreground"
-							aria-label="Toggle navigation"
-							aria-expanded={open}
-						>
-							{open ? (
-								<svg
-									className="w-5 h-5"
-									viewBox="0 0 24 24"
-									fill="none"
-									stroke="currentColor"
-									strokeWidth="2.5"
-									strokeLinecap="round"
-								>
-									<path d="M18 6L6 18M6 6l12 12" />
-								</svg>
-							) : (
-								<svg
-									className="w-5 h-5"
-									viewBox="0 0 24 24"
-									fill="none"
-									stroke="currentColor"
-									strokeWidth="2.5"
-									strokeLinecap="round"
-								>
-									<path d="M4 6h16M4 12h16M4 18h16" />
-								</svg>
-							)}
-						</button>
 					</div>
 
 					{/* Desktop right side */}
@@ -381,40 +350,7 @@ export function Navbar({ user }: { user: SessionPayload | null }) {
 							</>
 						)}
 					</div>
-
-					{/* Desktop mobile toggle (hidden since bottom nav handles mobile) */}
-					<button
-						className="hidden"
-						onClick={() => setOpen(!open)}
-						aria-label="Toggle navigation"
-					>
-						{open ? (
-							<svg
-								className="w-5 h-5"
-								viewBox="0 0 24 24"
-								fill="none"
-								stroke="currentColor"
-								strokeWidth="2.5"
-								strokeLinecap="round"
-							>
-								<path d="M18 6L6 18M6 6l12 12" />
-							</svg>
-						) : (
-							<svg
-								className="w-5 h-5"
-								viewBox="0 0 24 24"
-								fill="none"
-								stroke="currentColor"
-								strokeWidth="2.5"
-								strokeLinecap="round"
-							>
-								<path d="M4 6h16M4 12h16M4 18h16" />
-							</svg>
-						)}
-					</button>
 				</div>
-
-				{/* Mobile menu removed — bottom nav handles mobile navigation */}
 			</div>
 		</header>
 	);

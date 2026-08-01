@@ -10,6 +10,7 @@ const METHODS = [
   { value: "ROCKET", label: "Rocket" },
   { value: "GCASH", label: "GCash" },
   { value: "BANK_TRANSFER", label: "Bank Transfer" },
+  { value: "PAYNOW", label: "PayNow" },
 ];
 
 export function WithdrawForm({ balance }: { balance: number }) {

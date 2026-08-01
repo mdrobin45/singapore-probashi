@@ -8,6 +8,15 @@ async function getCheckoutByToken(token: string) {
   });
 }
 
+async function getPaymentAccounts() {
+  const rows = await prisma.paymentAccount.findMany({
+    where: { isActive: true },
+    orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
+    select: { id: true, method: true, label: true, accountNumber: true, accountName: true },
+  });
+  return rows;
+}
+
 function Shell({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen bg-muted flex items-start justify-center py-10 px-4">
@@ -22,7 +31,7 @@ export default async function PayPage({
   params: Promise<{ token: string }>;
 }) {
   const { token } = await params;
-  const checkout = await getCheckoutByToken(token);
+  const [checkout, accounts] = await Promise.all([getCheckoutByToken(token), getPaymentAccounts()]);
 
   if (!checkout) {
     return (
@@ -108,7 +117,7 @@ export default async function PayPage({
               Your previous payment proof couldn&apos;t be verified{checkout.adminNote ? `: ${checkout.adminNote}` : ""}. Please resubmit below.
             </div>
           )}
-          <PayForm token={token} />
+          <PayForm token={token} accounts={accounts} />
         </>
       ) : (
         <div className="text-center py-6">

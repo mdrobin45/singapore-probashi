@@ -219,3 +219,77 @@ export async function deleteBankRateAction(id: string): Promise<void> {
   revalidatePath("/currency");
   revalidatePath("/admin/settings");
 }
+
+// ── Payment accounts (deposit receiving accounts shown to customers) ─────────
+
+const PAYMENT_METHODS = ["BANK_TRANSFER", "BKASH", "NAGAD", "ROCKET", "GCASH", "PAYNOW"] as const;
+
+function revalidatePaymentAccountPaths() {
+  revalidatePath("/admin/settings");
+  revalidatePath("/dashboard/deposit");
+}
+
+export async function addPaymentAccountAction(_prev: State, formData: FormData): Promise<State> {
+  try { await authAdmin(); } catch { return { error: "Unauthorized." }; }
+
+  const method = formData.get("method") as string;
+  const label = (formData.get("label") as string)?.trim();
+  const accountNumber = (formData.get("accountNumber") as string)?.trim();
+  const accountName = (formData.get("accountName") as string)?.trim() || null;
+
+  if (!PAYMENT_METHODS.includes(method as (typeof PAYMENT_METHODS)[number])) {
+    return { error: "Select a valid payment method." };
+  }
+  if (!label) return { error: "Label is required." };
+  if (!accountNumber) return { error: "Account number is required." };
+
+  const count = await prisma.paymentAccount.count();
+  await prisma.paymentAccount.create({
+    data: { method: method as (typeof PAYMENT_METHODS)[number], label, accountNumber, accountName, sortOrder: count },
+  });
+
+  revalidatePaymentAccountPaths();
+  return { success: true };
+}
+
+export async function updatePaymentAccountAction(_prev: State, formData: FormData): Promise<State> {
+  try { await authAdmin(); } catch { return { error: "Unauthorized." }; }
+
+  const id = formData.get("id") as string;
+  const method = formData.get("method") as string;
+  const label = (formData.get("label") as string)?.trim();
+  const accountNumber = (formData.get("accountNumber") as string)?.trim();
+  const accountName = (formData.get("accountName") as string)?.trim() || null;
+
+  if (!PAYMENT_METHODS.includes(method as (typeof PAYMENT_METHODS)[number])) {
+    return { error: "Select a valid payment method." };
+  }
+  if (!label) return { error: "Label is required." };
+  if (!accountNumber) return { error: "Account number is required." };
+
+  await prisma.paymentAccount.update({
+    where: { id },
+    data: { method: method as (typeof PAYMENT_METHODS)[number], label, accountNumber, accountName },
+  });
+
+  revalidatePaymentAccountPaths();
+  return { success: true };
+}
+
+export async function togglePaymentAccountAction(id: string, isActive: boolean): Promise<void> {
+  const session = await getSession();
+  if (!session || !["SUPER_ADMIN", "ADMIN"].includes(session.role)) return;
+
+  await prisma.paymentAccount.update({ where: { id }, data: { isActive } });
+
+  revalidatePaymentAccountPaths();
+}
+
+export async function deletePaymentAccountAction(id: string): Promise<void> {
+  const session = await getSession();
+  if (!session || !["SUPER_ADMIN", "ADMIN"].includes(session.role)) return;
+
+  await prisma.paymentAccount.delete({ where: { id } });
+
+  revalidatePaymentAccountPaths();
+}

@@ -9,6 +9,7 @@ import { CommissionSettingsForm } from "./commission-form";
 import { SharePricingForm } from "./share-pricing-form";
 import { ShareAdminCutForm } from "./share-admin-cut-form";
 import { NotificationEmailForm } from "./notification-email-form";
+import { PaymentAccountsForm } from "./payment-accounts-form";
 
 async function getBankRates() {
   try {
@@ -19,11 +20,20 @@ async function getBankRates() {
   }
 }
 
+async function getPaymentAccounts() {
+  const rows = await prisma.paymentAccount.findMany({ orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }] });
+  return rows.map((r) => ({
+    id: r.id, method: r.method, label: r.label,
+    accountNumber: r.accountNumber, accountName: r.accountName, isActive: r.isActive,
+  }));
+}
+
 export default async function AdminSettingsPage() {
-  const [settings, liveRate, banks, commissionSettings, shareRate, shareAdminCutPercent, notificationEmail] = await Promise.all([
+  const [settings, liveRate, banks, paymentAccounts, commissionSettings, shareRate, shareAdminCutPercent, notificationEmail] = await Promise.all([
     getCurrencySettings(),
     getLiveBdtRate(),
     getBankRates(),
+    getPaymentAccounts(),
     getAllCommissionSettings(),
     getShareSgdRate(),
     getShareAdminCutPercent(),
@@ -100,6 +110,28 @@ export default async function AdminSettingsPage() {
         </div>
         <div className="p-6">
           <BankRatesForm banks={banks} />
+        </div>
+      </div>
+
+      {/* Payment accounts (deposit receiving accounts) */}
+      <div className="bg-white rounded-xl border border-border overflow-hidden">
+        <div className="px-6 py-5 border-b border-border">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-teal-50 flex items-center justify-center">
+              <svg className="w-5 h-5 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+              </svg>
+            </div>
+            <div>
+              <h2 className="font-semibold text-foreground">Payment Accounts</h2>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                bKash, Nagad, GCash, Bank, PayNow etc. — shown to customers on the deposit page
+              </p>
+            </div>
+          </div>
+        </div>
+        <div className="p-6">
+          <PaymentAccountsForm accounts={paymentAccounts} />
         </div>
       </div>
 

@@ -251,7 +251,7 @@ export async function deleteCheckoutAction(checkoutId: string): Promise<{ error?
 // ─── Public: customer submits payment proof ────────────────────────────────────
 
 const proofSchema = z.object({
-  paymentMethod: z.enum(["BANK_TRANSFER", "BKASH", "NAGAD", "ROCKET", "GCASH"]),
+  paymentMethod: z.enum(["BANK_TRANSFER", "BKASH", "NAGAD", "ROCKET", "GCASH", "PAYNOW"]),
   txId: z.string().optional(),
   screenshotUrl: z.string().optional(),
 });

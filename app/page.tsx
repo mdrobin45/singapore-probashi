@@ -324,9 +324,10 @@ export default async function HomePage() {
 							</div>
 							{featuredProjects.length > 0 ? (
 								featuredProjects.map((project) => (
-									<div
+									<Link
 										key={project.id}
-										className="flex items-center justify-between p-4 bg-muted rounded-xl"
+										href={`/shares/${project.id}`}
+										className="flex items-center justify-between p-4 bg-muted rounded-xl hover:bg-brand-50 transition-colors"
 									>
 										<div>
 											<p className="font-semibold text-sm text-foreground">
@@ -344,7 +345,7 @@ export default async function HomePage() {
 												1 SGD = ৳{shareRate.toFixed(2)}
 											</p>
 										</div>
-									</div>
+									</Link>
 								))
 							) : (
 								<p className="text-sm text-muted-foreground text-center py-6">

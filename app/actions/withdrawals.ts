@@ -11,7 +11,7 @@ type ActionState = { error?: string; success?: boolean } | null;
 
 const withdrawalSchema = z.object({
   amount: z.coerce.number().min(10, "Minimum withdrawal is ৳10"),
-  paymentMethod: z.enum(["BANK_TRANSFER", "BKASH", "NAGAD", "ROCKET", "GCASH"]),
+  paymentMethod: z.enum(["BANK_TRANSFER", "BKASH", "NAGAD", "ROCKET", "GCASH", "PAYNOW"]),
   accountNumber: z.string().min(4, "Enter a valid account/mobile number"),
   accountName: z.string().min(2, "Enter the account holder's name"),
 });

@@ -3,15 +3,15 @@
 import { useActionState, useRef, useState } from "react";
 import { submitCheckoutPaymentAction } from "@/app/actions/checkout";
 
-const METHODS = [
-  { value: "BKASH", label: "bKash", account: "01700-000000 (Agent)" },
-  { value: "NAGAD", label: "Nagad", account: "01800-000000 (Agent)" },
-  { value: "ROCKET", label: "Rocket", account: "01900-000000 (Agent)" },
-  { value: "GCASH", label: "GCash", account: "0917-000-0000 (Agent)" },
-  { value: "BANK_TRANSFER", label: "Bank Transfer", account: "DBS Bank: 123-456789-0" },
-];
+type PaymentAccount = {
+  id: string;
+  method: string;
+  label: string;
+  accountNumber: string;
+  accountName: string | null;
+};
 
-export function PayForm({ token }: { token: string }) {
+export function PayForm({ token, accounts }: { token: string; accounts: PaymentAccount[] }) {
   const boundAction = submitCheckoutPaymentAction.bind(null, token);
   const [state, action, pending] = useActionState(boundAction, null);
 
@@ -35,24 +35,37 @@ export function PayForm({ token }: { token: string }) {
     );
   }
 
+  const methodOptions = accounts.filter(
+    (a, i) => accounts.findIndex((b) => b.method === a.method) === i
+  );
+
   return (
     <form action={action} className="space-y-5">
-      <div className="bg-muted rounded-xl p-4 space-y-2">
-        <p className="text-xs font-semibold text-foreground mb-2">Payment accounts</p>
-        {METHODS.map((m) => (
-          <div key={m.value} className="flex items-center justify-between text-xs">
-            <span className="font-medium text-foreground">{m.label}</span>
-            <span className="font-mono text-muted-foreground">{m.account}</span>
-          </div>
-        ))}
-      </div>
+      {accounts.length === 0 ? (
+        <div className="rounded-lg bg-amber-50 border border-amber-200 px-4 py-3 text-sm text-amber-800">
+          No payment accounts are configured yet. Please contact support.
+        </div>
+      ) : (
+        <div className="bg-muted rounded-xl p-4 space-y-2">
+          <p className="text-xs font-semibold text-foreground mb-2">Payment accounts</p>
+          {accounts.map((a) => (
+            <div key={a.id} className="flex items-center justify-between text-xs">
+              <span className="font-medium text-foreground">
+                {a.label}
+                {a.accountName && <span className="text-muted-foreground"> ({a.accountName})</span>}
+              </span>
+              <span className="font-mono text-muted-foreground">{a.accountNumber}</span>
+            </div>
+          ))}
+        </div>
+      )}
 
       <div>
         <label className="block text-sm font-medium text-foreground mb-2">Payment method</label>
         <div className="grid grid-cols-2 gap-2">
-          {METHODS.map((m) => (
-            <label key={m.value} className="cursor-pointer">
-              <input type="radio" name="paymentMethod" value={m.value} className="sr-only peer" required />
+          {methodOptions.map((m) => (
+            <label key={m.method} className="cursor-pointer">
+              <input type="radio" name="paymentMethod" value={m.method} className="sr-only peer" required />
               <div className="border border-border rounded-lg px-3 py-2 text-sm font-medium text-center transition-colors peer-checked:bg-brand-50 peer-checked:border-brand peer-checked:text-brand hover:border-brand/40 text-muted-foreground">
                 {m.label}
               </div>
@@ -148,7 +161,7 @@ export function PayForm({ token }: { token: string }) {
 
       <button
         type="submit"
-        disabled={pending}
+        disabled={pending || accounts.length === 0}
         className="w-full bg-brand text-white rounded-xl py-2.5 text-sm font-semibold hover:bg-brand-dark transition-colors disabled:opacity-60"
       >
         {pending ? "Submitting…" : "Submit Payment Proof"}

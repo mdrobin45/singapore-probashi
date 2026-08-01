@@ -1,94 +1,112 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
+import { useState } from "react";
 
 type Props = {
-  defaultRate: number;
-  isManual: boolean;
+	defaultRate: number;
+	isManual: boolean;
 };
 
 export function BankCalculator({ defaultRate, isManual }: Props) {
-  const [amount, setAmount] = useState("1");
-  const [reversed, setReversed] = useState(false); // false = SGD→BDT, true = BDT→SGD
+	const [amount, setAmount] = useState("1");
+	const [reversed, setReversed] = useState(false); // false = SGD→BDT, true = BDT→SGD
 
-  const rate = defaultRate;
+	const rate = defaultRate;
 
-  const numAmount = parseFloat(amount) || 0;
-  const result = reversed ? numAmount / rate : numAmount * rate;
+	const numAmount = parseFloat(amount) || 0;
+	const result = reversed ? numAmount / rate : numAmount * rate;
 
-  const fromCurrency = reversed ? "BDT" : "SGD";
-  const toCurrency = reversed ? "SGD" : "BDT";
-  const fromSymbol = reversed ? "৳" : "$";
-  const toSymbol = reversed ? "$" : "৳";
+	const fromCurrency = reversed ? "BDT" : "SGD";
+	const toCurrency = reversed ? "SGD" : "BDT";
+	const fromSymbol = reversed ? "৳" : "$";
+	const toSymbol = reversed ? "$" : "৳";
 
-  return (
-    <div className="bg-white rounded-2xl border border-border p-6">
-      <h2 className="font-semibold text-foreground mb-5">Convert Currency</h2>
+	return (
+		<div className="bg-white rounded-2xl border border-border p-6">
+			<h2 className="font-semibold text-foreground mb-5">Convert Currency</h2>
 
-      <div className="flex flex-col sm:flex-row gap-3 items-end">
-        {/* Amount input */}
-        <div className="flex-1">
-          <label className="block text-xs text-muted-foreground mb-1.5">
-            {fromCurrency} Amount
-          </label>
-          <div className="flex items-center rounded-xl border border-border focus-within:border-brand focus-within:ring-2 focus-within:ring-brand/20">
-            <span className="pl-3.5 pr-1.5 text-sm font-medium text-muted-foreground shrink-0">
-              {fromSymbol}
-            </span>
-            <input
-              type="number"
-              value={amount}
-              onChange={(e) => setAmount(e.target.value)}
-              min={0}
-              step="any"
-              className="w-full min-w-0 pr-3.5 py-2.5 rounded-r-xl bg-transparent text-foreground text-lg font-semibold focus:outline-none"
-            />
-          </div>
-        </div>
+			<div className="flex flex-row gap-3 items-end">
+				{/* Amount input */}
+				<div className="flex-1">
+					<label className="block text-xs text-muted-foreground mb-1.5">
+						{fromCurrency} Amount
+					</label>
+					<div className="flex items-center rounded-xl border border-border focus-within:border-brand focus-within:ring-2 focus-within:ring-brand/20">
+						<span className="pl-3.5 pr-1.5 text-sm font-medium text-muted-foreground shrink-0">
+							{fromSymbol}
+						</span>
+						<input
+							type="number"
+							value={amount}
+							onChange={(e) => setAmount(e.target.value)}
+							min={0}
+							step="any"
+							className="w-full min-w-0 pr-3.5 py-2.5 rounded-r-xl bg-transparent text-foreground text-lg font-semibold focus:outline-none"
+						/>
+					</div>
+				</div>
 
-        {/* Swap button */}
-        <button
-          type="button"
-          onClick={() => setReversed((v) => !v)}
-          className="w-10 h-10 rounded-xl border border-border flex items-center justify-center hover:bg-muted transition-colors shrink-0 mb-0.5"
-          title="Swap direction"
-        >
-          <svg className="w-4 h-4 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
-          </svg>
-        </button>
-      </div>
+				{/* Swap button */}
+				<button
+					type="button"
+					onClick={() => setReversed((v) => !v)}
+					className="w-10 h-10 rounded-xl border border-border flex items-center justify-center hover:bg-muted transition-colors shrink-0 mb-0.5"
+					title="Swap direction"
+				>
+					<svg
+						className="w-4 h-4 text-muted-foreground"
+						fill="none"
+						stroke="currentColor"
+						viewBox="0 0 24 24"
+					>
+						<path
+							strokeLinecap="round"
+							strokeLinejoin="round"
+							strokeWidth={2}
+							d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"
+						/>
+					</svg>
+				</button>
+			</div>
 
-      {/* Result */}
-      <div className="mt-5 bg-brand-50 rounded-xl px-5 py-4">
-        <p className="text-sm text-muted-foreground">
-          {amount || "0"} {fromCurrency} =
-        </p>
-        <p className="text-3xl font-bold text-brand mt-0.5">
-          {toSymbol} {result.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-          <span className="text-base font-normal text-brand/70 ml-2">{toCurrency}</span>
-        </p>
-        <p className="text-xs text-muted-foreground mt-2">
-          Rate: 1 SGD = {rate.toFixed(4)} ৳ BDT
-          <span className="ml-1 text-brand/70">({isManual ? "Admin rate" : "Live rate"})</span>
-        </p>
-      </div>
+			{/* Result */}
+			<div className="mt-5 bg-brand-50 rounded-xl px-5 py-4">
+				<p className="text-sm text-muted-foreground">
+					{amount || "0"} {fromCurrency} =
+				</p>
+				<p className="text-3xl font-bold text-brand mt-0.5">
+					{toSymbol}{" "}
+					{result.toLocaleString("en-US", {
+						minimumFractionDigits: 2,
+						maximumFractionDigits: 2,
+					})}
+					<span className="text-base font-normal text-brand/70 ml-2">
+						{toCurrency}
+					</span>
+				</p>
+				<p className="text-xs text-muted-foreground mt-2">
+					Rate: 1 SGD = {rate.toFixed(4)} ৳ BDT
+					<span className="ml-1 text-brand/70">
+						({isManual ? "Admin rate" : "Live rate"})
+					</span>
+				</p>
+			</div>
 
-      <div className="flex flex-col sm:flex-row gap-3 mt-4">
-        <Link
-          href="/dashboard/deposit"
-          className="flex-1 text-center bg-brand text-white text-sm font-semibold px-5 py-2.5 rounded-xl hover:bg-brand-dark transition-colors"
-        >
-          Deposit to Wallet
-        </Link>
-        <Link
-          href="/dashboard/withdraw"
-          className="flex-1 text-center border border-border text-foreground text-sm font-semibold px-5 py-2.5 rounded-xl hover:bg-muted transition-colors"
-        >
-          Withdraw from Wallet
-        </Link>
-      </div>
-    </div>
-  );
+			<div className="flex flex-col sm:flex-row gap-3 mt-4">
+				<Link
+					href="/dashboard/deposit"
+					className="flex-1 text-center bg-brand text-white text-sm font-semibold px-5 py-2.5 rounded-xl hover:bg-brand-dark transition-colors"
+				>
+					Deposit to Wallet
+				</Link>
+				<Link
+					href="/dashboard/withdraw"
+					className="flex-1 text-center border border-border text-foreground text-sm font-semibold px-5 py-2.5 rounded-xl hover:bg-muted transition-colors"
+				>
+					Withdraw from Wallet
+				</Link>
+			</div>
+		</div>
+	);
 }

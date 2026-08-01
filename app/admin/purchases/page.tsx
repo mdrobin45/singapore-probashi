@@ -26,6 +26,7 @@ const METHOD_LABELS: Record<string, string> = {
   NAGAD: "Nagad",
   ROCKET: "Rocket",
   GCASH: "GCash",
+  PAYNOW: "PayNow",
   WALLET: "Wallet",
 };
 
