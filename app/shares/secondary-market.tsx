@@ -16,19 +16,9 @@ type Listing = {
   project: { name: string; sharePriceSgd: unknown };
 };
 
-const PAYMENT_METHODS = [
-  { value: "BKASH", label: "bKash", needsTxId: true },
-  { value: "NAGAD", label: "Nagad", needsTxId: true },
-  { value: "ROCKET", label: "Rocket", needsTxId: true },
-  { value: "GCASH", label: "GCash", needsTxId: true },
-  { value: "BANK_TRANSFER", label: "Bank Transfer", needsTxId: true },
-  { value: "WALLET", label: "Platform Wallet", needsTxId: false },
-];
-
-function TradeForm({ listing, rate }: { listing: Listing; rate: number }) {
+function TradeForm({ listing }: { listing: Listing }) {
   const [state, action, pending] = useActionState(requestShareTradeAction, null);
   const [qty, setQty] = useState(1);
-  const [method, setMethod] = useState("BKASH");
 
   if (state?.success) {
     return (
@@ -39,13 +29,6 @@ function TradeForm({ listing, rate }: { listing: Listing; rate: number }) {
   }
 
   const askingPrice = Number(listing.askingPrice);
-  const marketPrice = sgdToBdt(Number(listing.project.sharePriceSgd), rate);
-  const premium = askingPrice > marketPrice
-    ? `+${(((askingPrice - marketPrice) / marketPrice) * 100).toFixed(1)}%`
-    : askingPrice < marketPrice
-    ? `${(((askingPrice - marketPrice) / marketPrice) * 100).toFixed(1)}%`
-    : "At market";
-  const needsTxId = PAYMENT_METHODS.find((m) => m.value === method)?.needsTxId ?? true;
 
   return (
     <form action={action} className="space-y-3">
@@ -68,32 +51,12 @@ function TradeForm({ listing, rate }: { listing: Listing; rate: number }) {
         </p>
       </div>
 
-      <div>
-        <label className="block text-xs font-medium text-foreground mb-1">Payment Method</label>
-        <select
-          name="paymentMethod"
-          value={method}
-          onChange={(e) => setMethod(e.target.value)}
-          className="w-full px-3 py-2 rounded-lg border border-border text-sm focus:outline-none focus:ring-2 focus:ring-brand/30 focus:border-brand"
-        >
-          {PAYMENT_METHODS.map((m) => (
-            <option key={m.value} value={m.value}>{m.label}</option>
-          ))}
-        </select>
+      <div className="flex items-center gap-2 bg-muted rounded-lg px-3 py-2 text-xs text-muted-foreground">
+        <svg className="w-4 h-4 text-brand shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+        </svg>
+        Paid from your Platform Wallet balance
       </div>
-
-      {needsTxId && (
-        <div>
-          <label className="block text-xs font-medium text-foreground mb-1">Transaction ID</label>
-          <input
-            type="text"
-            name="txId"
-            placeholder="e.g. BKS2026XXXXXX"
-            required
-            className="w-full px-3 py-2 rounded-lg border border-border text-sm focus:outline-none focus:ring-2 focus:ring-brand/30 focus:border-brand"
-          />
-        </div>
-      )}
 
       {state?.error && (
         <p className="text-xs text-red-600 bg-red-50 rounded-lg px-3 py-2">{state.error}</p>
@@ -167,7 +130,7 @@ function ListingCard({ listing, session, rate }: { listing: Listing; session: Se
 
         {expanded && session && (
           <div className="mt-5 pt-5 border-t border-border">
-            <TradeForm listing={listing} rate={rate} />
+            <TradeForm listing={listing} />
           </div>
         )}
       </div>

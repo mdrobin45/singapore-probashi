@@ -13,9 +13,6 @@ type ActionState = { error?: string; success?: boolean; message?: string } | nul
 const purchaseSchema = z.object({
   projectId: z.string().min(1),
   shareNumbers: z.string().min(1, "Select at least one share number"),
-  paymentMethod: z.enum(["BANK_TRANSFER", "BKASH", "NAGAD", "ROCKET", "GCASH", "WALLET"]),
-  txId: z.string().optional(),
-  screenshotUrl: z.string().optional(),
 });
 
 export async function requestSharePurchaseAction(
@@ -28,14 +25,11 @@ export async function requestSharePurchaseAction(
   const parse = purchaseSchema.safeParse({
     projectId: formData.get("projectId"),
     shareNumbers: formData.get("shareNumbers"),
-    paymentMethod: formData.get("paymentMethod"),
-    txId: formData.get("txId") || undefined,
-    screenshotUrl: formData.get("screenshotUrl") || undefined,
   });
 
   if (!parse.success) return { error: parse.error.issues[0].message };
 
-  const { projectId, shareNumbers: shareNumbersRaw, paymentMethod, txId, screenshotUrl } = parse.data;
+  const { projectId, shareNumbers: shareNumbersRaw } = parse.data;
 
   let shareNumbers: number[];
   try {
@@ -47,10 +41,6 @@ export async function requestSharePurchaseAction(
     return { error: "Select at least one share number." };
   }
   const quantity = shareNumbers.length;
-
-  if (paymentMethod !== "WALLET" && !txId && !screenshotUrl) {
-    return { error: "Please provide a transaction ID or upload a payment screenshot." };
-  }
 
   const project = await prisma.project.findUnique({
     where: { id: projectId, status: "ACTIVE" },
@@ -75,14 +65,12 @@ export async function requestSharePurchaseAction(
   const rate = await getShareSgdRate();
   const totalAmount = sgdToBdt(Number(project.sharePriceSgd) * quantity, rate);
 
-  if (paymentMethod === "WALLET") {
-    const wallet = await prisma.wallet.findUnique({
-      where: { userId: session.userId },
-      select: { id: true, balance: true },
-    });
-    if (!wallet || Number(wallet.balance) < totalAmount) {
-      return { error: `Insufficient wallet balance. Need ৳${totalAmount.toFixed(2)}.` };
-    }
+  const wallet = await prisma.wallet.findUnique({
+    where: { userId: session.userId },
+    select: { id: true, balance: true },
+  });
+  if (!wallet || Number(wallet.balance) < totalAmount) {
+    return { error: `Insufficient wallet balance. Need ৳${totalAmount.toFixed(2)}. Please deposit funds to your wallet first.` };
   }
 
   const referredById = await getReferredByAgentId(session.userId);
@@ -94,9 +82,7 @@ export async function requestSharePurchaseAction(
       quantity,
       requestedShareNumbers: shareNumbers,
       totalAmount,
-      paymentMethod,
-      txId: txId ?? null,
-      screenshotUrl: screenshotUrl ?? null,
+      paymentMethod: "WALLET",
       status: "PENDING",
       referredById,
     },
@@ -110,7 +96,7 @@ export async function requestSharePurchaseAction(
       { label: "Project", value: project.name },
       { label: "Shares", value: `${quantity} (#${shareNumbers.map((n) => String(n).padStart(4, "0")).join(", #")})` },
       { label: "Total", value: `৳${totalAmount.toFixed(2)}` },
-      { label: "Payment", value: paymentMethod },
+      { label: "Payment", value: "Platform Wallet" },
     ],
     actionPath: "/admin/purchases",
   });
@@ -187,8 +173,6 @@ export async function createShareListingAction(
 const tradeSchema = z.object({
   listingId: z.string().min(1),
   quantity: z.coerce.number().int().min(1),
-  paymentMethod: z.enum(["BANK_TRANSFER", "BKASH", "NAGAD", "ROCKET", "GCASH", "WALLET"]),
-  txId: z.string().optional(),
 });
 
 export async function requestShareTradeAction(
@@ -201,17 +185,11 @@ export async function requestShareTradeAction(
   const parse = tradeSchema.safeParse({
     listingId: formData.get("listingId"),
     quantity: formData.get("quantity"),
-    paymentMethod: formData.get("paymentMethod"),
-    txId: formData.get("txId") || undefined,
   });
 
   if (!parse.success) return { error: parse.error.issues[0].message };
 
-  const { listingId, quantity, paymentMethod, txId } = parse.data;
-
-  if (paymentMethod !== "WALLET" && !txId) {
-    return { error: "Transaction ID is required for this payment method." };
-  }
+  const { listingId, quantity } = parse.data;
 
   const listing = await prisma.shareListing.findUnique({
     where: { id: listingId },
@@ -236,8 +214,7 @@ export async function requestShareTradeAction(
       buyerId: session.userId,
       quantity,
       totalAmount,
-      paymentMethod,
-      txId: txId ?? null,
+      paymentMethod: "WALLET",
       status: "PENDING",
     },
   });
@@ -250,7 +227,7 @@ export async function requestShareTradeAction(
       { label: "Project", value: listing.project.name },
       { label: "Quantity", value: String(quantity) },
       { label: "Total", value: `৳${totalAmount.toFixed(2)}` },
-      { label: "Payment", value: paymentMethod },
+      { label: "Payment", value: "Platform Wallet" },
     ],
     actionPath: "/admin/shares",
   });
