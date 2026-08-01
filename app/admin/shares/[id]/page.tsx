@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { ScreenshotViewer } from "./screenshot-viewer";
 import { ShareNumbersManager } from "./share-numbers";
+import { ProjectActions } from "./project-actions";
 
 async function getProjectDetail(id: string) {
   return prisma.project.findUnique({
@@ -112,9 +113,20 @@ export default async function AdminProjectDetailPage({
               Created by {project.createdBy.fullName} · {project.createdAt.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })}
             </p>
           </div>
-          <span className={`text-[11px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full shrink-0 ${STATUS_STYLES[project.status]}`}>
-            {project.status}
-          </span>
+          <div className="flex items-center gap-3 shrink-0">
+            <span className={`text-[11px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full ${STATUS_STYLES[project.status]}`}>
+              {project.status}
+            </span>
+            <ProjectActions
+              project={{
+                id: project.id,
+                name: project.name,
+                description: project.description,
+                sharePriceSgd: Number(project.sharePriceSgd),
+                status: project.status,
+              }}
+            />
+          </div>
         </div>
       </div>
 

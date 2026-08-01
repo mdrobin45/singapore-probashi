@@ -70,7 +70,14 @@ export default async function AdminLostFoundPage() {
                     {p.createdAt.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })}
                   </td>
                   <td className="px-4 py-3.5">
-                    <LostFoundActions id={p.id} status={p.status} />
+                    <LostFoundActions
+                      id={p.id}
+                      status={p.status}
+                      type={p.type}
+                      title={p.title}
+                      description={p.description}
+                      location={p.location}
+                    />
                   </td>
                 </tr>
               ))}

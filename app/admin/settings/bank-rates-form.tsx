@@ -75,6 +75,7 @@ export function BankRatesForm({ banks: initial }: Props) {
   }
 
   function handleDelete(id: string) {
+    if (!confirm("Delete this bank rate?")) return;
     setBanks((prev) => prev.filter((b) => b.id !== id));
     startTransition(() => deleteBankRateAction(id));
   }

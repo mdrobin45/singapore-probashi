@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
-import { AddVendorForm, VendorActiveToggle } from "./vendor-actions";
+import { AddVendorForm, VendorActiveToggle, VendorRowActions } from "./vendor-actions";
 
 async function getVendors() {
   return prisma.taxiVendor.findMany({
@@ -44,6 +44,7 @@ export default async function AdminTaxiVendorsPage() {
                 <th className="text-left text-xs font-semibold text-muted-foreground px-4 py-3">Vehicle Type</th>
                 <th className="text-left text-xs font-semibold text-muted-foreground px-4 py-3">Assigned Rides</th>
                 <th className="text-left text-xs font-semibold text-muted-foreground px-4 py-3">Status</th>
+                <th className="text-left text-xs font-semibold text-muted-foreground px-4 py-3">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
@@ -56,10 +57,13 @@ export default async function AdminTaxiVendorsPage() {
                   <td className="px-4 py-3.5">
                     <VendorActiveToggle id={v.id} isActive={v.isActive} />
                   </td>
+                  <td className="px-4 py-3.5">
+                    <VendorRowActions vendor={{ id: v.id, name: v.name, phone: v.phone, vehicleType: v.vehicleType }} />
+                  </td>
                 </tr>
               ))}
               {vendors.length === 0 && (
-                <tr><td colSpan={5} className="text-center py-12 text-muted-foreground text-sm">No vendors added yet.</td></tr>
+                <tr><td colSpan={6} className="text-center py-12 text-muted-foreground text-sm">No vendors added yet.</td></tr>
               )}
             </tbody>
           </table>

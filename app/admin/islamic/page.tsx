@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
-import { DuaForm, DuaDeleteButton } from "./dua-form";
-import { ArticleForm, ArticleActions } from "./article-form";
+import { DuaForm, EditDuaForm, DuaDeleteButton } from "./dua-form";
+import { ArticleForm, EditArticleForm, ArticleActions } from "./article-form";
 
 async function getData() {
   const [articles, duas, surahCount] = await Promise.all([
@@ -86,7 +86,11 @@ export default async function AdminIslamicPage() {
                       {d.arabic}
                     </td>
                     <td className="px-4 py-3.5">
-                      <DuaDeleteButton id={d.id} />
+                      <div className="flex items-center gap-2">
+                        <EditDuaForm dua={d} />
+                        <span className="text-border">·</span>
+                        <DuaDeleteButton id={d.id} />
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -134,7 +138,11 @@ export default async function AdminIslamicPage() {
                       {a.createdAt.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })}
                     </td>
                     <td className="px-4 py-3.5">
-                      <ArticleActions id={a.id} status={a.status} />
+                      <div className="flex items-center gap-2">
+                        <EditArticleForm article={a} />
+                        <span className="text-border">·</span>
+                        <ArticleActions id={a.id} status={a.status} />
+                      </div>
                     </td>
                   </tr>
                 ))}

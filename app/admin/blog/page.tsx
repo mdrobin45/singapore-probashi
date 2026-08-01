@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { CreateBlogPostForm } from "./create-form";
+import { CreateBlogPostForm, EditBlogPostForm, DeleteBlogPostButton } from "./create-form";
 
 async function getData() {
   const [posts, categories] = await Promise.all([
@@ -43,6 +43,7 @@ export default async function AdminBlogPage() {
                     <th className="text-left text-xs font-semibold text-muted-foreground px-4 py-3">Author</th>
                     <th className="text-left text-xs font-semibold text-muted-foreground px-4 py-3">Status</th>
                     <th className="text-left text-xs font-semibold text-muted-foreground px-4 py-3">Date</th>
+                    <th className="text-left text-xs font-semibold text-muted-foreground px-4 py-3">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
@@ -62,10 +63,28 @@ export default async function AdminBlogPage() {
                       <td className="px-4 py-3.5 text-xs text-muted-foreground whitespace-nowrap">
                         {p.createdAt.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })}
                       </td>
+                      <td className="px-4 py-3.5">
+                        <div className="flex items-center gap-2">
+                          <EditBlogPostForm
+                            post={{
+                              id: p.id,
+                              title: p.title,
+                              slug: p.slug,
+                              categoryId: p.categoryId,
+                              excerpt: p.excerpt,
+                              content: p.content,
+                              status: p.status,
+                            }}
+                            categories={categories}
+                          />
+                          <span className="text-border">·</span>
+                          <DeleteBlogPostButton id={p.id} />
+                        </div>
+                      </td>
                     </tr>
                   ))}
                   {posts.length === 0 && (
-                    <tr><td colSpan={5} className="text-center py-12 text-muted-foreground text-sm">No posts yet.</td></tr>
+                    <tr><td colSpan={6} className="text-center py-12 text-muted-foreground text-sm">No posts yet.</td></tr>
                   )}
                 </tbody>
               </table>

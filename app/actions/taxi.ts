@@ -212,3 +212,47 @@ export async function toggleTaxiVendorActiveAction(id: string, isActive: boolean
   revalidatePath("/admin/taxi/vendors");
   revalidatePath("/admin/taxi");
 }
+
+export async function updateTaxiVendorAction(
+  _prev: ActionState,
+  formData: FormData
+): Promise<ActionState> {
+  await requireAdmin();
+
+  const vendorId = formData.get("vendorId") as string;
+  if (!vendorId) return { error: "Missing vendor ID." };
+
+  const parse = vendorSchema.safeParse({
+    name: formData.get("name"),
+    phone: formData.get("phone"),
+    vehicleType: formData.get("vehicleType") || undefined,
+  });
+
+  if (!parse.success) return { error: parse.error.issues[0].message };
+
+  const { name, phone, vehicleType } = parse.data;
+
+  await prisma.taxiVendor.update({
+    where: { id: vendorId },
+    data: { name, phone, vehicleType: vehicleType ?? null },
+  });
+
+  revalidatePath("/admin/taxi/vendors");
+  return { success: true };
+}
+
+export async function deleteTaxiVendorAction(id: string): Promise<ActionState> {
+  await requireAdmin();
+
+  const assignedCount = await prisma.taxiRequest.count({ where: { assignedVendorId: id } });
+  if (assignedCount > 0) {
+    return {
+      error: `Cannot delete — ${assignedCount} taxi request(s) are assigned to this vendor. Deactivate it instead.`,
+    };
+  }
+
+  await prisma.taxiVendor.delete({ where: { id } });
+  revalidatePath("/admin/taxi/vendors");
+  revalidatePath("/admin/taxi");
+  return { success: true };
+}

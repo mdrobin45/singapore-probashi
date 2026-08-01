@@ -118,6 +118,7 @@ export default async function AdminUsersPage() {
                       user={{
                         id: u.id, role: u.role, isVerified: u.isVerified, isActive: u.isActive,
                         isAgent: u.isAgent, referralCode: u.referralCode,
+                        fullName: u.fullName, email: u.email, phone: u.phone,
                       }}
                       actorRole={actorRole}
                     />

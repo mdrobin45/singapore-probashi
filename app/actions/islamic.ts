@@ -45,6 +45,28 @@ export async function createDuaAction(_prev: State, formData: FormData): Promise
   return { success: true };
 }
 
+export async function updateDuaAction(_prev: State, formData: FormData): Promise<State> {
+  await requireAdmin();
+
+  const duaId = formData.get("duaId") as string;
+  if (!duaId) return { error: "Missing dua id." };
+
+  const parse = duaSchema.safeParse({
+    title: formData.get("title"),
+    arabic: formData.get("arabic"),
+    transliteration: formData.get("transliteration") || undefined,
+    translation: formData.get("translation"),
+    category: formData.get("category"),
+    source: formData.get("source") || undefined,
+  });
+  if (!parse.success) return { error: parse.error.issues[0].message };
+
+  await prisma.dua.update({ where: { id: duaId }, data: parse.data });
+  revalidatePath("/islamic-center/duas");
+  revalidatePath("/admin/islamic");
+  return { success: true };
+}
+
 export async function deleteDuaAction(id: string): Promise<void> {
   await requireAdmin();
   await prisma.dua.delete({ where: { id } });
@@ -74,6 +96,29 @@ export async function createArticleAction(_prev: State, formData: FormData): Pro
 
   await prisma.islamicArticle.create({
     data: { ...parse.data, authorId: session.userId },
+  });
+  revalidatePath("/islamic-center/articles");
+  revalidatePath("/admin/islamic");
+  return { success: true };
+}
+
+export async function updateArticleAction(_prev: State, formData: FormData): Promise<State> {
+  await requireAdmin();
+
+  const articleId = formData.get("articleId") as string;
+  if (!articleId) return { error: "Missing article id." };
+
+  const parse = articleSchema.safeParse({
+    title: formData.get("title"),
+    content: formData.get("content"),
+    excerpt: formData.get("excerpt") || undefined,
+    status: formData.get("status") || "PUBLISHED",
+  });
+  if (!parse.success) return { error: parse.error.issues[0].message };
+
+  await prisma.islamicArticle.update({
+    where: { id: articleId },
+    data: parse.data,
   });
   revalidatePath("/islamic-center/articles");
   revalidatePath("/admin/islamic");

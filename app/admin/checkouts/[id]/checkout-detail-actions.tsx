@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { generatePaymentLinkAction, approveCheckoutAction, rejectCheckoutAction } from "@/app/actions/checkout";
+import { useRouter } from "next/navigation";
+import { generatePaymentLinkAction, approveCheckoutAction, rejectCheckoutAction, deleteCheckoutAction } from "@/app/actions/checkout";
 import { waLink } from "@/lib/whatsapp";
 
 // Persistent, always-renderable display of a checkout's pay link — the token
@@ -69,6 +70,35 @@ export function GenerateLinkButton({ checkoutId }: { checkoutId: string }) {
         className="bg-brand text-white text-sm font-semibold px-4 py-2 rounded-lg hover:bg-brand-dark transition-colors disabled:opacity-60"
       >
         {isPending ? "Generating…" : "Generate Payment Link"}
+      </button>
+      {error && <p className="text-xs text-red-600 mt-1.5">{error}</p>}
+    </div>
+  );
+}
+
+export function DeleteCheckoutButton({ checkoutId }: { checkoutId: string }) {
+  const router = useRouter();
+  const [error, setError] = useState("");
+  const [isPending, startTransition] = useTransition();
+
+  function handleDelete() {
+    if (!confirm("Delete this draft checkout? This cannot be undone.")) return;
+    startTransition(async () => {
+      const res = await deleteCheckoutAction(checkoutId);
+      if (res.error) setError(res.error);
+      else router.push("/admin/checkouts");
+    });
+  }
+
+  return (
+    <div>
+      <button
+        type="button"
+        disabled={isPending}
+        onClick={handleDelete}
+        className="text-sm font-semibold px-4 py-2 rounded-lg border border-red-200 text-red-600 hover:bg-red-50 transition-colors disabled:opacity-60"
+      >
+        {isPending ? "Deleting…" : "Delete Checkout"}
       </button>
       {error && <p className="text-xs text-red-600 mt-1.5">{error}</p>}
     </div>

@@ -5,6 +5,7 @@ import { getSession } from "@/lib/session";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { Role } from "../../generated/prisma/enums";
+import { Prisma } from "../../generated/prisma/client";
 import { generateReferralCode } from "@/lib/commission";
 import bcrypt from "bcryptjs";
 import { z } from "zod";
@@ -99,6 +100,44 @@ export async function createUserAction(
   };
 }
 
+// ── Edit user ─────────────────────────────────────────────────────────────────
+
+const updateUserSchema = z.object({
+  fullName: z.string().min(2, "Full name must be at least 2 characters"),
+  email: z.string().email("Invalid email address"),
+  phone: z.string().min(10, "Phone must be at least 10 digits"),
+});
+
+export async function updateUserAction(
+  _prev: ActionState,
+  formData: FormData
+): Promise<ActionState> {
+  const session = await requireAdminSession();
+  const userId = formData.get("userId") as string;
+
+  const target = await prisma.user.findUnique({ where: { id: userId }, select: { id: true, role: true } });
+  if (!target) return { error: "User not found." };
+  if (target.id !== session.userId && !canManage(session.role, target.role)) {
+    return { error: "You don't have permission to edit this user." };
+  }
+
+  const parse = updateUserSchema.safeParse({
+    fullName: formData.get("fullName"),
+    email: formData.get("email"),
+    phone: formData.get("phone"),
+  });
+  if (!parse.success) return { error: parse.error.issues[0].message };
+
+  const { fullName, email, phone } = parse.data;
+
+  const emailOwner = await prisma.user.findUnique({ where: { email }, select: { id: true } });
+  if (emailOwner && emailOwner.id !== userId) return { error: "Another user already has this email." };
+
+  await prisma.user.update({ where: { id: userId }, data: { fullName, email, phone } });
+  revalidatePath("/", "layout");
+  return { success: "User updated." };
+}
+
 // ── Delete user ───────────────────────────────────────────────────────────────
 
 export async function deleteUserAction(
@@ -123,7 +162,19 @@ export async function deleteUserAction(
     if (count <= 1) return { error: "Cannot delete the last Super Admin." };
   }
 
-  await prisma.user.delete({ where: { id: userId } });
+  try {
+    await prisma.user.delete({ where: { id: userId } });
+  } catch (err) {
+    // Most relations on User have no cascade configured (share ownership,
+    // purchase/deposit/withdrawal history, etc.) — deleting a user with real
+    // activity throws a foreign-key violation. Surface a clear message
+    // instead of a raw 500, and point admins at the safe alternative.
+    if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2003") {
+      return { error: "Cannot delete — this user has existing activity (purchases, transactions, requests, etc.). Ban the account instead to disable access without losing history." };
+    }
+    throw err;
+  }
+
   revalidatePath("/", "layout");
   return { success: "User deleted." };
 }

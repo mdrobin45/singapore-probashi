@@ -236,6 +236,96 @@ export async function createProjectAction(
   return { success: true, shareNumbersCreated: shareNumbers.length };
 }
 
+// ── Edit project ──────────────────────────────────────────────────────────────
+
+const editProjectSchema = z.object({
+  projectId: z.string().min(1),
+  name: z.string().min(3, "Name must be at least 3 characters"),
+  description: z.string().min(10, "Description must be at least 10 characters"),
+  sharePriceSgd: z.coerce.number().min(0.01),
+  status: z.enum(["ACTIVE", "INACTIVE", "COMPLETED"]),
+});
+
+export async function updateProjectAction(
+  _prev: ActionState,
+  formData: FormData
+): Promise<ActionState> {
+  await requireAdmin();
+
+  const parse = editProjectSchema.safeParse({
+    projectId: formData.get("projectId"),
+    name: formData.get("name"),
+    description: formData.get("description"),
+    sharePriceSgd: formData.get("sharePriceSgd"),
+    status: formData.get("status"),
+  });
+
+  if (!parse.success) return { error: parse.error.issues[0].message };
+
+  const { projectId, name, description, sharePriceSgd, status } = parse.data;
+  const imageUrl = formData.get("imageUrl") as string | null;
+
+  const existing = await prisma.project.findUnique({ where: { id: projectId }, select: { id: true } });
+  if (!existing) return { error: "Project not found." };
+
+  await prisma.project.update({
+    where: { id: projectId },
+    data: {
+      name,
+      description,
+      sharePriceSgd,
+      status,
+      ...(imageUrl ? { imageUrl } : {}),
+    },
+  });
+
+  revalidatePath("/admin/shares");
+  revalidatePath(`/admin/shares/${projectId}`);
+  revalidatePath("/shares");
+  revalidatePath(`/shares/${projectId}`);
+  return { success: true };
+}
+
+// ── Delete project (only when it has zero real activity) ─────────────────────
+
+export async function deleteProjectAction(_prev: ActionState, formData: FormData): Promise<ActionState> {
+  await requireAdmin();
+
+  const projectId = formData.get("projectId") as string;
+
+  const project = await prisma.project.findUnique({
+    where: { id: projectId },
+    select: {
+      id: true,
+      name: true,
+      _count: { select: { shares: true, purchaseRequests: true, listings: true } },
+    },
+  });
+  if (!project) return { error: "Project not found." };
+
+  if (project._count.shares > 0) {
+    return { error: `Cannot delete — ${project.name} already has shareholders.` };
+  }
+  if (project._count.purchaseRequests > 0) {
+    return { error: `Cannot delete — ${project.name} has purchase request history.` };
+  }
+  if (project._count.listings > 0) {
+    return { error: `Cannot delete — ${project.name} has resale listings.` };
+  }
+
+  // Safe to delete — any share numbers created for this project are still
+  // unassigned (guaranteed by the checks above), so clear them first since
+  // ShareCertificate has no cascade-delete on its project relation.
+  await prisma.$transaction([
+    prisma.shareCertificate.deleteMany({ where: { projectId } }),
+    prisma.project.delete({ where: { id: projectId } }),
+  ]);
+
+  revalidatePath("/admin/shares");
+  revalidatePath("/shares");
+  return { success: true };
+}
+
 // ── Approve / reject resell listing or trade ──────────────────────────────────
 
 export async function processResellAction({

@@ -71,7 +71,16 @@ export default async function AdminApplyPage() {
                     <td className="px-4 py-3.5 font-semibold text-foreground">৳{Number(s.price).toFixed(2)}</td>
                     <td className="px-4 py-3.5 text-muted-foreground text-sm">{count}</td>
                     <td className="px-4 py-3.5">
-                      <ServiceActions id={s.id} isActive={s.isActive} />
+                      <ServiceActions
+                        service={{
+                          id: s.id,
+                          name: s.name,
+                          description: s.description,
+                          price: Number(s.price),
+                          sortOrder: s.sortOrder,
+                          isActive: s.isActive,
+                        }}
+                      />
                     </td>
                   </tr>
                 );

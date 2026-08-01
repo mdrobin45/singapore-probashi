@@ -4,6 +4,7 @@ import { useActionState, useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import {
   deleteUserAction,
+  updateUserAction,
   toggleUserActiveAction,
   verifyUserAction,
   changeUserRoleAction,
@@ -17,6 +18,9 @@ type User = {
   isActive: boolean;
   isAgent: boolean;
   referralCode: string | null;
+  fullName: string;
+  email: string;
+  phone: string | null;
 };
 
 type Props = {
@@ -34,6 +38,7 @@ export function UserActionsMenu({ user, actorRole }: Props) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [showRoleSelect, setShowRoleSelect] = useState(false);
+  const [editOpen, setEditOpen] = useState(false);
   const [copied, setCopied] = useState<"code" | "link" | null>(null);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -54,6 +59,7 @@ export function UserActionsMenu({ user, actorRole }: Props) {
   const [verifyState, verifyAction, verifyPending] = useActionState(verifyUserAction, null);
   const [roleState, roleAction, rolePending] = useActionState(changeUserRoleAction, null);
   const [agentState, agentAction, agentPending] = useActionState(toggleAgentAction, null);
+  const [editState, editAction, editPending] = useActionState(updateUserAction, null);
 
   const feedback = deleteState ?? toggleState ?? verifyState ?? roleState ?? agentState;
 
@@ -61,6 +67,13 @@ export function UserActionsMenu({ user, actorRole }: Props) {
   useEffect(() => {
     if (feedback?.success) router.refresh();
   }, [feedback?.success, router]);
+
+  useEffect(() => {
+    if (editState?.success) {
+      setEditOpen(false);
+      router.refresh();
+    }
+  }, [editState, router]);
 
   useEffect(() => {
     function handleClick(e: MouseEvent) {
@@ -98,6 +111,19 @@ export function UserActionsMenu({ user, actorRole }: Props) {
             <div className={`px-3 py-2 text-xs font-medium border-b border-border ${feedback.error ? "text-red-600 bg-red-50" : "text-green-700 bg-green-50"}`}>
               {feedback.error ?? feedback.success}
             </div>
+          )}
+
+          {/* Edit */}
+          {canManage && (
+            <button
+              onClick={() => { setEditOpen(true); setOpen(false); }}
+              className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-foreground hover:bg-muted transition-colors"
+            >
+              <svg className="w-4 h-4 text-blue-500 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" /><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" />
+              </svg>
+              Edit user
+            </button>
           )}
 
           {/* Verify */}
@@ -247,6 +273,69 @@ export function UserActionsMenu({ user, actorRole }: Props) {
               </form>
             </>
           )}
+        </div>
+      )}
+
+      {editOpen && (
+        <div className="fixed inset-0 z-60 flex items-center justify-center p-4 pb-20 lg:pb-4">
+          <div className="absolute inset-0 bg-black/50" onClick={() => setEditOpen(false)} />
+          <div className="relative bg-white rounded-2xl border border-border shadow-xl w-full max-w-md max-h-[calc(100vh-6rem)] lg:max-h-[90vh] overflow-y-auto">
+            <div className="px-6 py-4 border-b border-border flex items-center justify-between">
+              <h2 className="font-bold text-foreground">Edit User</h2>
+              <button onClick={() => setEditOpen(false)} className="text-muted-foreground hover:text-foreground" aria-label="Close">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            <form action={editAction} className="p-6 space-y-4">
+              <input type="hidden" name="userId" value={user.id} />
+
+              <div>
+                <label className="block text-xs font-medium text-foreground mb-1">Full Name</label>
+                <input
+                  name="fullName"
+                  type="text"
+                  required
+                  defaultValue={user.fullName}
+                  className="w-full px-3 py-2 rounded-lg border border-border text-sm focus:outline-none focus:ring-2 focus:ring-brand/30 focus:border-brand"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-foreground mb-1">Email</label>
+                <input
+                  name="email"
+                  type="email"
+                  required
+                  defaultValue={user.email}
+                  className="w-full px-3 py-2 rounded-lg border border-border text-sm focus:outline-none focus:ring-2 focus:ring-brand/30 focus:border-brand"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-foreground mb-1">Phone</label>
+                <input
+                  name="phone"
+                  type="text"
+                  required
+                  defaultValue={user.phone ?? ""}
+                  className="w-full px-3 py-2 rounded-lg border border-border text-sm focus:outline-none focus:ring-2 focus:ring-brand/30 focus:border-brand"
+                />
+              </div>
+
+              {editState?.error && (
+                <p className="text-xs text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">{editState.error}</p>
+              )}
+
+              <button
+                type="submit"
+                disabled={editPending}
+                className="w-full bg-brand text-white rounded-lg py-2.5 text-sm font-semibold hover:bg-brand-dark transition-colors disabled:opacity-60"
+              >
+                {editPending ? "Saving…" : "Save Changes"}
+              </button>
+            </form>
+          </div>
         </div>
       )}
     </div>

@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { GenerateLinkButton, PaymentLinkCard, ReviewActions } from "./checkout-detail-actions";
+import { GenerateLinkButton, PaymentLinkCard, ReviewActions, DeleteCheckoutButton } from "./checkout-detail-actions";
 
 async function getCheckout(id: string) {
   return prisma.checkout.findUnique({
@@ -131,7 +131,10 @@ export default async function AdminCheckoutDetailPage({
       {/* Actions */}
       <div className="bg-white rounded-xl border border-border p-5">
         {checkout.status === "DRAFT" && (
-          <GenerateLinkButton checkoutId={checkout.id} />
+          <div className="flex flex-wrap items-start gap-3">
+            <GenerateLinkButton checkoutId={checkout.id} />
+            <DeleteCheckoutButton checkoutId={checkout.id} />
+          </div>
         )}
         {checkout.status === "AWAITING_PAYMENT" && (
           <p className="text-sm text-muted-foreground">Waiting for the customer to submit payment proof.</p>

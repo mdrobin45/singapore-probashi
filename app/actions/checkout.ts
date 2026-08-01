@@ -227,6 +227,27 @@ export async function generatePaymentLinkAction(checkoutId: string): Promise<{ e
   return { token: updated.token };
 }
 
+// ─── Admin: delete a draft checkout ────────────────────────────────────────────
+// Only DRAFT checkouts can be deleted — once a link has been generated
+// (AWAITING_PAYMENT) or payment is involved, it must be handled through the
+// normal approve/reject flow instead, never deleted outright. Deleting a
+// DRAFT cascades its CheckoutItem rows (onDelete: Cascade), which frees the
+// linked taxi/air-ticket/service requests to be added to a new checkout.
+export async function deleteCheckoutAction(checkoutId: string): Promise<{ error?: string }> {
+  await requireAdmin();
+
+  const checkout = await prisma.checkout.findUnique({ where: { id: checkoutId }, select: { status: true } });
+  if (!checkout) return { error: "Checkout not found." };
+  if (checkout.status !== "DRAFT") {
+    return { error: "Only draft checkouts can be deleted — this one already has a payment link or proof." };
+  }
+
+  await prisma.checkout.delete({ where: { id: checkoutId } });
+
+  revalidatePath("/admin/checkouts");
+  return {};
+}
+
 // ─── Public: customer submits payment proof ────────────────────────────────────
 
 const proofSchema = z.object({

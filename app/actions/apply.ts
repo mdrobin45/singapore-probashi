@@ -72,11 +72,25 @@ export async function toggleServiceAction(id: string): Promise<void> {
   revalidatePath("/apply");
 }
 
-export async function deleteServiceAction(id: string): Promise<void> {
+export async function deleteServiceAction(id: string): Promise<State> {
   await requireAdmin();
+
+  const [applicationCount, requestCount] = await Promise.all([
+    prisma.applyApplication.count({ where: { serviceId: id } }),
+    prisma.serviceRequest.count({ where: { serviceId: id } }),
+  ]);
+
+  const total = applicationCount + requestCount;
+  if (total > 0) {
+    return {
+      error: `Cannot delete — ${total} application(s)/request(s) already reference this service. Consider deactivating it instead.`,
+    };
+  }
+
   await prisma.applyService.delete({ where: { id } });
   revalidatePath("/admin/apply");
   revalidatePath("/apply");
+  return { success: true };
 }
 
 // ── Admin: Update application status ─────────────────────────────────────────
