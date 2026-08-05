@@ -11,25 +11,24 @@ export function CreateProjectForm() {
   // Image
   const [preview, setPreview] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
-  const hiddenImgRef = useRef<HTMLInputElement>(null);
 
-  // Share numbers — one-by-one entry
-  const [shareNums, setShareNums] = useState<number[]>([]);
+  // Base per-share price, tracked so the Share Numbers section can show it as a live default
+  const [basePriceInput, setBasePriceInput] = useState("");
+  const basePrice = parseFloat(basePriceInput) || 0;
+
+  // Share numbers — one-by-one entry, each with its own optional price
+  const [shareNums, setShareNums] = useState<{ number: number; priceSgd: number | null }[]>([]);
   const [numInput, setNumInput] = useState("");
+  const [priceInput, setPriceInput] = useState("");
   const [numError, setNumError] = useState("");
   const numInputRef = useRef<HTMLInputElement>(null);
-  const hiddenNumsRef = useRef<HTMLInputElement>(null);
 
   function handleImage(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
     if (file.size > 4.5 * 1024 * 1024) { alert("Image too large. Max 4MB."); return; }
     const reader = new FileReader();
-    reader.onload = (ev) => {
-      const result = ev.target?.result as string;
-      setPreview(result);
-      if (hiddenImgRef.current) hiddenImgRef.current.value = result;
-    };
+    reader.onload = (ev) => setPreview(ev.target?.result as string);
     reader.readAsDataURL(file);
   }
 
@@ -38,23 +37,34 @@ export function CreateProjectForm() {
     if (!raw) return;
     const n = parseInt(raw, 10);
     if (isNaN(n) || n < 1) { setNumError("Must be a positive integer."); return; }
-    if (shareNums.includes(n)) { setNumError(`#${String(n).padStart(4, "0")} already added.`); return; }
-    const next = [...shareNums, n].sort((a, b) => a - b);
+    if (shareNums.some((x) => x.number === n)) { setNumError(`#${String(n).padStart(4, "0")} already added.`); return; }
+    const priceRaw = priceInput.trim();
+    const priceSgd = priceRaw ? parseFloat(priceRaw) : null;
+    if (priceSgd !== null && (isNaN(priceSgd) || priceSgd <= 0)) { setNumError("Enter a valid price or leave it blank."); return; }
+    const next = [...shareNums, { number: n, priceSgd }].sort((a, b) => a.number - b.number);
     setShareNums(next);
-    if (hiddenNumsRef.current) hiddenNumsRef.current.value = JSON.stringify(next);
     setNumInput("");
+    setPriceInput("");
     setNumError("");
     numInputRef.current?.focus();
   }
 
   function removeShareNum(n: number) {
-    const next = shareNums.filter((x) => x !== n);
-    setShareNums(next);
-    if (hiddenNumsRef.current) hiddenNumsRef.current.value = JSON.stringify(next);
+    setShareNums((prev) => prev.filter((x) => x.number !== n));
   }
 
   function handleNumKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
     if (e.key === "Enter") { e.preventDefault(); addShareNum(); }
+  }
+
+  // Reading imageUrl/shareNumbers from a ref-mutated hidden <input> was unreliable —
+  // React doesn't guarantee that DOM mutation survives to submit time. Inject the
+  // current React state into FormData directly instead, same pattern as the Share
+  // Numbers manager's save handler.
+  function handleSubmit(formData: FormData) {
+    if (preview) formData.set("imageUrl", preview);
+    formData.set("shareNumbers", JSON.stringify(shareNums));
+    action(formData);
   }
 
   return (
@@ -62,11 +72,7 @@ export function CreateProjectForm() {
       <div className="px-5 py-4 border-b border-border">
         <h3 className="font-semibold text-foreground">Create New Project</h3>
       </div>
-      <form action={action} className="p-5 space-y-4">
-        {/* Hidden inputs */}
-        <input ref={hiddenImgRef} type="hidden" name="imageUrl" />
-        <input ref={hiddenNumsRef} type="hidden" name="shareNumbers" defaultValue="[]" />
-
+      <form action={handleSubmit} className="p-5 space-y-4">
         {/* Image upload */}
         <div>
           <label className="block text-xs font-medium text-foreground mb-1">Project Image</label>
@@ -87,7 +93,7 @@ export function CreateProjectForm() {
             )}
           </div>
           {preview && (
-            <button type="button" onClick={() => { setPreview(null); if (hiddenImgRef.current) hiddenImgRef.current.value = ""; if (fileRef.current) fileRef.current.value = ""; }}
+            <button type="button" onClick={() => { setPreview(null); if (fileRef.current) fileRef.current.value = ""; }}
               className="mt-1 text-xs text-red-500 hover:text-red-600">
               Remove image
             </button>
@@ -111,15 +117,25 @@ export function CreateProjectForm() {
           </div>
           <div>
             <label className="block text-xs font-medium text-foreground mb-1">Price per Share (SGD)</label>
-            <input name="sharePriceSgd" type="number" required min={0.01} step={0.01} placeholder="5.99" className={INPUT} />
+            <input
+              name="sharePriceSgd"
+              type="number"
+              required
+              min={0.01}
+              step={0.01}
+              placeholder="5.99"
+              value={basePriceInput}
+              onChange={(e) => setBasePriceInput(e.target.value)}
+              className={INPUT}
+            />
           </div>
         </div>
 
-        {/* Share numbers — one by one */}
+        {/* Share numbers — one by one, each with its own optional price */}
         <div className="border-t border-border pt-4">
           <p className="text-xs font-semibold text-foreground mb-0.5">Share Numbers</p>
           <p className="text-[11px] text-muted-foreground mb-3">
-            Each number is the unique identity of one individual share. Type a number and press Enter or +.
+            Each number is the unique identity of one individual share. Give it its own price, or leave it blank to use the price above{basePrice ? ` ($${basePrice.toFixed(2)})` : ""}. Type and press Enter or +.
           </p>
           <div className="flex gap-2">
             <input
@@ -131,6 +147,16 @@ export function CreateProjectForm() {
               onKeyDown={handleNumKeyDown}
               placeholder="e.g. 1001"
               className="flex-1 px-3 py-2 rounded-lg border border-border text-sm focus:outline-none focus:ring-2 focus:ring-brand/30 focus:border-brand"
+            />
+            <input
+              type="number"
+              min={0.01}
+              step={0.01}
+              value={priceInput}
+              onChange={(e) => { setPriceInput(e.target.value); setNumError(""); }}
+              onKeyDown={handleNumKeyDown}
+              placeholder={basePrice ? `$${basePrice.toFixed(2)} (default)` : "price (optional)"}
+              className="w-36 px-3 py-2 rounded-lg border border-border text-sm focus:outline-none focus:ring-2 focus:ring-brand/30 focus:border-brand"
             />
             <button
               type="button"
@@ -148,11 +174,12 @@ export function CreateProjectForm() {
               <p className="text-[11px] text-muted-foreground mb-2">{shareNums.length} number{shareNums.length !== 1 ? "s" : ""} added:</p>
               <div className="flex flex-wrap gap-1.5 max-h-32 overflow-y-auto">
                 {shareNums.map((n) => (
-                  <span key={n} className="inline-flex items-center gap-1 text-xs font-mono bg-brand-50 border border-brand/30 text-brand px-2 py-1 rounded-lg">
-                    #{String(n).padStart(4, "0")}
+                  <span key={n.number} className="inline-flex items-center gap-1 text-xs font-mono bg-brand-50 border border-brand/30 text-brand px-2 py-1 rounded-lg">
+                    #{String(n.number).padStart(4, "0")}
+                    <span className="text-brand/70">${(n.priceSgd ?? basePrice).toFixed(2)}</span>
                     <button
                       type="button"
-                      onClick={() => removeShareNum(n)}
+                      onClick={() => removeShareNum(n.number)}
                       className="text-brand/60 hover:text-red-500 ml-0.5 leading-none transition-colors"
                     >
                       ×

@@ -208,10 +208,16 @@ export async function createProjectAction(
   const imageUrl = (formData.get("imageUrl") as string) || null;
 
   const numbersRaw = formData.get("shareNumbers") as string;
-  let shareNumbers: number[] = [];
+  let shareNumbers: { number: number; priceSgd: number | null }[] = [];
   try {
     const parsed = JSON.parse(numbersRaw || "[]");
-    if (Array.isArray(parsed)) shareNumbers = [...new Set(parsed.filter((n: unknown) => typeof n === "number" && n > 0))];
+    if (Array.isArray(parsed)) {
+      const valid = parsed.filter(
+        (e: unknown): e is { number: number; priceSgd: number | null } =>
+          typeof e === "object" && e !== null && typeof (e as { number: unknown }).number === "number" && (e as { number: number }).number > 0
+      );
+      shareNumbers = [...new Map(valid.map((e) => [e.number, { number: e.number, priceSgd: e.priceSgd ?? null }])).values()];
+    }
   } catch { /* ignore — no numbers provided */ }
 
   const project = await prisma.project.create({
@@ -228,7 +234,7 @@ export async function createProjectAction(
 
   if (shareNumbers.length > 0) {
     await prisma.shareCertificate.createMany({
-      data: shareNumbers.map((n) => ({ projectId: project.id, shareNumber: n })),
+      data: shareNumbers.map((e) => ({ projectId: project.id, shareNumber: e.number, priceSgd: e.priceSgd })),
     });
   }
 
