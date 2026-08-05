@@ -267,9 +267,124 @@ function AvatarDropdown({ user }: { user: SessionPayload }) {
 	);
 }
 
-export function Navbar({ user }: { user: SessionPayload | null }) {
-	const isAdmin = user ? ADMIN_ROLES.includes(user.role) : false;
+function MobileAvatarMenu({
+	user,
+	walletBalance,
+	pendingCheckout,
+}: {
+	user: SessionPayload;
+	walletBalance?: number | null;
+	pendingCheckout?: { token: string; totalAmount: number } | null;
+}) {
+	const [open, setOpen] = useState(false);
+	const ref = useRef<HTMLDivElement>(null);
+	const isAdmin = ADMIN_ROLES.includes(user.role);
 
+	useEffect(() => {
+		function handleClick(e: MouseEvent) {
+			if (ref.current && !ref.current.contains(e.target as Node)) {
+				setOpen(false);
+			}
+		}
+		document.addEventListener("mousedown", handleClick);
+		return () => document.removeEventListener("mousedown", handleClick);
+	}, []);
+
+	return (
+		<div ref={ref} className="relative">
+			<button
+				onClick={() => setOpen((v) => !v)}
+				className="w-8 h-8 rounded-full bg-brand text-white text-xs font-bold flex items-center justify-center shrink-0 active:scale-90 transition-transform"
+			>
+				{getInitials(user.fullName)}
+			</button>
+
+			{open && (
+				<div className="absolute right-0 mt-2 w-64 bg-white rounded-xl shadow-lg border border-border py-1 z-50">
+					{/* User name */}
+					<div className="px-4 py-3 border-b border-border">
+						<p className="text-sm font-semibold text-foreground truncate">{user.fullName}</p>
+						<p className="text-xs text-muted-foreground truncate">{user.email}</p>
+						<span className="mt-1 inline-block text-[10px] font-medium px-2 py-0.5 rounded-full bg-brand-50 text-brand">
+							{user.role.replace("_", " ")}
+						</span>
+					</div>
+
+					{/* Wallet balance */}
+					<Link
+						href="/wallet"
+						onClick={() => setOpen(false)}
+						className="flex items-center justify-between px-4 py-3 border-b border-border hover:bg-muted transition-colors"
+					>
+						<span className="text-xs text-muted-foreground">Wallet Balance</span>
+						<span className="text-sm font-bold text-foreground">৳{(walletBalance ?? 0).toFixed(2)}</span>
+					</Link>
+
+					{/* Pending checkout */}
+					{pendingCheckout && (
+						<Link
+							href={`/pay/${pendingCheckout.token}`}
+							onClick={() => setOpen(false)}
+							className="flex items-center justify-between px-4 py-3 border-b border-border bg-amber-50 hover:bg-amber-100 transition-colors"
+						>
+							<span className="text-xs font-medium text-amber-800">Complete Payment</span>
+							<span className="text-sm font-bold text-amber-800">৳{pendingCheckout.totalAmount.toFixed(2)}</span>
+						</Link>
+					)}
+
+					{/* Quick actions */}
+					<div className="py-1">
+						{isAdmin && (
+							<Link
+								href="/admin"
+								onClick={() => setOpen(false)}
+								className="flex items-center px-4 py-2 text-sm text-foreground hover:bg-muted transition-colors"
+							>
+								Admin Panel
+							</Link>
+						)}
+						<Link
+							href="/dashboard"
+							onClick={() => setOpen(false)}
+							className="flex items-center px-4 py-2 text-sm text-foreground hover:bg-muted transition-colors"
+						>
+							Dashboard
+						</Link>
+						<Link
+							href="/profile"
+							onClick={() => setOpen(false)}
+							className="flex items-center px-4 py-2 text-sm text-foreground hover:bg-muted transition-colors"
+						>
+							Profile
+						</Link>
+					</div>
+
+					{/* Logout */}
+					<div className="border-t border-border py-1">
+						<form action="/api/logout" method="POST">
+							<button
+								type="submit"
+								className="w-full flex items-center px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
+							>
+								Logout
+							</button>
+						</form>
+					</div>
+				</div>
+			)}
+		</div>
+	);
+}
+
+export function Navbar({
+	user,
+	walletBalance,
+	pendingCheckout,
+}: {
+	user: SessionPayload | null;
+	walletBalance?: number | null;
+	pendingCheckout?: { token: string; totalAmount: number } | null;
+}) {
 	const navLinks = [
 		{ href: "/shares", label: "Shares" },
 		{ href: "/shares/buy-request", label: "Buy Request" },
@@ -310,15 +425,10 @@ export function Navbar({ user }: { user: SessionPayload | null }) {
 						))}
 					</nav>
 
-					{/* Mobile right: tappable avatar */}
+					{/* Mobile right: tappable avatar with dropdown */}
 					<div className="flex lg:hidden items-center gap-2">
 						{user && (
-							<Link
-								href={isAdmin ? "/admin" : "/dashboard"}
-								className="w-8 h-8 rounded-full bg-brand text-white text-xs font-bold flex items-center justify-center shrink-0 active:scale-90 transition-transform"
-							>
-								{getInitials(user.fullName)}
-							</Link>
+							<MobileAvatarMenu user={user} walletBalance={walletBalance} pendingCheckout={pendingCheckout} />
 						)}
 						{!user && (
 							<Link

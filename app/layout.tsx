@@ -4,6 +4,7 @@ import "./globals.css";
 import { Shell } from "@/components/shell";
 import { getSession } from "@/lib/session";
 import { CurrencyRateBar } from "@/components/currency-rate-bar";
+import { prisma } from "@/lib/prisma";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -28,13 +29,36 @@ export default async function RootLayout({
 }) {
   const session = await getSession();
 
+  let walletBalance: number | null = null;
+  let pendingCheckout: { token: string; totalAmount: number } | null = null;
+
+  if (session) {
+    const [wallet, checkout] = await Promise.all([
+      prisma.wallet.findUnique({ where: { userId: session.userId }, select: { balance: true } }),
+      prisma.checkout.findFirst({
+        where: { userId: session.userId, status: { in: ["AWAITING_PAYMENT", "PROOF_SUBMITTED"] } },
+        orderBy: { createdAt: "desc" },
+        select: { token: true, totalAmount: true },
+      }),
+    ]);
+    walletBalance = wallet ? Number(wallet.balance) : 0;
+    pendingCheckout = checkout ? { token: checkout.token, totalAmount: Number(checkout.totalAmount) } : null;
+  }
+
   return (
     <html
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable}`}
     >
       <body className="min-h-screen flex flex-col bg-background text-foreground antialiased">
-        <Shell user={session} rateBar={<CurrencyRateBar />}>{children}</Shell>
+        <Shell
+          user={session}
+          rateBar={<CurrencyRateBar />}
+          walletBalance={walletBalance}
+          pendingCheckout={pendingCheckout}
+        >
+          {children}
+        </Shell>
       </body>
     </html>
   );

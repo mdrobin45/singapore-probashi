@@ -14,7 +14,10 @@ async function requireAdmin() {
   return session;
 }
 
-// Admin saves a batch of individually-entered share numbers for a project
+type PendingNumber = { number: number; priceSgd: number | null };
+
+// Admin saves a batch of individually-entered share numbers for a project,
+// each with its own optional price override.
 export async function createShareNumbersAction(
   _prev: ActionState,
   formData: FormData
@@ -26,20 +29,24 @@ export async function createShareNumbersAction(
 
   if (!projectId || !numbersRaw) return { error: "No share numbers provided." };
 
-  let numbers: number[];
+  let entries: PendingNumber[];
   try {
-    numbers = JSON.parse(numbersRaw);
-    if (!Array.isArray(numbers) || numbers.length === 0) throw new Error();
+    const parsed = JSON.parse(numbersRaw);
+    if (!Array.isArray(parsed) || parsed.length === 0) throw new Error();
+    entries = parsed.map((e: { number: number; priceSgd: number | null }) => ({
+      number: e.number,
+      priceSgd: e.priceSgd ?? null,
+    }));
   } catch {
     return { error: "Invalid data." };
   }
 
-  // Dedup within submitted list
-  const unique = [...new Set(numbers)];
+  // Dedup within submitted list (last one wins)
+  const unique = [...new Map(entries.map((e) => [e.number, e])).values()];
 
   // Check conflicts with already-existing numbers
   const existing = await prisma.shareCertificate.findMany({
-    where: { projectId, shareNumber: { in: unique } },
+    where: { projectId, shareNumber: { in: unique.map((e) => e.number) } },
     select: { shareNumber: true },
   });
 
@@ -49,11 +56,37 @@ export async function createShareNumbersAction(
   }
 
   await prisma.shareCertificate.createMany({
-    data: unique.map((n) => ({ projectId, shareNumber: n })),
+    data: unique.map((e) => ({ projectId, shareNumber: e.number, priceSgd: e.priceSgd })),
   });
 
   revalidatePath(`/admin/shares/${projectId}`);
   return { success: true, created: unique.length };
+}
+
+// Admin updates the price override of one unassigned share number
+export async function updateShareCertificatePriceAction(
+  certificateId: string,
+  projectId: string,
+  priceSgd: number | null
+) {
+  await requireAdmin();
+
+  const cert = await prisma.shareCertificate.findUnique({
+    where: { id: certificateId },
+    select: { ownerId: true },
+  });
+
+  if (!cert) return { error: "Not found." };
+  if (cert.ownerId) return { error: "Cannot change the price of an assigned share number." };
+  if (priceSgd !== null && (isNaN(priceSgd) || priceSgd <= 0)) return { error: "Enter a valid price." };
+
+  await prisma.shareCertificate.update({
+    where: { id: certificateId },
+    data: { priceSgd },
+  });
+
+  revalidatePath(`/admin/shares/${projectId}`);
+  return { success: true };
 }
 
 // Admin deletes one unassigned share number

@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/session";
 import { getShareSgdRate, sgdToBdt } from "@/lib/share-pricing";
+import { effectiveShareCertPrice } from "@/lib/share-pricing-utils";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { PurchaseForm } from "./purchase-form";
@@ -30,13 +31,16 @@ async function getMyPendingRequest(projectId: string, userId: string) {
   });
 }
 
-async function getAvailableShareNumbers(projectId: string) {
+async function getAvailableShares(projectId: string, projectSharePriceSgd: number) {
   const certs = await prisma.shareCertificate.findMany({
     where: { projectId, ownerId: null },
     orderBy: { shareNumber: "asc" },
-    select: { shareNumber: true },
+    select: { shareNumber: true, priceSgd: true },
   });
-  return certs.map((c) => c.shareNumber);
+  return certs.map((c) => ({
+    shareNumber: c.shareNumber,
+    priceSgd: effectiveShareCertPrice(c.priceSgd != null ? Number(c.priceSgd) : null, projectSharePriceSgd),
+  }));
 }
 
 export default async function ShareDetailPage({
@@ -45,14 +49,14 @@ export default async function ShareDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const [project, session, rate, availableShareNumbers] = await Promise.all([
-    getProject(id),
+  const project = await getProject(id);
+  if (!project) notFound();
+
+  const [session, rate, availableShares] = await Promise.all([
     getSession(),
     getShareSgdRate(),
-    getAvailableShareNumbers(id),
+    getAvailableShares(id, Number(project.sharePriceSgd)),
   ]);
-
-  if (!project) notFound();
 
   const soldShares = project.totalShares - project.availableShares;
   const soldPct = Math.round((soldShares / project.totalShares) * 100);
@@ -172,41 +176,15 @@ export default async function ShareDetailPage({
             )}
           </div>
 
-          {/* Right: Purchase form */}
+          {/* Right: Purchase form — browsable by everyone, login required only to submit */}
           <div className="lg:col-span-1">
-            {session ? (
-              <PurchaseForm
-                projectId={project.id}
-                sharePriceSgd={Number(project.sharePriceSgd)}
-                rate={rate}
-                availableShareNumbers={availableShareNumbers}
-                hasPending={!!pendingRequest}
-              />
-            ) : (
-              <div className="bg-white rounded-2xl border border-border p-6 text-center">
-                <div className="w-12 h-12 rounded-full bg-brand-50 flex items-center justify-center mx-auto mb-4">
-                  <svg className="w-6 h-6 text-brand" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                  </svg>
-                </div>
-                <h3 className="font-semibold text-foreground mb-2">Sign in to invest</h3>
-                <p className="text-sm text-muted-foreground mb-5">
-                  Create an account or log in to purchase shares in this project.
-                </p>
-                <Link
-                  href="/login"
-                  className="block w-full text-center bg-brand text-white rounded-xl py-2.5 text-sm font-semibold hover:bg-brand-dark transition-colors"
-                >
-                  Login to Invest
-                </Link>
-                <Link
-                  href="/register"
-                  className="block w-full text-center border border-border text-foreground rounded-xl py-2.5 text-sm font-medium hover:bg-muted transition-colors mt-2"
-                >
-                  Create Account
-                </Link>
-              </div>
-            )}
+            <PurchaseForm
+              projectId={project.id}
+              rate={rate}
+              availableShares={availableShares}
+              hasPending={!!pendingRequest}
+              isLoggedIn={!!session}
+            />
           </div>
         </div>
       </div>

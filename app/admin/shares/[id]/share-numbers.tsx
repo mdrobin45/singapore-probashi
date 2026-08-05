@@ -1,31 +1,42 @@
 "use client";
 
 import { useActionState, useTransition, useRef, useState } from "react";
-import { createShareNumbersAction, deleteShareNumberAction, deleteAllUnassignedAction } from "@/app/actions/share-certificates";
+import { createShareNumbersAction, deleteShareNumberAction, deleteAllUnassignedAction, updateShareCertificatePriceAction } from "@/app/actions/share-certificates";
 
 type Cert = {
   id: string;
   shareNumber: number;
+  priceSgd: number | null;
   ownerId: string | null;
   issuedAt: Date | null;
   owner: { fullName: string; email: string } | null;
 };
 
+type PendingNumber = { number: number; priceSgd: number | null };
+
 export function ShareNumbersManager({
   projectId,
+  projectSharePriceSgd,
   certificates,
 }: {
   projectId: string;
+  projectSharePriceSgd: number;
   certificates: Cert[];
 }) {
   // Pending list (client-side, not yet saved)
-  const [pending, setPending] = useState<number[]>([]);
+  const [pending, setPending] = useState<PendingNumber[]>([]);
   const [inputVal, setInputVal] = useState("");
+  const [priceVal, setPriceVal] = useState("");
   const [inputError, setInputError] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
 
   const [state, action, saving] = useActionState(createShareNumbersAction, null);
   const [deleting, startDelete] = useTransition();
+
+  // Inline price editing for an existing available share number
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editPriceVal, setEditPriceVal] = useState("");
+  const [editPending, startEdit] = useTransition();
 
   const available = certificates.filter((c) => !c.ownerId);
   const assigned = certificates.filter((c) => c.ownerId);
@@ -37,16 +48,20 @@ export function ShareNumbersManager({
     if (!raw) return;
     const n = parseInt(raw, 10);
     if (isNaN(n) || n < 1) { setInputError("Must be a positive integer."); return; }
-    if (pending.includes(n)) { setInputError(`#${String(n).padStart(4, "0")} already in list.`); return; }
+    if (pending.some((p) => p.number === n)) { setInputError(`#${String(n).padStart(4, "0")} already in list.`); return; }
     if (existingNumbers.has(n)) { setInputError(`#${String(n).padStart(4, "0")} already exists in this project.`); return; }
-    setPending((prev) => [...prev, n].sort((a, b) => a - b));
+    const priceRaw = priceVal.trim();
+    const priceSgd = priceRaw ? parseFloat(priceRaw) : null;
+    if (priceSgd !== null && (isNaN(priceSgd) || priceSgd <= 0)) { setInputError("Enter a valid price or leave it blank."); return; }
+    setPending((prev) => [...prev, { number: n, priceSgd }].sort((a, b) => a.number - b.number));
     setInputVal("");
+    setPriceVal("");
     setInputError("");
     inputRef.current?.focus();
   }
 
   function removeFromPending(n: number) {
-    setPending((prev) => prev.filter((x) => x !== n));
+    setPending((prev) => prev.filter((x) => x.number !== n));
   }
 
   function handleKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
@@ -57,6 +72,21 @@ export function ShareNumbersManager({
     formData.set("numbers", JSON.stringify(pending));
     action(formData);
     setPending([]);
+  }
+
+  function startEditPrice(cert: Cert) {
+    setEditingId(cert.id);
+    setEditPriceVal(cert.priceSgd != null ? String(Number(cert.priceSgd)) : "");
+  }
+
+  function saveEditPrice(certId: string) {
+    const raw = editPriceVal.trim();
+    const priceSgd = raw ? parseFloat(raw) : null;
+    if (priceSgd !== null && (isNaN(priceSgd) || priceSgd <= 0)) return;
+    startEdit(async () => {
+      await updateShareCertificatePriceAction(certId, projectId, priceSgd);
+      setEditingId(null);
+    });
   }
 
   function handleDeleteAll() {
@@ -92,7 +122,7 @@ export function ShareNumbersManager({
       <div className="px-5 py-4 border-b border-border bg-muted/30">
         <p className="text-xs font-semibold text-foreground mb-1">Add Share Numbers</p>
         <p className="text-[11px] text-muted-foreground mb-3">
-          Type a unique number and press Enter or + to add it. Each number is the identity of one individual share.
+          Type a unique number (and optionally its own price) and press Enter or + to add it. Each number is the identity of one individual share. Leave price blank to use the project&apos;s default (${projectSharePriceSgd.toFixed(2)}).
         </p>
 
         {/* Input row */}
@@ -106,6 +136,16 @@ export function ShareNumbersManager({
             onKeyDown={handleKeyDown}
             placeholder="e.g. 1001"
             className="flex-1 px-3 py-2 rounded-lg border border-border text-sm focus:outline-none focus:ring-2 focus:ring-brand/30 focus:border-brand"
+          />
+          <input
+            type="number"
+            min={0.01}
+            step={0.01}
+            value={priceVal}
+            onChange={(e) => { setPriceVal(e.target.value); setInputError(""); }}
+            onKeyDown={handleKeyDown}
+            placeholder={`$${projectSharePriceSgd.toFixed(2)} (default)`}
+            className="w-40 px-3 py-2 rounded-lg border border-border text-sm focus:outline-none focus:ring-2 focus:ring-brand/30 focus:border-brand"
           />
           <button
             type="button"
@@ -126,12 +166,13 @@ export function ShareNumbersManager({
           <div className="mb-3">
             <p className="text-[11px] text-muted-foreground mb-2">{pending.length} number{pending.length !== 1 ? "s" : ""} ready to save:</p>
             <div className="flex flex-wrap gap-1.5 max-h-36 overflow-y-auto">
-              {pending.map((n) => (
-                <span key={n} className="inline-flex items-center gap-1 text-xs font-mono bg-brand-50 border border-brand/30 text-brand px-2 py-1 rounded-lg">
-                  #{String(n).padStart(4, "0")}
+              {pending.map((p) => (
+                <span key={p.number} className="inline-flex items-center gap-1 text-xs font-mono bg-brand-50 border border-brand/30 text-brand px-2 py-1 rounded-lg">
+                  #{String(p.number).padStart(4, "0")}
+                  <span className="text-brand/70">${(p.priceSgd ?? projectSharePriceSgd).toFixed(2)}</span>
                   <button
                     type="button"
-                    onClick={() => removeFromPending(n)}
+                    onClick={() => removeFromPending(p.number)}
                     className="text-brand/60 hover:text-red-500 ml-0.5 leading-none transition-colors"
                     title="Remove"
                   >
@@ -175,6 +216,7 @@ export function ShareNumbersManager({
             <thead>
               <tr className="border-b border-border bg-muted/40">
                 <th className="text-left text-xs font-semibold text-muted-foreground px-5 py-3">Share #</th>
+                <th className="text-left text-xs font-semibold text-muted-foreground px-4 py-3">Price</th>
                 <th className="text-left text-xs font-semibold text-muted-foreground px-4 py-3">Status</th>
                 <th className="text-left text-xs font-semibold text-muted-foreground px-4 py-3">Holder</th>
                 <th className="text-left text-xs font-semibold text-muted-foreground px-4 py-3">Issued</th>
@@ -188,6 +230,35 @@ export function ShareNumbersManager({
                     <span className="font-mono font-semibold text-foreground text-base">
                       #{String(cert.shareNumber).padStart(4, "0")}
                     </span>
+                  </td>
+                  <td className="px-4 py-2.5">
+                    {editingId === cert.id ? (
+                      <div className="flex items-center gap-1.5">
+                        <input
+                          type="number"
+                          min={0.01}
+                          step={0.01}
+                          autoFocus
+                          value={editPriceVal}
+                          onChange={(e) => setEditPriceVal(e.target.value)}
+                          onKeyDown={(e) => { if (e.key === "Enter") saveEditPrice(cert.id); if (e.key === "Escape") setEditingId(null); }}
+                          placeholder={`$${projectSharePriceSgd.toFixed(2)}`}
+                          className="w-24 px-2 py-1 rounded-md border border-border text-xs focus:outline-none focus:ring-2 focus:ring-brand/30 focus:border-brand"
+                        />
+                        <button type="button" disabled={editPending} onClick={() => saveEditPrice(cert.id)} className="text-xs text-brand font-semibold hover:text-brand-dark disabled:opacity-50">Save</button>
+                        <button type="button" onClick={() => setEditingId(null)} className="text-xs text-muted-foreground hover:text-foreground">Cancel</button>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-2">
+                        <span className="text-foreground">
+                          ${(cert.priceSgd != null ? Number(cert.priceSgd) : projectSharePriceSgd).toFixed(2)}
+                        </span>
+                        {cert.priceSgd == null && <span className="text-[10px] text-muted-foreground">(default)</span>}
+                        {!cert.ownerId && (
+                          <button type="button" onClick={() => startEditPrice(cert)} className="text-[11px] text-brand hover:text-brand-dark">Edit</button>
+                        )}
+                      </div>
+                    )}
                   </td>
                   <td className="px-4 py-2.5">
                     {cert.ownerId ? (

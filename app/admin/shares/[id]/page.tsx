@@ -336,7 +336,8 @@ export default async function AdminProjectDetailPage({
       {/* Share Numbers */}
       <ShareNumbersManager
         projectId={project.id}
-        certificates={project.certificates}
+        projectSharePriceSgd={Number(project.sharePriceSgd)}
+        certificates={project.certificates.map((c) => ({ ...c, priceSgd: c.priceSgd != null ? Number(c.priceSgd) : null }))}
       />
 
       {/* Secondary Market Listings */}

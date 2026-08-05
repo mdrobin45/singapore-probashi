@@ -193,10 +193,10 @@ export default async function SharesPage({
 
                       <div className="px-6 pb-5">
                         <Link
-                          href={session ? `/shares/${project.id}` : "/login"}
+                          href={`/shares/${project.id}`}
                           className="block w-full text-center bg-brand text-white rounded-xl py-2.5 text-sm font-semibold hover:bg-brand-dark transition-colors"
                         >
-                          {session ? "View & Invest" : "Login to Invest"}
+                          {session ? "View & Invest" : "View Details"}
                         </Link>
                       </div>
                     </div>

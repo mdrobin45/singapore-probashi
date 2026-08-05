@@ -6,6 +6,7 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import { getReferredByAgentId } from "@/lib/commission";
 import { getShareSgdRate, sgdToBdt } from "@/lib/share-pricing";
+import { effectiveShareCertPrice } from "@/lib/share-pricing-utils";
 import { notifyAdmin } from "@/lib/notifications";
 
 type ActionState = { error?: string; success?: boolean; message?: string } | null;
@@ -54,7 +55,7 @@ export async function requestSharePurchaseAction(
 
   const availableCerts = await prisma.shareCertificate.findMany({
     where: { projectId, shareNumber: { in: shareNumbers }, ownerId: null },
-    select: { shareNumber: true },
+    select: { shareNumber: true, priceSgd: true },
   });
   if (availableCerts.length < shareNumbers.length) {
     const availableSet = new Set(availableCerts.map((c) => c.shareNumber));
@@ -63,7 +64,12 @@ export async function requestSharePurchaseAction(
   }
 
   const rate = await getShareSgdRate();
-  const totalAmount = sgdToBdt(Number(project.sharePriceSgd) * quantity, rate);
+  const projectSharePriceSgd = Number(project.sharePriceSgd);
+  const totalSgd = availableCerts.reduce(
+    (sum, c) => sum + effectiveShareCertPrice(c.priceSgd != null ? Number(c.priceSgd) : null, projectSharePriceSgd),
+    0
+  );
+  const totalAmount = sgdToBdt(totalSgd, rate);
 
   const wallet = await prisma.wallet.findUnique({
     where: { userId: session.userId },

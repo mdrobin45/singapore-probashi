@@ -12,9 +12,11 @@ type ShellProps = {
   children: React.ReactNode;
   user: SessionPayload | null;
   rateBar?: React.ReactNode;
+  walletBalance?: number | null;
+  pendingCheckout?: { token: string; totalAmount: number } | null;
 };
 
-export function Shell({ children, user, rateBar }: ShellProps) {
+export function Shell({ children, user, rateBar, walletBalance, pendingCheckout }: ShellProps) {
   const pathname = usePathname();
 
   const isAuth = AUTH_PATHS.some((p) => pathname.startsWith(p));
@@ -23,7 +25,7 @@ export function Shell({ children, user, rateBar }: ShellProps) {
 
   return (
     <>
-      <Navbar user={user} />
+      <Navbar user={user} walletBalance={walletBalance} pendingCheckout={pendingCheckout} />
       {rateBar}
       <main className="flex-1 pb-16 lg:pb-0">{children}</main>
       <Footer />
