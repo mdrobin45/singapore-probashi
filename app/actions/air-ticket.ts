@@ -24,6 +24,7 @@ const airTicketSchema = z.object({
   departDate: z.string().min(1, "Select a departure date"),
   returnDate: z.string().optional(),
   passengers: z.coerce.number().int().min(1).max(10),
+  preferredAirline: z.enum(["Biman Bangladesh Airlines", "Singapore Airlines", "US-Bangla Airlines", "AirAsia"]),
   notes: z.string().optional(),
 });
 
@@ -40,12 +41,13 @@ export async function requestAirTicketAction(
     departDate: formData.get("departDate"),
     returnDate: formData.get("returnDate") || undefined,
     passengers: formData.get("passengers"),
+    preferredAirline: formData.get("preferredAirline"),
     notes: formData.get("notes") || undefined,
   });
 
   if (!parse.success) return { error: parse.error.issues[0].message };
 
-  const { origin, destination, departDate, returnDate, passengers, notes } = parse.data;
+  const { origin, destination, departDate, returnDate, passengers, preferredAirline, notes } = parse.data;
 
   const referredById = await getReferredByAgentId(session.userId);
 
@@ -57,8 +59,18 @@ export async function requestAirTicketAction(
       departDate: new Date(departDate),
       returnDate: returnDate ? new Date(returnDate) : null,
       passengers,
+      preferredAirline,
       notes: notes ?? null,
       referredById,
+    },
+  });
+
+  await prisma.notification.create({
+    data: {
+      userId: session.userId,
+      title: "Air ticket booking requested",
+      message: `Your flight request from ${origin} to ${destination} (${preferredAirline}) has been submitted. We'll contact you within 1 hour to discuss options.`,
+      type: "SYSTEM",
     },
   });
 
@@ -70,11 +82,14 @@ export async function requestAirTicketAction(
       { label: "Origin", value: origin },
       { label: "Destination", value: destination },
       { label: "Depart", value: new Date(departDate).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }) },
+      { label: "Airline", value: preferredAirline },
       { label: "Passengers", value: String(passengers) },
     ],
     actionPath: "/admin/air-ticket",
   });
 
+  revalidatePath("/air-ticket/my");
+  revalidatePath("/dashboard");
   return { success: true, message: "Air ticket request submitted! We'll contact you within 1 hour to discuss options." };
 }
 

@@ -8,6 +8,7 @@ import { getReferredByAgentId } from "@/lib/commission";
 import { getShareSgdRate, sgdToBdt } from "@/lib/share-pricing";
 import { effectiveShareCertPrice } from "@/lib/share-pricing-utils";
 import { notifyAdmin } from "@/lib/notifications";
+import { getLockedShareNumbers, getListingRemainingCount } from "@/lib/share-listings";
 
 type ActionState = { error?: string; success?: boolean; message?: string } | null;
 
@@ -116,7 +117,7 @@ export async function requestSharePurchaseAction(
 // ── List shares for resale ────────────────────────────────────────────────────
 const resellSchema = z.object({
   ownershipId: z.string().min(1),
-  quantity: z.coerce.number().int().min(1, "Quantity must be at least 1"),
+  shareNumbers: z.string().min(1, "Select at least one share number"),
   askingPrice: z.coerce.number().positive("Enter a valid price"),
 });
 
@@ -129,13 +130,24 @@ export async function createShareListingAction(
 
   const parse = resellSchema.safeParse({
     ownershipId: formData.get("ownershipId"),
-    quantity: formData.get("quantity"),
+    shareNumbers: formData.get("shareNumbers"),
     askingPrice: formData.get("askingPrice"),
   });
 
   if (!parse.success) return { error: parse.error.issues[0].message };
 
-  const { ownershipId, quantity, askingPrice } = parse.data;
+  const { ownershipId, shareNumbers: shareNumbersRaw, askingPrice } = parse.data;
+
+  let shareNumbers: number[];
+  try {
+    const parsed = JSON.parse(shareNumbersRaw);
+    if (!Array.isArray(parsed) || parsed.length === 0) throw new Error();
+    shareNumbers = [...new Set(parsed.map((n) => Number(n)))];
+    if (shareNumbers.some((n) => !Number.isInteger(n) || n <= 0)) throw new Error();
+  } catch {
+    return { error: "Select at least one share number." };
+  }
+  const quantity = shareNumbers.length;
 
   const ownership = await prisma.shareOwnership.findUnique({
     where: { id: ownershipId, ownerId: session.userId },
@@ -143,8 +155,24 @@ export async function createShareListingAction(
   });
 
   if (!ownership) return { error: "Ownership not found." };
-  if (quantity > ownership.quantity) {
-    return { error: `You only own ${ownership.quantity} shares in this project.` };
+
+  const [ownedCerts, lockedNumbers] = await Promise.all([
+    prisma.shareCertificate.findMany({
+      where: { projectId: ownership.projectId, ownerId: session.userId, shareNumber: { in: shareNumbers } },
+      select: { shareNumber: true },
+    }),
+    getLockedShareNumbers(session.userId, ownership.projectId),
+  ]);
+
+  const ownedSet = new Set(ownedCerts.map((c) => c.shareNumber));
+  const notOwned = shareNumbers.filter((n) => !ownedSet.has(n));
+  if (notOwned.length > 0) {
+    return { error: `You don't own share number${notOwned.length > 1 ? "s" : ""} ${notOwned.map((n) => `#${String(n).padStart(6, "0")}`).join(", ")}.` };
+  }
+
+  const alreadyListed = shareNumbers.filter((n) => lockedNumbers.has(n));
+  if (alreadyListed.length > 0) {
+    return { error: `Share number${alreadyListed.length > 1 ? "s" : ""} ${alreadyListed.map((n) => `#${String(n).padStart(6, "0")}`).join(", ")} ${alreadyListed.length > 1 ? "are" : "is"} already listed for resale.` };
   }
 
   await prisma.shareListing.create({
@@ -152,6 +180,7 @@ export async function createShareListingAction(
       sellerId: session.userId,
       projectId: ownership.projectId,
       quantity,
+      listedShareNumbers: shareNumbers,
       askingPrice,
       status: "PENDING",
     },
@@ -163,7 +192,7 @@ export async function createShareListingAction(
     lines: [
       { label: "Seller", value: `${session.fullName} (${session.email})` },
       { label: "Project", value: ownership.project.name },
-      { label: "Quantity", value: String(quantity) },
+      { label: "Shares", value: `${quantity} (#${shareNumbers.map((n) => String(n).padStart(6, "0")).join(", #")})` },
       { label: "Asking Price", value: `৳${Number(askingPrice).toFixed(2)}/share` },
     ],
     actionPath: "/admin/shares",
@@ -199,7 +228,11 @@ export async function requestShareTradeAction(
 
   const listing = await prisma.shareListing.findUnique({
     where: { id: listingId },
-    select: { id: true, quantity: true, askingPrice: true, sellerId: true, status: true, project: { select: { name: true } } },
+    select: {
+      id: true, quantity: true, listedShareNumbers: true, askingPrice: true, sellerId: true, status: true,
+      project: { select: { name: true } },
+      trades: { where: { status: "APPROVED" }, select: { status: true, tradedShareNumbers: true } },
+    },
   });
 
   if (!listing || listing.status !== "APPROVED") {
@@ -208,8 +241,9 @@ export async function requestShareTradeAction(
   if (listing.sellerId === session.userId) {
     return { error: "You cannot buy your own listing." };
   }
-  if (quantity > listing.quantity) {
-    return { error: `Only ${listing.quantity} shares available in this listing.` };
+  const remaining = getListingRemainingCount(listing);
+  if (quantity > remaining) {
+    return { error: `Only ${remaining} share${remaining === 1 ? "" : "s"} available in this listing.` };
   }
 
   const totalAmount = quantity * Number(listing.askingPrice);

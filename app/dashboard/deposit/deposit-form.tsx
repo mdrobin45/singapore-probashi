@@ -12,7 +12,7 @@ type PaymentAccount = {
   accountName: string | null;
 };
 
-export function DepositForm({ accounts }: { accounts: PaymentAccount[] }) {
+export function DepositForm({ accounts, defaultAmount }: { accounts: PaymentAccount[]; defaultAmount?: string }) {
   const [state, action, pending] = useActionState(requestDepositAction, null);
 
   const [proofMode, setProofMode] = useState<"txid" | "screenshot">("txid");
@@ -80,6 +80,7 @@ export function DepositForm({ accounts }: { accounts: PaymentAccount[] }) {
             required
             min={10}
             step={0.01}
+            defaultValue={defaultAmount}
             placeholder="Minimum ৳10"
             className="w-full pl-8 pr-3.5 py-2.5 rounded-lg border border-border text-foreground focus:outline-none focus:ring-2 focus:ring-brand/30 focus:border-brand text-sm"
           />

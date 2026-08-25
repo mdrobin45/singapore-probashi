@@ -96,7 +96,7 @@ export default async function AdminSharesPage() {
                     <div className="flex gap-4 mt-2 text-xs">
                       <span>Share #: <strong className="text-foreground font-mono">{r.shareNumber}</strong></span>
                       <span>Size: <strong className="text-foreground">{r.size}</strong></span>
-                      <span>Price: <strong className="text-foreground">৳{Number(r.price).toFixed(2)}</strong></span>
+                      <span>Offered: <strong className="text-foreground">${Number(r.price).toFixed(2)} (৳{sgdToBdt(Number(r.price), rate).toFixed(2)})</strong></span>
                       <span>Preferred Date: <strong className="text-foreground">{r.preferredDate.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })}</strong></span>
                     </div>
                   </div>
@@ -132,6 +132,11 @@ export default async function AdminSharesPage() {
                       <span>Market: <strong className="text-foreground">৳{sgdToBdt(Number(l.project.sharePriceSgd), rate).toFixed(2)}</strong></span>
                       <span>Total: <strong className="text-foreground">৳{(l.quantity * Number(l.askingPrice)).toFixed(2)}</strong></span>
                     </div>
+                    {l.listedShareNumbers.length > 0 && (
+                      <p className="text-[11px] font-mono text-brand mt-1.5 max-w-md wrap-break-word">
+                        {l.listedShareNumbers.map((n) => `#${String(n).padStart(6, "0")}`).join(", ")}
+                      </p>
+                    )}
                   </div>
                   <ResellActions listingId={l.id} type="listing" />
                 </div>

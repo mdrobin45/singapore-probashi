@@ -58,6 +58,9 @@ enum WalletTxType {
   SHARE_SALE
   REFUND
   COMMISSION
+  ADMIN_CREDIT
+  ADMIN_DEBIT
+  CHECKOUT_PAYMENT
 }
 
 enum DepositStatus {
@@ -316,6 +319,10 @@ model ShareListing {
   sellerId     String
   projectId    String
   quantity     Int
+  // The specific share numbers (ShareCertificate.shareNumber) the seller is
+  // offering — quantity is just this array's length. Empty on legacy rows
+  // created before this field existed.
+  listedShareNumbers Int[]    @default([])
   askingPrice  Decimal        @db.Decimal(12, 2)
   status       PurchaseStatus @default(PENDING)
   adminNote    String?
@@ -332,6 +339,11 @@ model ShareTrade {
   listingId     String
   buyerId       String
   quantity      Int
+  // The specific share numbers assigned from the listing's pool at approval
+  // time (buyers only pick a quantity; admin approval fills this in from
+  // whichever of the listing's listedShareNumbers aren't already claimed by
+  // another approved trade against the same listing).
+  tradedShareNumbers Int[]     @default([])
   totalAmount   Decimal        @db.Decimal(12, 2)
   paymentMethod PaymentMethod
   txId          String?
@@ -447,6 +459,7 @@ model AirTicketRequest {
   departDate        DateTime
   returnDate        DateTime?
   passengers        Int           @default(1)
+  preferredAirline  String?
   notes             String?
   status            BookingStatus @default(PENDING)
   adminNote         String?
@@ -476,6 +489,7 @@ model TaxiRequest {
   destination       String
   date              DateTime
   passengerCount    Int           @default(1)
+  vehicleType       String?
   notes             String?
   status            BookingStatus @default(PENDING)
   adminNote         String?

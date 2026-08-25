@@ -13,10 +13,15 @@ async function getPaymentAccounts() {
   return rows;
 }
 
-export default async function DepositPage() {
+export default async function DepositPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ amount?: string }>;
+}) {
   const session = await getSession();
   if (!session) redirect("/login");
 
+  const { amount } = await searchParams;
   const accounts = await getPaymentAccounts();
 
   return (
@@ -33,7 +38,7 @@ export default async function DepositPage() {
         <div className="bg-white rounded-2xl border border-border p-7">
           <h1 className="text-xl font-bold text-foreground mb-1">Deposit Funds</h1>
           <p className="text-sm text-muted-foreground mb-6">Transfer money via any method below, then submit the transaction ID. Your wallet will be credited after admin verification.</p>
-          <DepositForm accounts={accounts} />
+          <DepositForm accounts={accounts} defaultAmount={amount} />
         </div>
       </div>
     </div>

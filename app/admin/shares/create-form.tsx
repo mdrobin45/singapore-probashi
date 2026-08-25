@@ -37,7 +37,7 @@ export function CreateProjectForm() {
     if (!raw) return;
     const n = parseInt(raw, 10);
     if (isNaN(n) || n < 1) { setNumError("Must be a positive integer."); return; }
-    if (shareNums.some((x) => x.number === n)) { setNumError(`#${String(n).padStart(4, "0")} already added.`); return; }
+    if (shareNums.some((x) => x.number === n)) { setNumError(`#${String(n).padStart(6, "0")} already added.`); return; }
     const priceRaw = priceInput.trim();
     const priceSgd = priceRaw ? parseFloat(priceRaw) : null;
     if (priceSgd !== null && (isNaN(priceSgd) || priceSgd <= 0)) { setNumError("Enter a valid price or leave it blank."); return; }
@@ -175,7 +175,7 @@ export function CreateProjectForm() {
               <div className="flex flex-wrap gap-1.5 max-h-32 overflow-y-auto">
                 {shareNums.map((n) => (
                   <span key={n.number} className="inline-flex items-center gap-1 text-xs font-mono bg-brand-50 border border-brand/30 text-brand px-2 py-1 rounded-lg">
-                    #{String(n.number).padStart(4, "0")}
+                    #{String(n.number).padStart(6, "0")}
                     <span className="text-brand/70">${(n.priceSgd ?? basePrice).toFixed(2)}</span>
                     <button
                       type="button"

@@ -188,7 +188,7 @@ function AvatarDropdown({ user }: { user: SessionPayload }) {
 									strokeLinecap="round"
 								/>
 							</svg>
-							My Lost & Found
+							My Pick & Put
 						</Link>
 						<Link
 							href="/apply"
@@ -430,14 +430,14 @@ export function Navbar({
 	pendingCheckout?: { token: string; totalAmount: number } | null;
 }) {
 	const navLinks = [
-		{ href: "/shares", label: "Shares" },
-		{ href: "/shares/buy-request", label: "Buy Request" },
+		{ href: "/shares", label: "Shares 6" },
+		{ href: "/shares/buy-request", label: "Share 4" },
 		{ href: "/services", label: "Services" },
 		{ href: "/taxi", label: "Taxi Rent" },
 		{ href: "/air-ticket", label: "Air Ticket" },
 		{ href: "/currency", label: "Currency" },
 		{ href: "/islamic-center", label: "Islamic Center" },
-		{ href: "/lost-found", label: "Lost & Found" },
+		{ href: "/lost-found", label: "Pick & Put" },
 	];
 
 	// Wallet/Checkout need an account, so only surface them in the mobile

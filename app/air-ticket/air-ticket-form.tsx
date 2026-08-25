@@ -80,6 +80,21 @@ export function AirTicketRequestForm() {
           </div>
 
           <div>
+            <label className="block text-sm font-medium text-foreground mb-1.5">Preferred airline</label>
+            <select
+              name="preferredAirline"
+              required
+              defaultValue="Biman Bangladesh Airlines"
+              className="w-full px-3.5 py-2.5 rounded-xl border border-border text-foreground focus:outline-none focus:ring-2 focus:ring-brand/30 focus:border-brand text-sm transition-colors"
+            >
+              <option value="Biman Bangladesh Airlines">Biman Bangladesh Airlines</option>
+              <option value="Singapore Airlines">Singapore Airlines (SQ)</option>
+              <option value="US-Bangla Airlines">US-Bangla Airlines</option>
+              <option value="AirAsia">AirAsia</option>
+            </select>
+          </div>
+
+          <div>
             <label className="block text-sm font-medium text-foreground mb-1.5">Passengers</label>
             <input
               name="passengers"

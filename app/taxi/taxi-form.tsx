@@ -69,6 +69,20 @@ export function TaxiRequestForm() {
           </div>
 
           <div>
+            <label className="block text-sm font-medium text-foreground mb-1.5">Vehicle type</label>
+            <select
+              name="vehicleType"
+              required
+              defaultValue="Private Car"
+              className="w-full px-3.5 py-2.5 rounded-xl border border-border text-foreground focus:outline-none focus:ring-2 focus:ring-brand/30 focus:border-brand text-sm transition-colors"
+            >
+              <option value="Noah">Noah</option>
+              <option value="Private Car">Private Car</option>
+              <option value="Hiace">Hiace</option>
+            </select>
+          </div>
+
+          <div>
             <label className="block text-sm font-medium text-foreground mb-1.5">Passengers</label>
             <input
               name="passengerCount"

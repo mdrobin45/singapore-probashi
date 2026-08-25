@@ -48,8 +48,8 @@ export function ShareNumbersManager({
     if (!raw) return;
     const n = parseInt(raw, 10);
     if (isNaN(n) || n < 1) { setInputError("Must be a positive integer."); return; }
-    if (pending.some((p) => p.number === n)) { setInputError(`#${String(n).padStart(4, "0")} already in list.`); return; }
-    if (existingNumbers.has(n)) { setInputError(`#${String(n).padStart(4, "0")} already exists in this project.`); return; }
+    if (pending.some((p) => p.number === n)) { setInputError(`#${String(n).padStart(6, "0")} already in list.`); return; }
+    if (existingNumbers.has(n)) { setInputError(`#${String(n).padStart(6, "0")} already exists in this project.`); return; }
     const priceRaw = priceVal.trim();
     const priceSgd = priceRaw ? parseFloat(priceRaw) : null;
     if (priceSgd !== null && (isNaN(priceSgd) || priceSgd <= 0)) { setInputError("Enter a valid price or leave it blank."); return; }
@@ -168,7 +168,7 @@ export function ShareNumbersManager({
             <div className="flex flex-wrap gap-1.5 max-h-36 overflow-y-auto">
               {pending.map((p) => (
                 <span key={p.number} className="inline-flex items-center gap-1 text-xs font-mono bg-brand-50 border border-brand/30 text-brand px-2 py-1 rounded-lg">
-                  #{String(p.number).padStart(4, "0")}
+                  #{String(p.number).padStart(6, "0")}
                   <span className="text-brand/70">${(p.priceSgd ?? projectSharePriceSgd).toFixed(2)}</span>
                   <button
                     type="button"
@@ -228,7 +228,7 @@ export function ShareNumbersManager({
                 <tr key={cert.id} className="hover:bg-muted/20 transition-colors">
                   <td className="px-5 py-2.5">
                     <span className="font-mono font-semibold text-foreground text-base">
-                      #{String(cert.shareNumber).padStart(4, "0")}
+                      #{String(cert.shareNumber).padStart(6, "0")}
                     </span>
                   </td>
                   <td className="px-4 py-2.5">

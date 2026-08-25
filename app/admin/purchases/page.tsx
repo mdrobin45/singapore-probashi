@@ -85,7 +85,7 @@ export default async function AdminPurchasesPage() {
                     {r.quantity}
                     {r.requestedShareNumbers.length > 0 && (
                       <p className="text-[11px] font-mono text-muted-foreground font-normal mt-0.5 max-w-32 wrap-break-word">
-                        {r.requestedShareNumbers.map((n) => `#${String(n).padStart(4, "0")}`).join(", ")}
+                        {r.requestedShareNumbers.map((n) => `#${String(n).padStart(6, "0")}`).join(", ")}
                       </p>
                     )}
                   </td>

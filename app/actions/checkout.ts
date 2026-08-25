@@ -8,6 +8,8 @@ import { randomBytes } from "crypto";
 import { z } from "zod";
 import { creditCommission } from "@/lib/commission";
 
+type TxClient = Parameters<Parameters<typeof prisma.$transaction>[0]>[0];
+
 async function requireAdmin() {
   const session = await getSession();
   if (!session) redirect("/login");
@@ -222,8 +224,20 @@ export async function generatePaymentLinkAction(checkoutId: string): Promise<{ e
     },
   });
 
+  await prisma.notification.create({
+    data: {
+      userId: checkout.userId,
+      title: "Booking payment link ready",
+      message: `Your booking checkout for ৳${Number(checkout.totalAmount).toFixed(2)} is ready. Click to pay or view details.`,
+      type: "SYSTEM",
+      metadata: { link: `/pay/${updated.token}` },
+    },
+  });
+
   revalidatePath("/admin/checkouts");
   revalidatePath(`/admin/checkouts/${checkoutId}`);
+  revalidatePath("/checkout");
+  revalidatePath("/dashboard");
   return { token: updated.token };
 }
 
@@ -299,65 +313,128 @@ export async function submitCheckoutPaymentAction(
   return { success: true };
 }
 
+// ─── Shared: mark a checkout PAID and settle its linked bookings/commission ────
+// Used both by admin approving a submitted proof and by an instant wallet
+// payment, which needs no manual review since the balance check is authoritative.
+
+async function settleCheckoutPaid(tx: TxClient, checkoutId: string, processedById: string | null) {
+  const checkout = await tx.checkout.update({
+    where: { id: checkoutId },
+    data: { status: "PAID", processedById, processedAt: new Date() },
+    include: {
+      items: {
+        include: {
+          taxiRequest: { select: { referredById: true } },
+          airTicketRequest: { select: { referredById: true } },
+          serviceRequest: { select: { referredById: true } },
+        },
+      },
+    },
+  });
+
+  for (const item of checkout.items) {
+    if (item.taxiRequestId) {
+      await tx.taxiRequest.update({ where: { id: item.taxiRequestId }, data: { status: "CONFIRMED" } });
+    }
+    if (item.airTicketRequestId) {
+      await tx.airTicketRequest.update({ where: { id: item.airTicketRequestId }, data: { status: "CONFIRMED" } });
+    }
+    if (item.serviceRequestId) {
+      await tx.serviceRequest.update({ where: { id: item.serviceRequestId }, data: { status: "IN_PROGRESS" } });
+    }
+
+    const referredById =
+      item.taxiRequest?.referredById ??
+      item.airTicketRequest?.referredById ??
+      item.serviceRequest?.referredById ??
+      null;
+    const commissionModule = item.taxiRequestId ? "TAXI" : item.airTicketRequestId ? "AIR_TICKET" : item.serviceRequestId ? "SERVICE" : null;
+    if (referredById && commissionModule) {
+      await creditCommission(tx, {
+        referredById,
+        amount: Number(item.lineTotal),
+        description: item.description,
+        module: commissionModule,
+      });
+    }
+  }
+
+  await tx.notification.create({
+    data: {
+      userId: checkout.userId,
+      title: "Payment received",
+      message: `Your payment of ৳${Number(checkout.totalAmount).toFixed(2)} has been confirmed. Your booking(s) are now confirmed.`,
+      type: "SYSTEM",
+    },
+  });
+
+  return checkout;
+}
+
 // ─── Admin: approve / reject submitted proof ───────────────────────────────────
 
 export async function approveCheckoutAction(id: string) {
   const session = await requireAdmin();
 
-  await prisma.$transaction(async (tx) => {
-    const checkout = await tx.checkout.update({
-      where: { id },
-      data: { status: "PAID", processedById: session.userId, processedAt: new Date() },
-      include: {
-        items: {
-          include: {
-            taxiRequest: { select: { referredById: true } },
-            airTicketRequest: { select: { referredById: true } },
-            serviceRequest: { select: { referredById: true } },
-          },
-        },
-      },
-    });
-
-    for (const item of checkout.items) {
-      if (item.taxiRequestId) {
-        await tx.taxiRequest.update({ where: { id: item.taxiRequestId }, data: { status: "CONFIRMED" } });
-      }
-      if (item.airTicketRequestId) {
-        await tx.airTicketRequest.update({ where: { id: item.airTicketRequestId }, data: { status: "CONFIRMED" } });
-      }
-      if (item.serviceRequestId) {
-        await tx.serviceRequest.update({ where: { id: item.serviceRequestId }, data: { status: "IN_PROGRESS" } });
-      }
-
-      const referredById =
-        item.taxiRequest?.referredById ??
-        item.airTicketRequest?.referredById ??
-        item.serviceRequest?.referredById ??
-        null;
-      const commissionModule = item.taxiRequestId ? "TAXI" : item.airTicketRequestId ? "AIR_TICKET" : item.serviceRequestId ? "SERVICE" : null;
-      if (referredById && commissionModule) {
-        await creditCommission(tx, {
-          referredById,
-          amount: Number(item.lineTotal),
-          description: item.description,
-          module: commissionModule,
-        });
-      }
-    }
-
-    await tx.notification.create({
-      data: {
-        userId: checkout.userId,
-        title: "Payment received",
-        message: `Your payment of ৳${Number(checkout.totalAmount).toFixed(2)} has been confirmed. Your booking(s) are now confirmed.`,
-        type: "SYSTEM",
-      },
-    });
-  });
+  await prisma.$transaction((tx) => settleCheckoutPaid(tx, id, session.userId));
 
   revalidatePath("/admin/checkouts");
   revalidatePath(`/admin/checkouts/${id}`);
+}
+
+// ─── User: pay a checkout instantly from their platform wallet ────────────────
+
+type WalletPayState = { error?: string; success?: boolean } | null;
+
+export async function payCheckoutWithWalletAction(token: string): Promise<WalletPayState> {
+  const session = await getSession();
+  if (!session) redirect("/login");
+
+  const checkout = await prisma.checkout.findUnique({ where: { token } });
+  if (!checkout) return { error: "Checkout not found." };
+  if (checkout.userId !== session.userId) return { error: "This checkout doesn't belong to your account." };
+  if (checkout.status !== "AWAITING_PAYMENT" && checkout.status !== "REJECTED") {
+    return { error: "This checkout is not awaiting payment." };
+  }
+  if (checkout.expiresAt && checkout.expiresAt < new Date()) {
+    return { error: "This payment link has expired. Please contact us for a new one." };
+  }
+
+  const amount = Number(checkout.totalAmount);
+
+  try {
+    await prisma.$transaction(async (tx) => {
+      const wallet = await tx.wallet.findUnique({ where: { userId: session.userId } });
+      if (!wallet) throw new Error("Wallet not found.");
+      const balanceBefore = Number(wallet.balance);
+      if (balanceBefore < amount) {
+        throw new Error(`Insufficient wallet balance. You need ৳${amount.toFixed(2)} but have ৳${balanceBefore.toFixed(2)}. Deposit funds first.`);
+      }
+      const balanceAfter = balanceBefore - amount;
+
+      await tx.wallet.update({ where: { id: wallet.id }, data: { balance: balanceAfter } });
+      await tx.walletTransaction.create({
+        data: {
+          walletId: wallet.id,
+          type: "CHECKOUT_PAYMENT",
+          amount,
+          description: `Checkout payment — ${checkout.token}`,
+          balanceBefore,
+          balanceAfter,
+        },
+      });
+      await tx.checkout.update({
+        where: { id: checkout.id },
+        data: { paymentMethod: "WALLET", txId: null, screenshotUrl: null, adminNote: null },
+      });
+      await settleCheckoutPaid(tx, checkout.id, null);
+    });
+  } catch (err) {
+    return { error: err instanceof Error ? err.message : "Payment failed." };
+  }
+
+  revalidatePath(`/pay/${token}`);
+  return { success: true };
 }
 
 export async function rejectCheckoutAction(id: string, note: string) {

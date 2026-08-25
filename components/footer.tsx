@@ -15,7 +15,7 @@ export function Footer() {
     Community: [
       { href: "/blog", label: "Blog" },
       { href: "/islamic-center", label: "Islamic Center" },
-      { href: "/lost-found", label: "Lost & Found" },
+      { href: "/lost-found", label: "Pick & Put" },
       { href: "/contact", label: "Contact Support" },
     ],
     Account: [

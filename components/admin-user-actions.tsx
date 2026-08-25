@@ -9,6 +9,7 @@ import {
   verifyUserAction,
   changeUserRoleAction,
   toggleAgentAction,
+  adjustWalletAction,
 } from "@/app/actions/admin-users";
 
 type User = {
@@ -39,6 +40,7 @@ export function UserActionsMenu({ user, actorRole }: Props) {
   const [open, setOpen] = useState(false);
   const [showRoleSelect, setShowRoleSelect] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
+  const [walletOpen, setWalletOpen] = useState(false);
   const [copied, setCopied] = useState<"code" | "link" | null>(null);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -60,6 +62,7 @@ export function UserActionsMenu({ user, actorRole }: Props) {
   const [roleState, roleAction, rolePending] = useActionState(changeUserRoleAction, null);
   const [agentState, agentAction, agentPending] = useActionState(toggleAgentAction, null);
   const [editState, editAction, editPending] = useActionState(updateUserAction, null);
+  const [walletState, walletAction, walletPending] = useActionState(adjustWalletAction, null);
 
   const feedback = deleteState ?? toggleState ?? verifyState ?? roleState ?? agentState;
 
@@ -74,6 +77,10 @@ export function UserActionsMenu({ user, actorRole }: Props) {
       router.refresh();
     }
   }, [editState, router]);
+
+  useEffect(() => {
+    if (walletState?.success) router.refresh();
+  }, [walletState, router]);
 
   useEffect(() => {
     function handleClick(e: MouseEvent) {
@@ -161,6 +168,19 @@ export function UserActionsMenu({ user, actorRole }: Props) {
                 {togglePending ? "Updating…" : user.isActive ? "Ban user" : "Unban user"}
               </button>
             </form>
+          )}
+
+          {/* Wallet adjustment */}
+          {canManage && (
+            <button
+              onClick={() => { setWalletOpen(true); setOpen(false); }}
+              className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-foreground hover:bg-muted transition-colors"
+            >
+              <svg className="w-4 h-4 text-green-600 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                <rect x="1" y="4" width="22" height="16" rx="2" /><line x1="1" y1="10" x2="23" y2="10" />
+              </svg>
+              Adjust wallet
+            </button>
           )}
 
           {/* Agent / referral commission */}
@@ -333,6 +353,82 @@ export function UserActionsMenu({ user, actorRole }: Props) {
                 className="w-full bg-brand text-white rounded-lg py-2.5 text-sm font-semibold hover:bg-brand-dark transition-colors disabled:opacity-60"
               >
                 {editPending ? "Saving…" : "Save Changes"}
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {walletOpen && (
+        <div className="fixed inset-0 z-60 flex items-center justify-center p-4 pb-20 lg:pb-4">
+          <div className="absolute inset-0 bg-black/50" onClick={() => setWalletOpen(false)} />
+          <div className="relative bg-white rounded-2xl border border-border shadow-xl w-full max-w-sm">
+            <div className="px-6 py-4 border-b border-border flex items-center justify-between">
+              <h2 className="font-bold text-foreground">Adjust Wallet — {user.fullName}</h2>
+              <button onClick={() => setWalletOpen(false)} className="text-muted-foreground hover:text-foreground" aria-label="Close">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            <form action={walletAction} className="p-6 space-y-4">
+              <input type="hidden" name="userId" value={user.id} />
+
+              <div>
+                <label className="block text-xs font-medium text-foreground mb-1">Direction</label>
+                <div className="grid grid-cols-2 gap-2">
+                  <label className="cursor-pointer">
+                    <input type="radio" name="direction" value="CREDIT" defaultChecked className="sr-only peer" />
+                    <div className="border border-border rounded-lg px-3 py-2 text-sm font-medium text-center transition-colors peer-checked:bg-green-50 peer-checked:border-green-400 peer-checked:text-green-700 text-muted-foreground">
+                      + Credit
+                    </div>
+                  </label>
+                  <label className="cursor-pointer">
+                    <input type="radio" name="direction" value="DEBIT" className="sr-only peer" />
+                    <div className="border border-border rounded-lg px-3 py-2 text-sm font-medium text-center transition-colors peer-checked:bg-red-50 peer-checked:border-red-400 peer-checked:text-red-700 text-muted-foreground">
+                      − Debit
+                    </div>
+                  </label>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-foreground mb-1">Amount (৳)</label>
+                <input
+                  name="amount"
+                  type="number"
+                  min={0.01}
+                  step={0.01}
+                  required
+                  className="w-full px-3 py-2 rounded-lg border border-border text-sm focus:outline-none focus:ring-2 focus:ring-brand/30 focus:border-brand"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-foreground mb-1">Reason</label>
+                <textarea
+                  name="reason"
+                  required
+                  rows={2}
+                  placeholder="e.g. Refund for cancelled taxi booking"
+                  className="w-full px-3 py-2 rounded-lg border border-border text-sm resize-none focus:outline-none focus:ring-2 focus:ring-brand/30 focus:border-brand"
+                />
+              </div>
+
+              {walletState?.error && (
+                <p className="text-xs text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">{walletState.error}</p>
+              )}
+              {walletState?.success && (
+                <p className="text-xs text-green-700 bg-green-50 border border-green-200 rounded-lg px-3 py-2">{walletState.success}</p>
+              )}
+
+              <button
+                type="submit"
+                disabled={walletPending}
+                className="w-full bg-brand text-white rounded-lg py-2.5 text-sm font-semibold hover:bg-brand-dark transition-colors disabled:opacity-60"
+              >
+                {walletPending ? "Saving…" : "Apply Adjustment"}
               </button>
             </form>
           </div>

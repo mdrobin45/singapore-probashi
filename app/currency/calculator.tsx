@@ -16,6 +16,10 @@ export function BankCalculator({ defaultRate, isManual }: Props) {
 
 	const numAmount = parseFloat(amount) || 0;
 	const result = reversed ? numAmount / rate : numAmount * rate;
+	// Deposits/withdrawals are always in BDT — whichever side of the
+	// conversion that is becomes the amount carried over to those forms.
+	const bdtAmount = reversed ? numAmount : result;
+	const bdtParam = bdtAmount > 0 ? `?amount=${bdtAmount.toFixed(2)}` : "";
 
 	const fromCurrency = reversed ? "BDT" : "SGD";
 	const toCurrency = reversed ? "SGD" : "BDT";
@@ -95,13 +99,13 @@ export function BankCalculator({ defaultRate, isManual }: Props) {
 
 			<div className="flex flex-col sm:flex-row gap-3 mt-4">
 				<Link
-					href="/dashboard/deposit"
+					href={`/dashboard/deposit${bdtParam}`}
 					className="flex-1 text-center bg-brand text-white text-sm font-semibold px-5 py-2.5 rounded-xl hover:bg-brand-dark transition-colors"
 				>
 					Deposit to Wallet
 				</Link>
 				<Link
-					href="/dashboard/withdraw"
+					href={`/dashboard/withdraw${bdtParam}`}
 					className="flex-1 text-center border border-border text-foreground text-sm font-semibold px-5 py-2.5 rounded-xl hover:bg-muted transition-colors"
 				>
 					Withdraw from Wallet

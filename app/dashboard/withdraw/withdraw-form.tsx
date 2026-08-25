@@ -13,7 +13,7 @@ const METHODS = [
   { value: "PAYNOW", label: "PayNow" },
 ];
 
-export function WithdrawForm({ balance }: { balance: number }) {
+export function WithdrawForm({ balance, defaultAmount }: { balance: number; defaultAmount?: string }) {
   const [state, action, pending] = useActionState(requestWithdrawalAction, null);
 
   if (state?.success) {
@@ -47,6 +47,7 @@ export function WithdrawForm({ balance }: { balance: number }) {
             min={10}
             max={balance}
             step={0.01}
+            defaultValue={defaultAmount}
             placeholder="Minimum ৳10"
             className="w-full pl-8 pr-3.5 py-2.5 rounded-lg border border-border text-foreground focus:outline-none focus:ring-2 focus:ring-brand/30 focus:border-brand text-sm"
           />

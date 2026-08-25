@@ -15,10 +15,12 @@ export function ResellForm({
 	ownerships,
 	selectedId,
 	rate,
+	sellableByOwnership,
 }: {
 	ownerships: Ownership[];
 	selectedId: string | null;
 	rate: number;
+	sellableByOwnership: Record<string, number[]>;
 }) {
 	const [state, action, pending] = useActionState(
 		createShareListingAction,
@@ -27,14 +29,22 @@ export function ResellForm({
 	const [ownershipId, setOwnershipId] = useState(
 		selectedId ?? ownerships[0]?.id ?? "",
 	);
-	const [qty, setQty] = useState(1);
+	const [selectedNumbers, setSelectedNumbers] = useState<number[]>([]);
 	const [price, setPrice] = useState("");
 
 	const selected = ownerships.find((o) => o.id === ownershipId);
+	const sellableNumbers = sellableByOwnership[ownershipId] ?? [];
 	const marketPrice = selected
 		? sgdToBdt(Number(selected.project.sharePriceSgd), rate)
 		: 0;
+	const qty = selectedNumbers.length;
 	const total = qty * Number(price || 0);
+
+	function toggleNumber(n: number) {
+		setSelectedNumbers((prev) =>
+			prev.includes(n) ? prev.filter((x) => x !== n) : [...prev, n].sort((a, b) => a - b),
+		);
+	}
 
 	if (state?.success) {
 		return (
@@ -64,6 +74,8 @@ export function ResellForm({
 
 	return (
 		<form action={action} className="p-7 space-y-5">
+			<input type="hidden" name="shareNumbers" value={JSON.stringify(selectedNumbers)} />
+
 			{/* Select project */}
 			<div>
 				<label className="block text-sm font-medium text-foreground mb-1.5">
@@ -74,7 +86,7 @@ export function ResellForm({
 					value={ownershipId}
 					onChange={(e) => {
 						setOwnershipId(e.target.value);
-						setQty(1);
+						setSelectedNumbers([]);
 						setPrice("");
 					}}
 					className="w-full px-3.5 py-2.5 rounded-xl border border-border text-foreground focus:outline-none focus:ring-2 focus:ring-brand/30 focus:border-brand text-sm"
@@ -99,24 +111,43 @@ export function ResellForm({
 				)}
 			</div>
 
-			{/* Quantity */}
+			{/* Share number picker */}
 			<div>
-				<label className="block text-sm font-medium text-foreground mb-1.5">
-					Quantity to Sell{" "}
-					<span className="text-muted-foreground font-normal">
-						(max {selected?.quantity ?? 0})
-					</span>
-				</label>
-				<input
-					type="number"
-					name="quantity"
-					min={1}
-					max={selected?.quantity ?? 1}
-					value={qty}
-					onChange={(e) => setQty(Number(e.target.value))}
-					required
-					className="w-full px-3.5 py-2.5 rounded-xl border border-border text-foreground focus:outline-none focus:ring-2 focus:ring-brand/30 focus:border-brand text-sm"
-				/>
+				<div className="flex items-center justify-between mb-1.5">
+					<label className="text-sm font-medium text-foreground">
+						Select Share Numbers to Sell
+					</label>
+					<span className="text-xs text-muted-foreground">{sellableNumbers.length} sellable</span>
+				</div>
+
+				{sellableNumbers.length === 0 ? (
+					<p className="text-xs text-muted-foreground border border-border rounded-lg px-3 py-4 text-center">
+						No share numbers available to list — they may already be listed for resale.
+					</p>
+				) : (
+					<div className="grid grid-cols-4 gap-1.5 max-h-56 overflow-y-auto p-1 border border-border rounded-lg">
+						{sellableNumbers.map((n) => {
+							const isSelected = selectedNumbers.includes(n);
+							return (
+								<button
+									key={n}
+									type="button"
+									onClick={() => toggleNumber(n)}
+									className={`px-2 py-1.5 rounded-md text-xs font-mono font-medium transition-colors ${
+										isSelected
+											? "bg-brand text-white"
+											: "bg-muted text-muted-foreground hover:bg-brand-50 hover:text-brand"
+									}`}
+								>
+									#{String(n).padStart(6, "0")}
+								</button>
+							);
+						})}
+					</div>
+				)}
+				<p className="text-xs text-muted-foreground mt-1">
+					{qty} share{qty !== 1 ? "s" : ""} selected
+				</p>
 			</div>
 
 			{/* Asking price */}
@@ -164,8 +195,8 @@ export function ResellForm({
 
 			<button
 				type="submit"
-				disabled={pending}
-				className="w-full bg-brand text-white rounded-xl py-3 text-sm font-semibold hover:bg-brand-dark transition-colors disabled:opacity-60"
+				disabled={pending || qty === 0}
+				className="w-full bg-brand text-white rounded-xl py-3 text-sm font-semibold hover:bg-brand-dark transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
 			>
 				{pending ? "Submitting…" : "Submit Resell Listing"}
 			</button>

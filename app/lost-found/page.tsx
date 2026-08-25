@@ -48,9 +48,9 @@ export default async function LostFoundPage({
           <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
             <div>
               <span className="inline-block text-xs font-bold uppercase tracking-wider text-brand bg-brand-50 px-3 py-1 rounded-full mb-3">
-                Lost & Found
+                Pick & Put
               </span>
-              <h1 className="text-3xl font-bold text-foreground">Community Lost & Found</h1>
+              <h1 className="text-3xl font-bold text-foreground">Community Pick & Put</h1>
               <p className="text-muted-foreground mt-2">
                 Lost something in Singapore? Found someone&apos;s belonging? Post here to connect with the community.
               </p>

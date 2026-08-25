@@ -185,24 +185,6 @@ export default async function HomePage() {
 		getShareSgdRate(),
 	]);
 
-	const steps = [
-		{
-			number: "01",
-			title: "Create Your Account",
-			desc: "Register with your email address. Verify via OTP to activate your account instantly.",
-		},
-		{
-			number: "02",
-			title: "Complete Your Profile",
-			desc: "Add your personal information and profile photo to get full access to all platform features.",
-		},
-		{
-			number: "03",
-			title: "Start Using Services",
-			desc: "Explore the marketplace, convert currency, book tickets and connect with your community.",
-		},
-	] as const;
-
 	const mktPoints = [
 		"Admin-created and verified investment projects",
 		"Manual payment approval — bKash, Nagad, Bank Transfer",
@@ -257,12 +239,16 @@ export default async function HomePage() {
 								</span>
 							</div>
 
-							{/* Full map, always visible — square aspect matches the PDF page so it never needs internal scrolling */}
+							{/* Full map, always visible — square aspect matches the PDF page so it never needs internal scrolling.
+							    pointer-events-none keeps it a static preview: PDF viewers otherwise capture touch/scroll
+							    gestures for their own pan & zoom, which fights the page's own scrolling. "View Full Map"
+							    below opens the real interactive version. */}
 							<div className="aspect-square bg-muted">
 								<iframe
 									src="/mrt-map.pdf#toolbar=0&navpanes=0&scrollbar=0&view=Fit"
-									className="w-full h-full border-0"
+									className="w-full h-full border-0 pointer-events-none"
 									title="Singapore MRT Map"
+									tabIndex={-1}
 								/>
 							</div>
 
@@ -281,9 +267,6 @@ export default async function HomePage() {
 				<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 					<div className="grid lg:grid-cols-2 gap-16 items-center">
 						<div className="space-y-6">
-							<div className="inline-flex items-center gap-2 bg-brand-50 text-brand text-sm font-medium px-4 py-1.5 rounded-full border border-brand/20">
-								Featured Module
-							</div>
 							<h2 className="text-xl sm:text-4xl font-bold text-foreground leading-tight">
 								Share Investment Marketplace
 							</h2>
@@ -334,7 +317,7 @@ export default async function HomePage() {
 												{project.name}
 											</p>
 											<p className="text-xs text-muted-foreground mt-0.5">
-												{project.availableShares} shares available
+												{project.availableShares} shares left
 											</p>
 										</div>
 										<div className="text-right">
@@ -352,50 +335,11 @@ export default async function HomePage() {
 									No projects available right now — check back soon.
 								</p>
 							)}
-							<Link
-								href="/register"
-								className="block text-center py-3 text-sm font-semibold text-brand border border-brand rounded-xl hover:bg-brand-50 transition-colors"
-							>
-								Register to Invest
-							</Link>
 						</div>
 					</div>
 				</div>
 			</section>
 
-			{/* ─── How it works ─── */}
-			<section className="py-12 md:py-24 bg-white">
-				<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-					<div className="text-center space-y-4 mb-16">
-						<h2 className="text-3xl sm:text-4xl font-bold text-foreground">
-							How to Get Started
-						</h2>
-						<p className="text-lg text-muted-foreground max-w-xl mx-auto">
-							Join thousands of community members in 3 simple steps.
-						</p>
-					</div>
-					<div className="grid md:grid-cols-3 gap-10">
-						{steps.map((step, index) => (
-							<div key={step.number} className="relative text-center space-y-4">
-								{index < steps.length - 1 && (
-									<div className="hidden md:block absolute top-8 left-[calc(50%+3.5rem)] right-0 h-px bg-brand/20" />
-								)}
-								<div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-brand-50 border-2 border-brand/20 mx-auto">
-									<span className="text-2xl font-bold text-brand">
-										{step.number}
-									</span>
-								</div>
-								<h3 className="text-lg font-semibold text-foreground">
-									{step.title}
-								</h3>
-								<p className="text-sm text-muted-foreground leading-relaxed max-w-xs mx-auto">
-									{step.desc}
-								</p>
-							</div>
-						))}
-					</div>
-				</div>
-			</section>
 		</>
 	);
 }

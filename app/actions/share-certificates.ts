@@ -51,7 +51,7 @@ export async function createShareNumbersAction(
   });
 
   if (existing.length > 0) {
-    const conflicts = existing.map((c) => `#${String(c.shareNumber).padStart(4, "0")}`).join(", ");
+    const conflicts = existing.map((c) => `#${String(c.shareNumber).padStart(6, "0")}`).join(", ");
     return { error: `Already exist: ${conflicts}` };
   }
 

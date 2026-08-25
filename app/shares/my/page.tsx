@@ -42,11 +42,11 @@ function formatShareNumbers(numbers: number[]): string {
   for (let i = 1; i < sorted.length; i++) {
     if (sorted[i] === end + 1) { end = sorted[i]; }
     else {
-      ranges.push(start === end ? `#${String(start).padStart(4, "0")}` : `#${String(start).padStart(4, "0")}–#${String(end).padStart(4, "0")}`);
+      ranges.push(start === end ? `#${String(start).padStart(6, "0")}` : `#${String(start).padStart(6, "0")}–#${String(end).padStart(6, "0")}`);
       start = end = sorted[i];
     }
   }
-  ranges.push(start === end ? `#${String(start).padStart(4, "0")}` : `#${String(start).padStart(4, "0")}–#${String(end).padStart(4, "0")}`);
+  ranges.push(start === end ? `#${String(start).padStart(6, "0")}` : `#${String(start).padStart(6, "0")}–#${String(end).padStart(6, "0")}`);
   return ranges.join(", ");
 }
 
@@ -287,7 +287,7 @@ export default async function MySharesPage() {
                         <td className="px-5 py-3.5 font-medium text-foreground">{r.name}</td>
                         <td className="px-4 py-3.5 text-foreground font-mono">#{r.shareNumber}</td>
                         <td className="px-4 py-3.5 text-foreground">{r.size}</td>
-                        <td className="px-4 py-3.5 text-foreground">৳{Number(r.price).toFixed(2)}</td>
+                        <td className="px-4 py-3.5 text-foreground">${Number(r.price).toFixed(2)} (৳{sgdToBdt(Number(r.price), rate).toFixed(2)})</td>
                         <td className="px-4 py-3.5 text-xs text-muted-foreground whitespace-nowrap">
                           {r.preferredDate.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })}
                         </td>

@@ -25,7 +25,14 @@ export default async function ProfilePage() {
 			profilePhoto: true,
 			wallet: { select: { balance: true } },
 			_count: {
-				select: { ownedShares: true, lostFoundPosts: true, blogPosts: true },
+				select: {
+					ownedShares: true,
+					lostFoundPosts: true,
+					blogPosts: true,
+					airTicketRequests: true,
+					taxiRequests: true,
+					checkouts: true,
+				},
 			},
 		},
 	});
@@ -129,22 +136,27 @@ export default async function ProfilePage() {
 				)}
 
 				{/* Activity stats */}
-				<div className="grid grid-cols-3 gap-4 mb-5">
+				<div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
 					{[
 						{
-							label: "Share Projects",
+							label: "Shares",
 							value: user._count.ownedShares,
-							href: "/shares",
+							href: "/shares/my",
 						},
 						{
-							label: "Lost & Found Posts",
-							value: user._count.lostFoundPosts,
-							href: "/lost-found",
+							label: "Air Tickets",
+							value: user._count.airTicketRequests,
+							href: "/air-ticket/my",
 						},
 						{
-							label: "Blog Posts",
-							value: user._count.blogPosts,
-							href: "/blog",
+							label: "Taxi Requests",
+							value: user._count.taxiRequests,
+							href: "/taxi/my",
+						},
+						{
+							label: "Checkouts",
+							value: user._count.checkouts,
+							href: "/checkout",
 						},
 					].map((s) => (
 						<Link key={s.label} href={s.href}>
@@ -186,13 +198,25 @@ export default async function ProfilePage() {
 							href="/lost-found/new"
 							className="text-xs font-semibold bg-muted text-foreground px-4 py-2 rounded-lg hover:bg-border transition-colors"
 						>
-							Post Lost & Found
+							Post Pick & Put
 						</Link>
 						<Link
 							href="/taxi/my"
 							className="text-xs font-semibold bg-muted text-foreground px-4 py-2 rounded-lg hover:bg-border transition-colors"
 						>
 							My Taxi Requests
+						</Link>
+						<Link
+							href="/air-ticket/my"
+							className="text-xs font-semibold bg-muted text-foreground px-4 py-2 rounded-lg hover:bg-border transition-colors"
+						>
+							My Air Ticket Requests
+						</Link>
+						<Link
+							href="/checkout"
+							className="text-xs font-semibold bg-muted text-foreground px-4 py-2 rounded-lg hover:bg-border transition-colors"
+						>
+							My Checkouts
 						</Link>
 					</div>
 				</div>

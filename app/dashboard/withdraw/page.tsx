@@ -4,10 +4,15 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { WithdrawForm } from "./withdraw-form";
 
-export default async function WithdrawPage() {
+export default async function WithdrawPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ amount?: string }>;
+}) {
   const session = await getSession();
   if (!session) redirect("/login");
 
+  const { amount } = await searchParams;
   const wallet = await prisma.wallet.findUnique({ where: { userId: session.userId } });
   const balance = wallet ? Number(wallet.balance) : 0;
 
@@ -31,7 +36,7 @@ export default async function WithdrawPage() {
             <p className="text-lg font-bold text-foreground">৳{balance.toFixed(2)}</p>
           </div>
 
-          <WithdrawForm balance={balance} />
+          <WithdrawForm balance={balance} defaultAmount={amount} />
         </div>
       </div>
     </div>

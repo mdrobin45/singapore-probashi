@@ -9,6 +9,8 @@ import type { SessionPayload } from "@/lib/session";
 type Listing = {
   id: string;
   quantity: number;
+  listedShareNumbers: number[];
+  remaining: number;
   askingPrice: unknown;
   status: string;
   createdAt: Date;
@@ -35,12 +37,12 @@ function TradeForm({ listing }: { listing: Listing }) {
       <input type="hidden" name="listingId" value={listing.id} />
 
       <div>
-        <label className="block text-xs font-medium text-foreground mb-1">Quantity (max {listing.quantity})</label>
+        <label className="block text-xs font-medium text-foreground mb-1">Quantity (max {listing.remaining})</label>
         <input
           type="number"
           name="quantity"
           min={1}
-          max={listing.quantity}
+          max={listing.remaining}
           value={qty}
           onChange={(e) => setQty(Number(e.target.value))}
           required
@@ -93,8 +95,13 @@ function ListingCard({ listing, session, rate }: { listing: Listing; session: Se
             </div>
             <h3 className="font-semibold text-foreground">{listing.project.name}</h3>
             <p className="text-xs text-muted-foreground mt-0.5">
-              {listing.quantity} shares available
+              {listing.remaining} share{listing.remaining !== 1 ? "s" : ""} available
             </p>
+            {listing.listedShareNumbers.length > 0 && (
+              <p className="text-[11px] font-mono text-muted-foreground/80 mt-0.5">
+                {listing.listedShareNumbers.map((n) => `#${String(n).padStart(6, "0")}`).join(", ")}
+              </p>
+            )}
           </div>
 
           <div className="text-right shrink-0">
@@ -112,7 +119,7 @@ function ListingCard({ listing, session, rate }: { listing: Listing; session: Se
 
         <div className="flex items-center justify-between mt-4">
           <div className="text-xs text-muted-foreground">
-            Total Value: <span className="font-semibold text-foreground">৳{(listing.quantity * askingPrice).toFixed(2)}</span>
+            Total Value: <span className="font-semibold text-foreground">৳{(listing.remaining * askingPrice).toFixed(2)}</span>
           </div>
           {session ? (
             <button

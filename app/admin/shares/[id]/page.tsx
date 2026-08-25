@@ -367,7 +367,14 @@ export default async function AdminProjectDetailPage({
                       <p className="font-medium text-foreground">{l.seller.fullName}</p>
                       <p className="text-xs text-muted-foreground">{l.seller.email}</p>
                     </td>
-                    <td className="px-4 py-3 font-semibold text-foreground">{l.quantity}</td>
+                    <td className="px-4 py-3 font-semibold text-foreground">
+                      {l.quantity}
+                      {l.listedShareNumbers.length > 0 && (
+                        <p className="text-[11px] font-mono text-muted-foreground font-normal mt-0.5 max-w-32 wrap-break-word">
+                          {l.listedShareNumbers.map((n) => `#${String(n).padStart(6, "0")}`).join(", ")}
+                        </p>
+                      )}
+                    </td>
                     <td className="px-4 py-3 font-semibold text-foreground">৳{Number(l.askingPrice).toFixed(2)}</td>
                     <td className="px-4 py-3">
                       <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${REQUEST_STYLES[l.status]}`}>

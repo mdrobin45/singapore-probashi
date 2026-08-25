@@ -11,6 +11,11 @@ async function getMyRequests(userId: string) {
     include: {
       assignedVendor: { select: { name: true, phone: true } },
       assignedManager: { select: { fullName: true } },
+      checkoutItem: {
+        include: {
+          checkout: { select: { id: true, token: true, status: true, totalAmount: true } },
+        },
+      },
     },
   });
 }
@@ -69,6 +74,7 @@ export default async function MyTaxiRequestsPage() {
             const assigneeName = r.assignedVendor?.name ?? r.assignedManager?.fullName ?? null;
             const assigneePhone = r.assignedVendor?.phone ?? null;
             const price = r.price != null ? Number(r.price) : null;
+            const checkout = r.checkoutItem?.checkout ?? null;
 
             return (
               <div key={r.id} className="bg-white rounded-2xl border border-border p-5">
@@ -77,37 +83,62 @@ export default async function MyTaxiRequestsPage() {
                     <p className="font-semibold text-foreground">
                       {r.pickupLocation} → {r.destination}
                     </p>
-                    <p className="text-xs text-muted-foreground mt-1">{fmt(r.date)} · {r.passengerCount} pax</p>
+                    <p className="text-xs text-muted-foreground mt-1">{fmt(r.date)} · {r.vehicleType ?? "—"} · {r.passengerCount} pax</p>
                   </div>
-                  <span className={`text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full shrink-0 ${STATUS_STYLES[r.status] ?? "bg-gray-100 text-gray-600"}`}>
-                    {r.status}
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <span className={`text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full shrink-0 ${STATUS_STYLES[r.status] ?? "bg-gray-100 text-gray-600"}`}>
+                      {r.status}
+                    </span>
+                  </div>
                 </div>
 
-                {(assigneeName || price != null) && (
-                  <div className="mt-4 pt-4 border-t border-border flex flex-wrap items-center gap-3">
-                    {assigneeName && (
-                      <p className="text-sm text-foreground">
-                        Assigned to: <span className="font-medium">{assigneeName}</span>
-                      </p>
-                    )}
-                    {price != null && (
-                      <p className="text-sm font-semibold text-foreground">
-                        Price: ৳{price.toFixed(2)}
-                      </p>
-                    )}
-                    {assigneePhone && (
-                      <a
-                        href={waLink(
-                          assigneePhone,
-                          `Hi, following up on my taxi request from ${r.pickupLocation} to ${r.destination} on ${fmt(r.date)}.`
+                {(assigneeName || price != null || checkout) && (
+                  <div className="mt-4 pt-4 border-t border-border flex flex-wrap items-center justify-between gap-3">
+                    <div className="flex flex-wrap items-center gap-3">
+                      {assigneeName && (
+                        <p className="text-sm text-foreground">
+                          Assigned to: <span className="font-medium">{assigneeName}</span>
+                        </p>
+                      )}
+                      {price != null && (
+                        <p className="text-sm font-semibold text-foreground">
+                          Price: ৳{price.toFixed(2)}
+                        </p>
+                      )}
+                      {assigneePhone && (
+                        <a
+                          href={waLink(
+                            assigneePhone,
+                            `Hi, following up on my taxi request from ${r.pickupLocation} to ${r.destination} on ${fmt(r.date)}.`
+                          )}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1.5 text-xs font-semibold text-white bg-[#25D366] px-3 py-1.5 rounded-lg hover:bg-[#1ebe5a] transition-colors"
+                        >
+                          Message on WhatsApp
+                        </a>
+                      )}
+                    </div>
+
+                    {checkout && (
+                      <div>
+                        {checkout.status === "PAID" ? (
+                          <span className="inline-flex items-center gap-1 text-xs font-semibold text-green-700 bg-green-50 border border-green-200 px-3 py-1.5 rounded-lg">
+                            ✓ Paid & Confirmed
+                          </span>
+                        ) : checkout.status === "PROOF_SUBMITTED" ? (
+                          <span className="inline-flex items-center gap-1 text-xs font-semibold text-blue-700 bg-blue-50 border border-blue-200 px-3 py-1.5 rounded-lg">
+                            ⏳ Payment Under Review
+                          </span>
+                        ) : (
+                          <Link
+                            href={`/pay/${checkout.token}`}
+                            className="inline-flex items-center gap-1.5 text-xs font-semibold text-white bg-brand hover:bg-brand-dark px-4 py-1.5 rounded-lg transition-colors shadow-xs"
+                          >
+                            💳 Pay Now (৳{Number(checkout.totalAmount).toFixed(2)})
+                          </Link>
                         )}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1.5 text-xs font-semibold text-white bg-[#25D366] px-3 py-1.5 rounded-lg hover:bg-[#1ebe5a] transition-colors"
-                      >
-                        Message on WhatsApp
-                      </a>
+                      </div>
                     )}
                   </div>
                 )}

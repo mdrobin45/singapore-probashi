@@ -1,5 +1,7 @@
 import { prisma } from "@/lib/prisma";
+import { getSession } from "@/lib/session";
 import { PayForm } from "./pay-form";
+import { WalletPayButton } from "./wallet-pay-button";
 
 async function getCheckoutByToken(token: string) {
   return prisma.checkout.findUnique({
@@ -31,7 +33,7 @@ export default async function PayPage({
   params: Promise<{ token: string }>;
 }) {
   const { token } = await params;
-  const [checkout, accounts] = await Promise.all([getCheckoutByToken(token), getPaymentAccounts()]);
+  const [checkout, accounts, session] = await Promise.all([getCheckoutByToken(token), getPaymentAccounts(), getSession()]);
 
   if (!checkout) {
     return (
@@ -46,6 +48,10 @@ export default async function PayPage({
   }
 
   const expired = checkout.expiresAt != null && checkout.expiresAt < new Date();
+
+  const isOwner = session?.userId === checkout.userId;
+  const wallet = isOwner ? await prisma.wallet.findUnique({ where: { userId: checkout.userId } }) : null;
+  const walletBalance = wallet ? Number(wallet.balance) : 0;
 
   return (
     <Shell>
@@ -116,6 +122,9 @@ export default async function PayPage({
             <div className="rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700 mb-4">
               Your previous payment proof couldn&apos;t be verified{checkout.adminNote ? `: ${checkout.adminNote}` : ""}. Please resubmit below.
             </div>
+          )}
+          {isOwner && (
+            <WalletPayButton token={token} walletBalance={walletBalance} totalAmount={Number(checkout.totalAmount)} />
           )}
           <PayForm token={token} accounts={accounts} />
         </>

@@ -23,6 +23,7 @@ const taxiSchema = z.object({
   destination: z.string().min(3, "Enter destination"),
   date: z.string().min(1, "Select a date"),
   passengerCount: z.coerce.number().int().min(1).max(10),
+  vehicleType: z.enum(["Noah", "Private Car", "Hiace"]),
   notes: z.string().optional(),
 });
 
@@ -38,12 +39,13 @@ export async function requestTaxiAction(
     destination: formData.get("destination"),
     date: formData.get("date"),
     passengerCount: formData.get("passengerCount"),
+    vehicleType: formData.get("vehicleType"),
     notes: formData.get("notes") || undefined,
   });
 
   if (!parse.success) return { error: parse.error.issues[0].message };
 
-  const { pickupLocation, destination, date, passengerCount, notes } = parse.data;
+  const { pickupLocation, destination, date, passengerCount, vehicleType, notes } = parse.data;
 
   const referredById = await getReferredByAgentId(session.userId);
 
@@ -54,8 +56,18 @@ export async function requestTaxiAction(
       destination,
       date: new Date(date),
       passengerCount,
+      vehicleType,
       notes: notes ?? null,
       referredById,
+    },
+  });
+
+  await prisma.notification.create({
+    data: {
+      userId: session.userId,
+      title: "Taxi booking requested",
+      message: `Your taxi request from ${pickupLocation} to ${destination} (${vehicleType}) has been submitted. We'll contact you within 1 hour to confirm.`,
+      type: "SYSTEM",
     },
   });
 
@@ -67,11 +79,14 @@ export async function requestTaxiAction(
       { label: "Pickup", value: pickupLocation },
       { label: "Destination", value: destination },
       { label: "Date", value: new Date(date).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }) },
+      { label: "Vehicle Type", value: vehicleType },
       { label: "Passengers", value: String(passengerCount) },
     ],
     actionPath: "/admin/taxi",
   });
 
+  revalidatePath("/taxi/my");
+  revalidatePath("/dashboard");
   return { success: true, message: "Taxi request submitted! We'll contact you within 1 hour to confirm." };
 }
 

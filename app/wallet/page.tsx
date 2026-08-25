@@ -25,7 +25,7 @@ async function getWalletData(userId: string) {
   return { wallet, deposits, withdrawals };
 }
 
-const CREDIT_TYPES = new Set(["DEPOSIT", "SHARE_SALE", "REFUND"]);
+const CREDIT_TYPES = new Set(["DEPOSIT", "SHARE_SALE", "REFUND", "COMMISSION", "ADMIN_CREDIT"]);
 
 const DEPOSIT_STATUS: Record<string, string> = {
   PENDING: "bg-amber-100 text-amber-700",
@@ -43,6 +43,10 @@ export default async function WalletPage() {
     SHARE_PURCHASE: "Share Purchase",
     SHARE_SALE: "Share Sale",
     REFUND: "Refund",
+    COMMISSION: "Referral Commission",
+    ADMIN_CREDIT: "Admin Credit",
+    ADMIN_DEBIT: "Admin Debit",
+    CHECKOUT_PAYMENT: "Checkout Payment",
   };
 
   const { wallet, deposits, withdrawals } = await getWalletData(session.userId);

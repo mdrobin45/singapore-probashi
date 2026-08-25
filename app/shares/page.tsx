@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/session";
 import { getShareSgdRate, sgdToBdt } from "@/lib/share-pricing";
+import { getListingRemainingCount } from "@/lib/share-listings";
 import Link from "next/link";
 import { SecondaryMarket } from "./secondary-market";
 
@@ -19,6 +20,7 @@ async function getSecondaryListings() {
     include: {
       seller: { select: { fullName: true } },
       project: { select: { name: true, sharePriceSgd: true } },
+      trades: { where: { status: "APPROVED" }, select: { status: true, tradedShareNumbers: true } },
     },
   });
 }
@@ -31,12 +33,19 @@ export default async function SharesPage({
   const { tab } = await searchParams;
   const activeTab = tab === "secondary" ? "secondary" : "primary";
 
-  const [projects, secondaryListings, session, rate] = await Promise.all([
+  const [projects, secondaryListingsRaw, session, rate] = await Promise.all([
     getPrimaryData(),
     getSecondaryListings(),
     getSession(),
     getShareSgdRate(),
   ]);
+
+  // Once every listed number has been claimed by an approved trade, the
+  // listing is effectively sold out — drop it from the marketplace even
+  // though its status stays APPROVED (there's no separate "closed" state).
+  const secondaryListings = secondaryListingsRaw
+    .map((l) => ({ ...l, remaining: getListingRemainingCount(l) }))
+    .filter((l) => l.remaining > 0);
 
   const totalValue = projects.reduce(
     (sum, p) => sum + sgdToBdt(Number(p.sharePriceSgd) * p.totalShares, rate),
@@ -108,20 +117,6 @@ export default async function SharesPage({
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-        {/* Buy request CTA */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white border border-border rounded-2xl px-6 py-5 mb-8">
-          <div>
-            <p className="font-semibold text-foreground">Want to buy shares?</p>
-            <p className="text-sm text-muted-foreground mt-0.5">Submit a buy request with your preferred share number, size, price and date. Admin will review and follow up with you.</p>
-          </div>
-          <Link
-            href={session ? "/shares/buy-request" : "/login"}
-            className="shrink-0 bg-brand text-white text-sm font-semibold px-5 py-2.5 rounded-xl hover:bg-brand-dark transition-colors text-center"
-          >
-            Request to Buy Shares
-          </Link>
-        </div>
-
         {activeTab === "primary" ? (
           <>
             {projects.length === 0 ? (

@@ -292,3 +292,67 @@ export async function toggleAgentAction(
   revalidatePath("/", "layout");
   return { success: "Agent status removed." };
 }
+
+// ── Manual wallet adjustment (correction, bonus, refund outside a request) ───
+
+const adjustWalletSchema = z.object({
+  userId: z.string().min(1),
+  direction: z.enum(["CREDIT", "DEBIT"]),
+  amount: z.coerce.number().positive("Enter a valid amount"),
+  reason: z.string().min(3, "Explain the reason for this adjustment"),
+});
+
+export async function adjustWalletAction(
+  _prev: ActionState,
+  formData: FormData
+): Promise<ActionState> {
+  const session = await requireAdminSession();
+
+  const parse = adjustWalletSchema.safeParse({
+    userId: formData.get("userId"),
+    direction: formData.get("direction"),
+    amount: formData.get("amount"),
+    reason: formData.get("reason"),
+  });
+  if (!parse.success) return { error: parse.error.issues[0].message };
+
+  const { userId, direction, amount, reason } = parse.data;
+
+  const target = await prisma.user.findUnique({ where: { id: userId }, select: { role: true, fullName: true } });
+  if (!target) return { error: "User not found." };
+  if (!canManage(session.role, target.role)) return { error: "You don't have permission to manage this user." };
+
+  const wallet = await prisma.wallet.findUnique({ where: { userId } });
+  if (!wallet) return { error: "This user has no wallet yet." };
+
+  const balanceBefore = Number(wallet.balance);
+  if (direction === "DEBIT" && amount > balanceBefore) {
+    return { error: `Cannot debit ৳${amount.toFixed(2)} — wallet only has ৳${balanceBefore.toFixed(2)}.` };
+  }
+  const balanceAfter = direction === "CREDIT" ? balanceBefore + amount : balanceBefore - amount;
+
+  await prisma.$transaction([
+    prisma.wallet.update({ where: { id: wallet.id }, data: { balance: balanceAfter } }),
+    prisma.walletTransaction.create({
+      data: {
+        walletId: wallet.id,
+        type: direction === "CREDIT" ? "ADMIN_CREDIT" : "ADMIN_DEBIT",
+        amount,
+        description: reason,
+        balanceBefore,
+        balanceAfter,
+      },
+    }),
+    prisma.notification.create({
+      data: {
+        userId,
+        title: direction === "CREDIT" ? "Wallet credited by admin" : "Wallet debited by admin",
+        message: `Your wallet was ${direction === "CREDIT" ? "credited" : "debited"} ৳${amount.toFixed(2)} — ${reason}.`,
+        type: "WALLET",
+      },
+    }),
+  ]);
+
+  revalidatePath("/admin/users");
+  return { success: `${direction === "CREDIT" ? "Credited" : "Debited"} ৳${amount.toFixed(2)} ${direction === "CREDIT" ? "to" : "from"} ${target.fullName}'s wallet.` };
+}

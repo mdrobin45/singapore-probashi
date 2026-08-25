@@ -12,7 +12,7 @@ export default function NewLostFoundPage() {
     <div className="min-h-screen bg-muted">
       <div className="max-w-xl mx-auto px-4 py-10">
         <div className="flex items-center gap-2 text-sm text-muted-foreground mb-6">
-          <Link href="/lost-found" className="hover:text-brand transition-colors">Community Lost & Found</Link>
+          <Link href="/lost-found" className="hover:text-brand transition-colors">Community Pick & Put</Link>
           <span>/</span>
           <span className="text-foreground">New Post</span>
         </div>

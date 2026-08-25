@@ -38,6 +38,7 @@ export default async function AdminAirTicketPage() {
                 <th className="text-left text-xs font-semibold text-muted-foreground px-6 py-3">Passenger</th>
                 <th className="text-left text-xs font-semibold text-muted-foreground px-4 py-3">Route</th>
                 <th className="text-left text-xs font-semibold text-muted-foreground px-4 py-3">Dates</th>
+                <th className="text-left text-xs font-semibold text-muted-foreground px-4 py-3">Airline</th>
                 <th className="text-left text-xs font-semibold text-muted-foreground px-4 py-3">Pax</th>
                 <th className="text-left text-xs font-semibold text-muted-foreground px-4 py-3">Assigned To</th>
                 <th className="text-left text-xs font-semibold text-muted-foreground px-4 py-3">Price</th>
@@ -60,6 +61,7 @@ export default async function AdminAirTicketPage() {
                       <p className="text-xs text-muted-foreground">→ {r.destination}</p>
                     </td>
                     <td className="px-4 py-3.5 text-xs text-muted-foreground">{dateLabel}</td>
+                    <td className="px-4 py-3.5 text-xs text-foreground">{r.preferredAirline ?? "—"}</td>
                     <td className="px-4 py-3.5 font-medium text-foreground">{r.passengers}</td>
                     <td className="px-4 py-3.5 text-xs text-foreground">
                       {r.assignedManager ? r.assignedManager.fullName : <span className="text-muted-foreground">—</span>}

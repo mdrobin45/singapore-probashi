@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 
 async function getDashboardData(userId: string) {
-  const [user, wallet, ownerships, pendingPurchases, recentNotifications, pendingDeposits] =
+  const [user, wallet, ownerships, pendingPurchases, recentNotifications, pendingDeposits, pendingCheckouts] =
     await Promise.all([
       prisma.user.findUnique({
         where: { id: userId },
@@ -36,16 +36,21 @@ async function getDashboardData(userId: string) {
         where: { userId, status: "PENDING" },
         take: 3,
       }),
+      prisma.checkout.findMany({
+        where: { userId, status: { in: ["AWAITING_PAYMENT", "REJECTED"] } },
+        include: { items: true },
+        orderBy: { createdAt: "desc" },
+      }),
     ]);
 
-  return { user, wallet, ownerships, pendingPurchases, recentNotifications, pendingDeposits };
+  return { user, wallet, ownerships, pendingPurchases, recentNotifications, pendingDeposits, pendingCheckouts };
 }
 
 export default async function DashboardPage() {
   const session = await getSession();
   if (!session) redirect("/login");
 
-  const [{ user, wallet, ownerships, pendingPurchases, recentNotifications, pendingDeposits }, shareRate] =
+  const [{ user, wallet, ownerships, pendingPurchases, recentNotifications, pendingDeposits, pendingCheckouts }, shareRate] =
     await Promise.all([getDashboardData(session.userId), getShareSgdRate()]);
 
   const portfolioValue = ownerships.reduce(
@@ -55,10 +60,12 @@ export default async function DashboardPage() {
   const totalShares = ownerships.reduce((sum, o) => sum + o.quantity, 0);
 
   const MODULE_LINKS = [
-    { href: "/shares/my", label: "My Investments", desc: "View your shares & purchase history", icon: "📈" },
-    { href: "/air-ticket", label: "Air Tickets", desc: "Book flights & track your referrals", icon: "✈️" },
+    { href: "/shares/my", label: "My Investments", desc: "Shares 6 portfolio & history", icon: "📈" },
+    { href: "/taxi", label: "Taxi Rent", desc: "Book Noah, Private Car, Hiace", icon: "🚕" },
+    { href: "/air-ticket", label: "Air Tickets", desc: "Book Biman, SQ, US-Bangla, AirAsia", icon: "✈️" },
+    { href: "/checkout", label: "My Checkouts", desc: "View and pay booking invoices", icon: "💳" },
     { href: "/currency", label: "Currency Converter", desc: "SGD ↔ BDT live rates & calculator", icon: "💱" },
-    { href: "/lost-found/my", label: "My Lost & Found", desc: "Manage your lost & found posts", icon: "🔍" },
+    { href: "/lost-found/my", label: "My Pick & Put", desc: "Manage your pick & put posts", icon: "🔍" },
     { href: "/apply", label: "Apply for Service", desc: "Upload documents & apply for services", icon: "📋" },
     { href: "/islamic-center", label: "Islamic Center", desc: "Quran, Duas, articles & PDFs", icon: "🕌" },
     { href: "/blog", label: "Community Blog", desc: "News, tips & community stories", icon: "📝" },
@@ -71,7 +78,11 @@ export default async function DashboardPage() {
     SHARE_SALE: "Share Sale",
     REFUND: "Refund",
     COMMISSION: "Referral Commission",
+    ADMIN_CREDIT: "Admin Credit",
+    ADMIN_DEBIT: "Admin Debit",
+    CHECKOUT_PAYMENT: "Checkout Payment",
   };
+  const CREDIT_TX_TYPES = ["DEPOSIT", "SHARE_SALE", "REFUND", "COMMISSION", "ADMIN_CREDIT"];
 
   return (
     <div className="min-h-screen bg-muted">
@@ -87,6 +98,44 @@ export default async function DashboardPage() {
             {user?.createdAt.toLocaleDateString("en-GB", { month: "long", year: "numeric" })}
           </p>
         </div>
+
+        {/* Pending Checkout Alert Banner */}
+        {pendingCheckouts.length > 0 && (
+          <div className="mb-7 space-y-3">
+            {pendingCheckouts.map((c) => (
+              <div
+                key={c.id}
+                className="bg-amber-50 border-2 border-amber-300 rounded-2xl p-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 shadow-xs"
+              >
+                <div className="flex items-start gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center text-amber-700 shrink-0 text-lg">
+                    💳
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <p className="font-bold text-amber-900 text-sm">Booking Payment Ready</p>
+                      <span className="text-[10px] font-bold uppercase bg-amber-200 text-amber-800 px-2 py-0.5 rounded-full">
+                        Action Required
+                      </span>
+                    </div>
+                    <p className="text-xs text-amber-800 mt-0.5">
+                      {c.items.map((i) => i.description).join(" · ")}
+                    </p>
+                    <p className="text-xs font-semibold text-amber-950 mt-1">
+                      Total Payable: ৳{Number(c.totalAmount).toFixed(2)}
+                    </p>
+                  </div>
+                </div>
+                <Link
+                  href={`/pay/${c.token}`}
+                  className="inline-flex items-center justify-center bg-brand text-white font-semibold text-xs px-5 py-2.5 rounded-xl hover:bg-brand-dark transition-colors shrink-0 shadow-xs"
+                >
+                  Pay Now →
+                </Link>
+              </div>
+            ))}
+          </div>
+        )}
 
         {/* Top stats */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-7">
@@ -241,8 +290,8 @@ export default async function DashboardPage() {
                     <p className="text-xs text-muted-foreground">{tx.description}</p>
                   </div>
                   <div className="text-right">
-                    <p className={`text-sm font-semibold ${["DEPOSIT", "SHARE_SALE", "REFUND", "COMMISSION"].includes(tx.type) ? "text-green-600" : "text-red-600"}`}>
-                      {["DEPOSIT", "SHARE_SALE", "REFUND", "COMMISSION"].includes(tx.type) ? "+" : "-"}৳{Number(tx.amount).toFixed(2)}
+                    <p className={`text-sm font-semibold ${CREDIT_TX_TYPES.includes(tx.type) ? "text-green-600" : "text-red-600"}`}>
+                      {CREDIT_TX_TYPES.includes(tx.type) ? "+" : "-"}৳{Number(tx.amount).toFixed(2)}
                     </p>
                     <p className="text-[11px] text-muted-foreground">
                       {tx.createdAt.toLocaleDateString("en-GB", { day: "2-digit", month: "short" })}

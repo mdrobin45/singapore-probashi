@@ -74,23 +74,23 @@ const IcoResell   = <svg className="w-4.5 h-4.5" viewBox="0 0 24 24" fill="none"
 // ── Extra links shown in the sheet (static — for guests) ──────────────────────
 
 const GUEST_LINKS = [
-  { href: "/shares/buy-request", label: "Buy Shares Request", icon: IcoRequest },
+  { href: "/shares/buy-request", label: "Share 4", icon: IcoRequest },
   { href: "/shares/resell",      label: "Resell Market",      icon: IcoResell  },
   { href: "/apply",              label: "Apply for Service",  icon: IcoApply   },
   { href: "/services",           label: "Services",           icon: IcoServices },
   { href: "/air-ticket",         label: "Air Ticket",         icon: IcoPlane  },
   { href: "/currency",           label: "Currency",           icon: IcoCurr   },
   { href: "/taxi",               label: "Taxi",               icon: IcoTaxi   },
-  { href: "/lost-found",         label: "Lost & Found",       icon: IcoSearch },
+  { href: "/lost-found",         label: "Pick & Put",       icon: IcoSearch },
   { href: "/contact",            label: "Contact",            icon: IcoChat   },
 ];
 
 const USER_LINKS = [
   { href: "/shares/my",          label: "My Investments",     icon: IcoChart    },
-  { href: "/shares/buy-request", label: "Buy Shares Request", icon: IcoRequest  },
+  { href: "/shares/buy-request", label: "Share 4", icon: IcoRequest  },
   { href: "/shares/resell",      label: "Resell Market",      icon: IcoResell   },
   { href: "/services",           label: "Services",           icon: IcoServices },
-  { href: "/lost-found/my",      label: "My Lost & Found",    icon: IcoSearch   },
+  { href: "/lost-found/my",      label: "My Pick & Put",    icon: IcoSearch   },
   { href: "/apply",              label: "Apply",              icon: IcoApply    },
   { href: "/wallet",             label: "Wallet",             icon: IcoWallet   },
   { href: "/air-ticket",         label: "Air Tickets",        icon: IcoPlane  },
@@ -124,7 +124,7 @@ export function BottomNav({ user }: { user: SessionPayload | null }) {
 
   const mainTabs = [
     { href: "/",               label: "Home",    icon: HomeIcon },
-    { href: "/shares",         label: "Shares",  icon: SharesIcon,  prefix: true },
+    { href: "/shares",         label: "Shares 6",  icon: SharesIcon,  prefix: true },
     { href: "/islamic-center", label: "Islamic", icon: IslamicIcon, prefix: true },
     { href: "/blog",           label: "Blog",    icon: BlogIcon,    prefix: true },
   ];

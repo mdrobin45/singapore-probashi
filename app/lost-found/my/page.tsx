@@ -58,7 +58,7 @@ export default async function MyLostFoundPage() {
                 </svg>
                 All Posts
               </Link>
-              <h1 className="text-2xl font-bold text-foreground">My Lost & Found Posts</h1>
+              <h1 className="text-2xl font-bold text-foreground">My Pick & Put Posts</h1>
               <p className="text-sm text-muted-foreground mt-1">
                 {open.length} open · {resolved.length} resolved · {removed.length} removed
               </p>

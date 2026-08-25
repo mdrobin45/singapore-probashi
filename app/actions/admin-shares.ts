@@ -455,9 +455,31 @@ export async function processResellAction({
           },
         });
 
+        // Figure out which of the listing's specific share numbers this trade
+        // claims — whatever's left after other approved trades against the
+        // same listing have already taken theirs. Legacy listings with no
+        // tracked numbers fall back to just grabbing the seller's lowest-
+        // numbered owned certs, same as before this field existed.
+        const otherApprovedTrades = await tx.shareTrade.findMany({
+          where: { listingId: trade.listingId, status: "APPROVED", id: { not: tradeId } },
+          select: { tradedShareNumbers: true },
+        });
+        const consumed = new Set(otherApprovedTrades.flatMap((t) => t.tradedShareNumbers));
+        const availableNumbers = trade.listing.listedShareNumbers.filter((n) => !consumed.has(n));
+        const claimedNumbers = availableNumbers.slice(0, trade.quantity);
+
+        if (trade.listing.listedShareNumbers.length > 0 && claimedNumbers.length < trade.quantity) {
+          throw new Error(`Only ${claimedNumbers.length} share number(s) still available on this listing.`);
+        }
+
         await tx.shareTrade.update({
           where: { id: tradeId },
-          data: { status: "APPROVED", processedById: session.userId, processedAt: new Date() },
+          data: {
+            status: "APPROVED",
+            tradedShareNumbers: claimedNumbers,
+            processedById: session.userId,
+            processedAt: new Date(),
+          },
         });
 
         // Transfer ownership: decrement seller, upsert buyer
@@ -486,13 +508,20 @@ export async function processResellAction({
           });
         }
 
-        // Transfer share certificates from seller to buyer
-        const certsToTransfer = await tx.shareCertificate.findMany({
-          where: { projectId: trade.listing.projectId, ownerId: trade.listing.sellerId },
-          orderBy: { shareNumber: "asc" },
-          take: trade.quantity,
-          select: { id: true },
-        });
+        // Transfer share certificates from seller to buyer — the specific
+        // numbers claimed above, or (legacy listings) any of the seller's
+        // owned certs in this project.
+        const certsToTransfer = claimedNumbers.length > 0
+          ? await tx.shareCertificate.findMany({
+              where: { projectId: trade.listing.projectId, ownerId: trade.listing.sellerId, shareNumber: { in: claimedNumbers } },
+              select: { id: true },
+            })
+          : await tx.shareCertificate.findMany({
+              where: { projectId: trade.listing.projectId, ownerId: trade.listing.sellerId },
+              orderBy: { shareNumber: "asc" },
+              take: trade.quantity,
+              select: { id: true },
+            });
         await tx.shareCertificate.updateMany({
           where: { id: { in: certsToTransfer.map((c) => c.id) } },
           data: { ownerId: trade.buyerId },

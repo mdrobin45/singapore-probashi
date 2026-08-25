@@ -105,7 +105,7 @@ export function PurchaseForm({ projectId, rate, availableShares, hasPending, isL
                         : "bg-muted text-muted-foreground hover:bg-brand-50 hover:text-brand"
                     }`}
                   >
-                    <span className="text-xs font-mono font-medium">#{String(n).padStart(4, "0")}</span>
+                    <span className="text-xs font-mono font-medium">#{String(n).padStart(6, "0")}</span>
                     <span className={`text-[10px] ${isSelected ? "text-white/80" : "text-muted-foreground/80"}`}>${priceSgd.toFixed(2)}</span>
                   </button>
                 );

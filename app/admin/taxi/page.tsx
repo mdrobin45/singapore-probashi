@@ -57,6 +57,7 @@ export default async function AdminTaxiPage() {
                 <th className="text-left text-xs font-semibold text-muted-foreground px-6 py-3">Passenger</th>
                 <th className="text-left text-xs font-semibold text-muted-foreground px-4 py-3">Route</th>
                 <th className="text-left text-xs font-semibold text-muted-foreground px-4 py-3">Date & Time</th>
+                <th className="text-left text-xs font-semibold text-muted-foreground px-4 py-3">Vehicle</th>
                 <th className="text-left text-xs font-semibold text-muted-foreground px-4 py-3">Pax</th>
                 <th className="text-left text-xs font-semibold text-muted-foreground px-4 py-3">Assigned To</th>
                 <th className="text-left text-xs font-semibold text-muted-foreground px-4 py-3">Price</th>
@@ -79,6 +80,7 @@ export default async function AdminTaxiPage() {
                       <p className="text-xs text-muted-foreground">→ {r.destination}</p>
                     </td>
                     <td className="px-4 py-3.5 text-xs text-muted-foreground">{dateLabel}</td>
+                    <td className="px-4 py-3.5 text-xs text-foreground">{r.vehicleType ?? "—"}</td>
                     <td className="px-4 py-3.5 font-medium text-foreground">{r.passengerCount}</td>
                     <td className="px-4 py-3.5 text-xs text-foreground">
                       {r.assignedVendor ? (
