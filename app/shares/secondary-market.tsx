@@ -98,9 +98,17 @@ function ListingCard({ listing, session, rate }: { listing: Listing; session: Se
               {listing.remaining} share{listing.remaining !== 1 ? "s" : ""} available
             </p>
             {listing.listedShareNumbers.length > 0 && (
-              <p className="text-[11px] font-mono text-muted-foreground/80 mt-0.5">
-                {listing.listedShareNumbers.map((n) => `#${String(n).padStart(6, "0")}`).join(", ")}
-              </p>
+              <div className="flex flex-wrap items-center gap-1.5 mt-2">
+                <span className="text-[11px] font-semibold text-muted-foreground">Share #{listing.listedShareNumbers.length > 1 ? "s" : ""}:</span>
+                {listing.listedShareNumbers.map((n) => (
+                  <span
+                    key={n}
+                    className="px-2 py-0.5 rounded-md font-mono text-xs font-bold bg-brand-50 text-brand border border-brand/20"
+                  >
+                    #{String(n).padStart(6, "0")}
+                  </span>
+                ))}
+              </div>
             )}
           </div>
 

@@ -87,6 +87,16 @@ export default async function MyAirTicketRequestsPage() {
                     </p>
                   </div>
                   <div className="flex items-center gap-2">
+                    {r.ticketUrl && (
+                      <a
+                        href={r.ticketUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 text-xs font-semibold text-white bg-green-600 hover:bg-green-700 px-3 py-1 rounded-lg transition-colors shadow-2xs"
+                      >
+                        📥 Download E-Ticket
+                      </a>
+                    )}
                     <span className={`text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full shrink-0 ${STATUS_STYLES[r.status] ?? "bg-gray-100 text-gray-600"}`}>
                       {r.status}
                     </span>

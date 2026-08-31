@@ -294,20 +294,18 @@ export async function createShareBuyRequestAction(
   const session = await getSession();
   if (!session) redirect("/login");
 
+  const rawPrice = formData.get("priceBdt") ?? formData.get("price");
   const parse = buyRequestSchema.safeParse({
     name: formData.get("name"),
     shareNumber: formData.get("shareNumber"),
     size: formData.get("size"),
-    price: formData.get("price"),
+    price: rawPrice,
     preferredDate: formData.get("preferredDate"),
   });
 
   if (!parse.success) return { error: parse.error.issues[0].message };
 
-  const { name, shareNumber, size, price: priceSgd, preferredDate } = parse.data;
-
-  const rate = await getShareSgdRate();
-  const price = sgdToBdt(priceSgd, rate);
+  const { name, shareNumber, size, price: offeredBdt, preferredDate } = parse.data;
 
   await prisma.shareBuyRequest.create({
     data: {
@@ -315,7 +313,7 @@ export async function createShareBuyRequestAction(
       name,
       shareNumber,
       size,
-      price,
+      price: offeredBdt,
       preferredDate,
       status: "PENDING",
     },
@@ -328,7 +326,7 @@ export async function createShareBuyRequestAction(
       { label: "Buyer", value: `${name} (${session.email})` },
       { label: "Share #", value: shareNumber },
       { label: "Size", value: size },
-      { label: "Offered Price", value: `৳${price.toFixed(2)}` },
+      { label: "Offered Price", value: `৳${offeredBdt.toFixed(2)}` },
       { label: "Preferred Date", value: preferredDate.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }) },
     ],
     actionPath: "/admin/shares",

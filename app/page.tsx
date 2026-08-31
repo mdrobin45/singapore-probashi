@@ -239,16 +239,13 @@ export default async function HomePage() {
 								</span>
 							</div>
 
-							{/* Full map, always visible — square aspect matches the PDF page so it never needs internal scrolling.
-							    pointer-events-none keeps it a static preview: PDF viewers otherwise capture touch/scroll
-							    gestures for their own pan & zoom, which fights the page's own scrolling. "View Full Map"
-							    below opens the real interactive version. */}
-							<div className="aspect-square bg-muted">
-								<iframe
-									src="/mrt-map.pdf#toolbar=0&navpanes=0&scrollbar=0&view=Fit"
-									className="w-full h-full border-0 pointer-events-none"
-									title="Singapore MRT Map"
-									tabIndex={-1}
+							{/* Full map, always visible without browser PDF toolbar or cropping */}
+							<div className="relative aspect-square bg-slate-50 flex items-center justify-center p-2 sm:p-4 overflow-hidden group">
+								<img
+									src="/mrt-map.png"
+									alt="Singapore MRT Map Network"
+									className="w-full h-full object-contain drop-shadow-xs transition-transform duration-300 group-hover:scale-[1.02]"
+									loading="lazy"
 								/>
 							</div>
 

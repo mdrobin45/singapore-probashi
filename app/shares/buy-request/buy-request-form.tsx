@@ -66,25 +66,26 @@ export function BuyRequestForm({ defaultName, rate }: { defaultName: string; rat
       {/* Price */}
       <div>
         <label className="block text-sm font-medium text-foreground mb-1.5">
-          Desired Price (SGD){" "}
-          <span className="text-muted-foreground font-normal">1 SGD = ৳{rate.toFixed(2)} BDT</span>
+          Desired Offer Price (BDT ৳){" "}
+          <span className="text-muted-foreground font-normal">(1 SGD = ৳{rate.toFixed(2)} BDT)</span>
         </label>
         <div className="relative">
-          <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground text-sm font-medium">$</span>
+          <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground text-sm font-medium">৳</span>
           <input
             type="number"
-            name="price"
-            min={0.01}
-            step="0.01"
+            name="priceBdt"
+            min={1}
+            step="1"
+            placeholder="e.g. 500"
             value={price}
             onChange={(e) => setPrice(e.target.value)}
             required
-            className="w-full pl-7 pr-3.5 py-2.5 rounded-xl border border-border text-foreground focus:outline-none focus:ring-2 focus:ring-brand/30 focus:border-brand text-sm"
+            className="w-full pl-8 pr-3.5 py-2.5 rounded-xl border border-border text-foreground focus:outline-none focus:ring-2 focus:ring-brand/30 focus:border-brand text-sm"
           />
         </div>
         {price && Number(price) > 0 && (
           <p className="text-xs text-muted-foreground mt-1">
-            BDT equivalent: <span className="font-semibold text-foreground">৳{sgdToBdt(Number(price), rate).toFixed(2)}</span>
+            SGD equivalent: <span className="font-semibold text-foreground">${(Number(price) / rate).toFixed(2)} SGD</span>
           </p>
         )}
       </div>

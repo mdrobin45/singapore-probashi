@@ -26,7 +26,7 @@ export default async function AdminLostFoundPage() {
   return (
     <div className="max-w-6xl mx-auto">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-foreground">Lost & Found</h1>
+        <h1 className="text-2xl font-bold text-foreground">Pick & Put</h1>
         <p className="text-sm text-muted-foreground">{open.length} open · {posts.length} total</p>
       </div>
 

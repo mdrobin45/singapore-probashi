@@ -7,11 +7,15 @@ import { prisma } from "@/lib/prisma";
 const ADMIN_ROLES = ["SUPER_ADMIN", "ADMIN", "MODERATOR"];
 
 async function getPendingCounts() {
-  const [pendingPurchases, pendingDeposits] = await Promise.all([
+  const [purchases, deposits, withdrawals, taxi, airTicket, checkouts] = await Promise.all([
     prisma.sharePurchaseRequest.count({ where: { status: "PENDING" } }),
     prisma.depositRequest.count({ where: { status: "PENDING" } }),
+    prisma.withdrawalRequest.count({ where: { status: "PENDING" } }),
+    prisma.taxiRequest.count({ where: { status: "PENDING" } }),
+    prisma.airTicketRequest.count({ where: { status: "PENDING" } }),
+    prisma.checkout.count({ where: { status: "AWAITING_PAYMENT" } }),
   ]);
-  return { pendingPurchases, pendingDeposits };
+  return { purchases, deposits, withdrawals, taxi, airTicket, checkouts };
 }
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -20,7 +24,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   if (!session) redirect("/login");
   if (!ADMIN_ROLES.includes(session.role)) redirect("/dashboard");
 
-  const { pendingPurchases, pendingDeposits } = await getPendingCounts();
+  const pendingCounts = await getPendingCounts();
   const userName = session.fullName ?? session.email.split("@")[0];
 
   return (
@@ -30,6 +34,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         userName={userName}
         userRole={session.role}
         userEmail={session.email}
+        pendingCounts={pendingCounts}
       />
 
       {/* Page content */}
@@ -41,8 +46,8 @@ export default async function AdminLayout({ children }: { children: React.ReactN
 
       {/* Mobile bottom nav — hidden on desktop */}
       <AdminBottomNav
-        pendingPurchases={pendingPurchases}
-        pendingDeposits={pendingDeposits}
+        pendingPurchases={pendingCounts.purchases}
+        pendingDeposits={pendingCounts.deposits}
         userName={userName}
         userRole={session.role}
       />

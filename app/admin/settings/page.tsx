@@ -2,6 +2,7 @@ import { getCurrencySettings, getLiveBdtRate } from "@/lib/currency";
 import { getAllCommissionSettings, getShareAdminCutPercent } from "@/lib/commission";
 import { getShareSgdRate } from "@/lib/share-pricing";
 import { getAdminNotificationEmail } from "@/lib/notifications";
+import { getAdSenseSettings } from "@/app/actions/admin-settings";
 import { prisma } from "@/lib/prisma";
 import { CurrencySettingsForm } from "./currency-form";
 import { BankRatesForm } from "./bank-rates-form";
@@ -10,6 +11,7 @@ import { SharePricingForm } from "./share-pricing-form";
 import { ShareAdminCutForm } from "./share-admin-cut-form";
 import { NotificationEmailForm } from "./notification-email-form";
 import { PaymentAccountsForm } from "./payment-accounts-form";
+import { AdSenseSettingsForm } from "./adsense-form";
 
 async function getBankRates() {
   try {
@@ -29,7 +31,7 @@ async function getPaymentAccounts() {
 }
 
 export default async function AdminSettingsPage() {
-  const [settings, liveRate, banks, paymentAccounts, commissionSettings, shareRate, shareAdminCutPercent, notificationEmail] = await Promise.all([
+  const [settings, liveRate, banks, paymentAccounts, commissionSettings, shareRate, shareAdminCutPercent, notificationEmail, adSenseSettings] = await Promise.all([
     getCurrencySettings(),
     getLiveBdtRate(),
     getBankRates(),
@@ -38,6 +40,7 @@ export default async function AdminSettingsPage() {
     getShareSgdRate(),
     getShareAdminCutPercent(),
     getAdminNotificationEmail(),
+    getAdSenseSettings(),
   ]);
 
   return (
@@ -198,6 +201,28 @@ export default async function AdminSettingsPage() {
         </div>
         <div className="p-6">
           <NotificationEmailForm email={notificationEmail} />
+        </div>
+      </div>
+
+      {/* Google AdSense */}
+      <div className="bg-white rounded-xl border border-border overflow-hidden">
+        <div className="px-6 py-5 border-b border-border">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-blue-50 flex items-center justify-center">
+              <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+              </svg>
+            </div>
+            <div>
+              <h2 className="font-semibold text-foreground">Google AdSense</h2>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Display advertisements to monetize platform traffic
+              </p>
+            </div>
+          </div>
+        </div>
+        <div className="p-6">
+          <AdSenseSettingsForm settings={adSenseSettings} />
         </div>
       </div>
     </div>

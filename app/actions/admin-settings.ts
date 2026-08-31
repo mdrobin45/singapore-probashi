@@ -293,3 +293,44 @@ export async function deletePaymentAccountAction(id: string): Promise<void> {
 
   revalidatePaymentAccountPaths();
 }
+
+export async function getAdSenseSettings(): Promise<{ enabled: boolean; clientId: string }> {
+  try {
+    const [enabledRow, clientRow] = await Promise.all([
+      prisma.siteSetting.findUnique({ where: { key: "adsense_enabled" } }),
+      prisma.siteSetting.findUnique({ where: { key: "adsense_client_id" } }),
+    ]);
+    return {
+      enabled: enabledRow?.value === "true",
+      clientId: clientRow?.value || process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID || "",
+    };
+  } catch {
+    return { enabled: false, clientId: "" };
+  }
+}
+
+export async function saveAdSenseSettingsAction(_prev: State, formData: FormData): Promise<State> {
+  const session = await getSession();
+  if (!session || !["SUPER_ADMIN", "ADMIN"].includes(session.role)) {
+    return { error: "Unauthorized." };
+  }
+
+  const enabled = formData.get("enabled") === "on";
+  const clientId = (formData.get("clientId") as string)?.trim() || "";
+
+  await prisma.$transaction([
+    prisma.siteSetting.upsert({
+      where: { key: "adsense_enabled" },
+      create: { key: "adsense_enabled", value: enabled ? "true" : "false" },
+      update: { value: enabled ? "true" : "false" },
+    }),
+    prisma.siteSetting.upsert({
+      where: { key: "adsense_client_id" },
+      create: { key: "adsense_client_id", value: clientId },
+      update: { value: clientId },
+    }),
+  ]);
+
+  revalidatePath("/", "layout");
+  return { success: true };
+}

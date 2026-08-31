@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/session";
-import { UserActionsMenu } from "@/components/admin-user-actions";
+import { UserActionsMenu, DirectAdjustWalletButton } from "@/components/admin-user-actions";
 import { CreateUserModal } from "./create-user-modal";
 
 async function getUsers() {
@@ -87,8 +87,13 @@ export default async function AdminUsersPage() {
                       {u.role.replace("_", " ")}
                     </span>
                   </td>
-                  <td className="px-4 py-3.5 font-medium text-foreground hidden sm:table-cell">
-                    ৳{u.wallet ? Number(u.wallet.balance).toFixed(2) : "0.00"}
+                  <td className="px-4 py-3.5 hidden sm:table-cell">
+                    <div className="flex items-center gap-2">
+                      <span className="font-semibold text-foreground">
+                        ৳{u.wallet ? Number(u.wallet.balance).toFixed(2) : "0.00"}
+                      </span>
+                      <DirectAdjustWalletButton user={{ id: u.id, fullName: u.fullName, email: u.email }} />
+                    </div>
                   </td>
                   <td className="px-4 py-3.5">
                     <div className="flex flex-col gap-1">

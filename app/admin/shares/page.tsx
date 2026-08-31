@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { getShareSgdRate, sgdToBdt } from "@/lib/share-pricing";
 import { CreateProjectForm } from "./create-form";
 import { ResellActions } from "./resell-actions";
+import { ResetDemoSharesButton } from "@/components/reset-demo-shares-button";
 import Link from "next/link";
 
 async function getData() {
@@ -68,11 +69,14 @@ export default async function AdminSharesPage() {
 
   return (
     <div className="max-w-6xl mx-auto space-y-8">
-      <div>
-        <h1 className="text-2xl font-bold text-foreground">Share Management</h1>
-        <p className="text-sm text-muted-foreground">
-          {projects.length} projects · {pendingListings.length} pending resell listings · {pendingTrades.length} pending trades · {pendingBuyRequests.length} pending buy requests
-        </p>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-foreground">Share Management</h1>
+          <p className="text-sm text-muted-foreground">
+            {projects.length} projects · {pendingListings.length} pending resell listings · {pendingTrades.length} pending trades · {pendingBuyRequests.length} pending buy requests
+          </p>
+        </div>
+        <ResetDemoSharesButton />
       </div>
 
       {/* Pending buy requests */}
@@ -96,7 +100,7 @@ export default async function AdminSharesPage() {
                     <div className="flex gap-4 mt-2 text-xs">
                       <span>Share #: <strong className="text-foreground font-mono">{r.shareNumber}</strong></span>
                       <span>Size: <strong className="text-foreground">{r.size}</strong></span>
-                      <span>Offered: <strong className="text-foreground">${Number(r.price).toFixed(2)} (৳{sgdToBdt(Number(r.price), rate).toFixed(2)})</strong></span>
+                      <span>Offered: <strong className="text-foreground">৳{Number(r.price).toFixed(2)}</strong> <span className="text-muted-foreground text-[11px]">(${(Number(r.price) / rate).toFixed(2)} SGD)</span></span>
                       <span>Preferred Date: <strong className="text-foreground">{r.preferredDate.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })}</strong></span>
                     </div>
                   </div>

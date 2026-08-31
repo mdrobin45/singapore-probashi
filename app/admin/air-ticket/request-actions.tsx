@@ -22,14 +22,23 @@ const STATUS_STYLES: Record<Status, string> = {
   CANCELLED: "bg-red-100 text-red-600",
 };
 
-export function StatusPill({ id, status }: { id: string; status: Status }) {
+export function StatusPill({
+  id,
+  status,
+  currentTicketUrl,
+}: {
+  id: string;
+  status: Status;
+  currentTicketUrl?: string | null;
+}) {
   const [open, setOpen] = useState(false);
   const [note, setNote] = useState("");
+  const [ticketBase64, setTicketBase64] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
   function update(s: Status) {
     startTransition(async () => {
-      await updateAirTicketStatusAction(id, s, note);
+      await updateAirTicketStatusAction(id, s, note, ticketBase64 ?? undefined);
       setOpen(false);
     });
   }
@@ -39,28 +48,57 @@ export function StatusPill({ id, status }: { id: string; status: Status }) {
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className={`text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full ${STATUS_STYLES[status]}`}
+        className={`text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full cursor-pointer ${STATUS_STYLES[status]}`}
       >
         {status}
       </button>
 
       {open && (
-        <div className="absolute left-0 mt-1 bg-white border border-border rounded-xl shadow-lg z-20 w-52 p-3 space-y-2">
+        <div className="absolute left-0 mt-1 bg-white border border-border rounded-xl shadow-lg z-20 w-64 p-3.5 space-y-2.5">
           <textarea
             value={note}
             onChange={(e) => setNote(e.target.value)}
             placeholder="Admin note (optional)"
             rows={2}
-            className="w-full text-xs px-2 py-1.5 border border-border rounded-lg focus:outline-none focus:ring-1 focus:ring-brand resize-none"
+            className="w-full text-xs px-2.5 py-1.5 border border-border rounded-lg focus:outline-none focus:ring-1 focus:ring-brand resize-none"
           />
-          <div className="grid grid-cols-2 gap-1.5">
+
+          <div>
+            <label className="block text-[10px] text-muted-foreground font-semibold mb-1">
+              Attach E-Ticket (PDF or Image):
+            </label>
+            <input
+              type="file"
+              accept=".pdf,image/*"
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onload = () => setTicketBase64(reader.result as string);
+                reader.readAsDataURL(file);
+              }}
+              className="w-full text-[10px] text-muted-foreground file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-[10px] file:font-semibold file:bg-brand-50 file:text-brand"
+            />
+            {currentTicketUrl && (
+              <a
+                href={currentTicketUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-[10px] text-brand hover:underline block mt-1"
+              >
+                📎 View current attached ticket
+              </a>
+            )}
+          </div>
+
+          <div className="grid grid-cols-2 gap-1.5 pt-1">
             {STATUS_OPTIONS.map((opt) => (
               <button
                 key={opt.value}
                 type="button"
                 disabled={isPending || opt.value === status}
                 onClick={() => update(opt.value)}
-                className={`text-[10px] font-semibold px-2 py-1.5 rounded-lg border transition-colors disabled:opacity-40 ${
+                className={`text-[10px] font-semibold px-2 py-1.5 rounded-lg border transition-colors disabled:opacity-40 cursor-pointer ${
                   opt.value === status
                     ? "border-brand bg-brand text-white"
                     : "border-border hover:border-brand hover:text-brand"
@@ -73,7 +111,7 @@ export function StatusPill({ id, status }: { id: string; status: Status }) {
           <button
             type="button"
             onClick={() => setOpen(false)}
-            className="w-full text-[11px] text-muted-foreground hover:text-foreground transition-colors"
+            className="w-full text-[11px] text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
           >
             Close
           </button>

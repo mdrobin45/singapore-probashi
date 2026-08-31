@@ -72,7 +72,7 @@ const nav = [
         icon: <svg className="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>,
       },
       {
-        label: "Lost & Found", href: "/admin/lost-found",
+        label: "Pick & Put", href: "/admin/lost-found",
         icon: <svg className="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>,
       },
       {
@@ -92,9 +92,23 @@ const nav = [
   },
 ];
 
-type Props = { userName: string; userRole: string; userEmail: string };
+export type AdminPendingCounts = {
+  purchases?: number;
+  deposits?: number;
+  withdrawals?: number;
+  taxi?: number;
+  airTicket?: number;
+  checkouts?: number;
+};
 
-export function AdminSidebar({ userName, userRole, userEmail }: Props) {
+type Props = {
+  userName: string;
+  userRole: string;
+  userEmail: string;
+  pendingCounts?: AdminPendingCounts;
+};
+
+export function AdminSidebar({ userName, userRole, userEmail, pendingCounts }: Props) {
   const pathname = usePathname();
 
   const allHrefs = nav.flatMap((group) => group.items.map((item) => item.href));
@@ -104,6 +118,24 @@ export function AdminSidebar({ userName, userRole, userEmail }: Props) {
 
   function isActive(href: string) {
     return href === bestMatch;
+  }
+
+  function getBadge(href: string) {
+    if (!pendingCounts) return null;
+    let count = 0;
+    if (href === "/admin/purchases") count = pendingCounts.purchases ?? 0;
+    else if (href === "/admin/deposits") count = pendingCounts.deposits ?? 0;
+    else if (href === "/admin/withdrawals") count = pendingCounts.withdrawals ?? 0;
+    else if (href === "/admin/taxi") count = pendingCounts.taxi ?? 0;
+    else if (href === "/admin/air-ticket") count = pendingCounts.airTicket ?? 0;
+    else if (href === "/admin/checkouts") count = pendingCounts.checkouts ?? 0;
+
+    if (count <= 0) return null;
+    return (
+      <span className="ml-auto text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-300 px-1.5 py-0.5 rounded-full">
+        {count}
+      </span>
+    );
   }
 
   return (
@@ -139,7 +171,8 @@ export function AdminSidebar({ userName, userRole, userEmail }: Props) {
                   <span className={isActive(item.href) ? "text-brand" : "text-muted-foreground"}>
                     {item.icon}
                   </span>
-                  {item.label}
+                  <span>{item.label}</span>
+                  {getBadge(item.href)}
                 </Link>
               ))}
             </div>

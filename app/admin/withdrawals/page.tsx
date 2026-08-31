@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { ProcessWithdrawalForm } from "./process-form";
+import { ScreenshotViewerModal } from "@/components/screenshot-modal";
 
 async function getWithdrawals() {
   return prisma.withdrawalRequest.findMany({
@@ -65,6 +66,12 @@ export default async function AdminWithdrawalsPage() {
                     <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${STATUS_STYLES[w.status]}`}>
                       {w.status}
                     </span>
+                    {w.adminTxId && <p className="text-[11px] font-mono text-muted-foreground mt-0.5">Trx: {w.adminTxId}</p>}
+                    {w.adminProofUrl && (
+                      <div className="mt-1">
+                        <ScreenshotViewerModal url={w.adminProofUrl} label="📎 Payout Slip" />
+                      </div>
+                    )}
                     {w.adminNote && <p className="text-[11px] text-muted-foreground mt-0.5 max-w-32 truncate">{w.adminNote}</p>}
                   </td>
                   <td className="px-4 py-3.5 text-xs text-muted-foreground whitespace-nowrap">

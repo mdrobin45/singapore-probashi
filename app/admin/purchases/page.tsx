@@ -1,7 +1,9 @@
 import { prisma } from "@/lib/prisma";
 import { getShareSgdRate } from "@/lib/share-pricing";
-import { getCommissionSetting, getShareAdminCutPercent, computeCommissionAmount } from "@/lib/commission";
+import { getCommissionSetting, computeCommissionAmount } from "@/lib/commission";
+import { getShareAdminCutPercent } from "@/lib/commission";
 import { ProcessPurchaseForm } from "./process-form";
+import { ScreenshotViewerModal } from "@/components/screenshot-modal";
 
 async function getPurchaseRequests() {
   return prisma.sharePurchaseRequest.findMany({
@@ -110,7 +112,9 @@ export default async function AdminPurchasesPage() {
                       <p className="text-[11px] font-mono text-muted-foreground truncate max-w-28">{r.txId}</p>
                     )}
                     {r.screenshotUrl && (
-                      <p className="text-[11px] text-brand font-medium mt-0.5">📎 Screenshot</p>
+                      <div className="mt-1">
+                        <ScreenshotViewerModal url={r.screenshotUrl} label="📎 Screenshot" />
+                      </div>
                     )}
                   </td>
                   <td className="px-4 py-3.5">

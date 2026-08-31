@@ -70,7 +70,12 @@ export default async function AdminAirTicketPage() {
                       {r.price != null ? `৳${Number(r.price).toFixed(2)}` : "—"}
                     </td>
                     <td className="px-4 py-3.5">
-                      <StatusPill id={r.id} status={r.status} />
+                      <StatusPill id={r.id} status={r.status} currentTicketUrl={r.ticketUrl} />
+                      {r.ticketUrl && (
+                        <a href={r.ticketUrl} target="_blank" rel="noopener noreferrer" className="text-[10px] text-brand font-semibold hover:underline block mt-0.5">
+                          📎 E-Ticket Attached
+                        </a>
+                      )}
                       {r.adminNote && <p className="text-[11px] text-muted-foreground mt-0.5">{r.adminNote}</p>}
                     </td>
                     <td className="px-4 py-3.5 min-w-56">

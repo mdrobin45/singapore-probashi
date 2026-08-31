@@ -24,6 +24,9 @@ export async function processWithdrawalAction(
   const decision = formData.get("decision") as "APPROVED" | "REJECTED";
   const adminNote = (formData.get("adminNote") as string) || null;
 
+  const adminTxId = (formData.get("adminTxId") as string) || null;
+  const adminProofUrl = (formData.get("adminProofUrl") as string) || null;
+
   const request = await prisma.withdrawalRequest.findUnique({
     where: { id: requestId, status: "PENDING" },
   });
@@ -41,7 +44,14 @@ export async function processWithdrawalAction(
 
         await tx.withdrawalRequest.update({
           where: { id: requestId },
-          data: { status: "APPROVED", adminNote, processedById: session.userId, processedAt: new Date() },
+          data: {
+            status: "APPROVED",
+            adminNote,
+            adminTxId,
+            adminProofUrl,
+            processedById: session.userId,
+            processedAt: new Date(),
+          },
         });
 
         const newBalance = Number(wallet.balance) - Number(request.amount);
@@ -52,7 +62,7 @@ export async function processWithdrawalAction(
             walletId: wallet.id,
             type: "WITHDRAWAL",
             amount: request.amount,
-            description: `Withdrawal via ${request.paymentMethod} to ${request.accountNumber}`,
+            description: `Withdrawal via ${request.paymentMethod} to ${request.accountNumber}${adminTxId ? ` (TrxID: ${adminTxId})` : ""}`,
             balanceBefore: wallet.balance,
             balanceAfter: newBalance,
           },
@@ -61,8 +71,8 @@ export async function processWithdrawalAction(
         await tx.notification.create({
           data: {
             userId: request.userId,
-            title: "Withdrawal approved",
-            message: `৳${Number(request.amount).toFixed(2)} has been withdrawn from your wallet and will be sent to your ${request.paymentMethod} account.`,
+            title: "Withdrawal approved & sent",
+            message: `৳${Number(request.amount).toFixed(2)} has been sent to your ${request.paymentMethod} account (${request.accountNumber}).${adminTxId ? ` Transaction ID: ${adminTxId}.` : ""}`,
             type: "WALLET",
           },
         });

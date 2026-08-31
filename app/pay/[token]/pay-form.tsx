@@ -21,6 +21,14 @@ export function PayForm({ token, accounts }: { token: string; accounts: PaymentA
   const [screenshotError, setScreenshotError] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
+  const [copiedNumber, setCopiedNumber] = useState<string | null>(null);
+
+  function copyNumber(num: string) {
+    navigator.clipboard.writeText(num);
+    setCopiedNumber(num);
+    setTimeout(() => setCopiedNumber(null), 2000);
+  }
+
   if (state?.success) {
     return (
       <div className="text-center py-6">
@@ -47,14 +55,29 @@ export function PayForm({ token, accounts }: { token: string; accounts: PaymentA
         </div>
       ) : (
         <div className="bg-muted rounded-xl p-4 space-y-2">
-          <p className="text-xs font-semibold text-foreground mb-2">Payment accounts</p>
+          <div className="flex items-center justify-between mb-1">
+            <p className="text-xs font-semibold text-foreground">Payment Accounts</p>
+            <span className="text-[10px] text-muted-foreground">Click Copy to copy number</span>
+          </div>
           {accounts.map((a) => (
-            <div key={a.id} className="flex items-center justify-between text-xs">
+            <div key={a.id} className="flex items-center justify-between text-xs py-1 border-b border-border/50 last:border-0">
               <span className="font-medium text-foreground">
                 {a.label}
                 {a.accountName && <span className="text-muted-foreground"> ({a.accountName})</span>}
               </span>
-              <span className="font-mono text-muted-foreground">{a.accountNumber}</span>
+              <div className="flex items-center gap-1.5">
+                <span className="font-mono font-medium text-foreground bg-white border border-border px-2 py-0.5 rounded">
+                  {a.accountNumber}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => copyNumber(a.accountNumber)}
+                  className="inline-flex items-center gap-1 text-[11px] font-semibold text-brand bg-brand-50 hover:bg-brand-100 px-2 py-0.5 rounded transition-colors cursor-pointer"
+                  title="Copy number"
+                >
+                  {copiedNumber === a.accountNumber ? "✓ Copied" : "Copy"}
+                </button>
+              </div>
             </div>
           ))}
         </div>

@@ -137,6 +137,36 @@ function AvatarDropdown({ user }: { user: SessionPayload }) {
 							My Sections
 						</p>
 						<Link
+							href="/history"
+							onClick={() => setOpen(false)}
+							className="flex items-center gap-2.5 px-4 py-2 text-sm text-foreground hover:bg-muted transition-colors font-medium"
+						>
+							<svg className="w-4 h-4 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+								<path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+							</svg>
+							All History
+						</Link>
+						<Link
+							href="/reminders"
+							onClick={() => setOpen(false)}
+							className="flex items-center gap-2.5 px-4 py-2 text-sm text-foreground hover:bg-muted transition-colors"
+						>
+							<svg className="w-4 h-4 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+								<path strokeLinecap="round" strokeLinejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+							</svg>
+							Alarm & Reminders
+						</Link>
+						<Link
+							href="/forum"
+							onClick={() => setOpen(false)}
+							className="flex items-center gap-2.5 px-4 py-2 text-sm text-foreground hover:bg-muted transition-colors"
+						>
+							<svg className="w-4 h-4 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+								<path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+							</svg>
+							Community Forum
+						</Link>
+						<Link
 							href="/shares/my"
 							onClick={() => setOpen(false)}
 							className="flex items-center gap-2.5 px-4 py-2 text-sm text-foreground hover:bg-muted transition-colors"
@@ -435,15 +465,21 @@ export function Navbar({
 		{ href: "/services", label: "Services" },
 		{ href: "/taxi", label: "Taxi Rent" },
 		{ href: "/air-ticket", label: "Air Ticket" },
+		{ href: "/forum", label: "Forum" },
 		{ href: "/currency", label: "Currency" },
 		{ href: "/islamic-center", label: "Islamic Center" },
 		{ href: "/lost-found", label: "Pick & Put" },
 	];
 
-	// Wallet/Checkout need an account, so only surface them in the mobile
-	// hamburger menu once logged in — guests would just bounce to /login.
+	// Wallet/Checkout/Reminders/History surface in mobile menu once logged in
 	const mobileMenuLinks = user
-		? [...navLinks, { href: "/wallet", label: "Wallet" }, { href: "/checkout", label: "Checkout" }]
+		? [
+				...navLinks,
+				{ href: "/history", label: "All History" },
+				{ href: "/reminders", label: "Alarm & Reminders" },
+				{ href: "/wallet", label: "Wallet" },
+				{ href: "/checkout", label: "Checkout" },
+		  ]
 		: navLinks;
 
 	return (

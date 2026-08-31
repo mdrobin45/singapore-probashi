@@ -148,17 +148,25 @@ export async function assignAirTicketRequestAction(
 export async function updateAirTicketStatusAction(
   id: string,
   status: BookingStatus,
-  adminNote?: string
+  adminNote?: string,
+  ticketUrl?: string
 ) {
   await requireAdmin();
 
+  const dataToUpdate: any = { status, adminNote: adminNote || null };
+  if (ticketUrl) {
+    dataToUpdate.ticketUrl = ticketUrl;
+  }
+
   const request = await prisma.airTicketRequest.update({
     where: { id },
-    data: { status, adminNote: adminNote || null },
+    data: dataToUpdate,
   });
 
   const STATUS_MESSAGES: Partial<Record<BookingStatus, string>> = {
-    CONFIRMED: "Your air ticket booking has been confirmed.",
+    CONFIRMED: ticketUrl
+      ? "Your flight booking has been confirmed! Your E-Ticket has been attached and is ready for download."
+      : "Your air ticket booking has been confirmed.",
     COMPLETED: "Your air ticket trip is marked as completed. Thanks for flying with us!",
     CANCELLED: "Your air ticket request has been cancelled.",
   };

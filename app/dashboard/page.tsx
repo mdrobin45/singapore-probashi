@@ -60,7 +60,10 @@ export default async function DashboardPage() {
   const totalShares = ownerships.reduce((sum, o) => sum + o.quantity, 0);
 
   const MODULE_LINKS = [
-    { href: "/shares/my", label: "My Investments", desc: "Shares 6 portfolio & history", icon: "📈" },
+    { href: "/history", label: "All History", desc: "Shares, Taxi, Flights & Wallet history", icon: "📑" },
+    { href: "/reminders", label: "Alarm & Reminders", desc: "10 slots with WhatsApp / Gmail alerts", icon: "⏰" },
+    { href: "/forum", label: "Community Forum", desc: "Group discussions & questions", icon: "💬" },
+    { href: "/shares/my", label: "My Investments", desc: "Shares 6 portfolio & certificates", icon: "📈" },
     { href: "/taxi", label: "Taxi Rent", desc: "Book Noah, Private Car, Hiace", icon: "🚕" },
     { href: "/air-ticket", label: "Air Tickets", desc: "Book Biman, SQ, US-Bangla, AirAsia", icon: "✈️" },
     { href: "/checkout", label: "My Checkouts", desc: "View and pay booking invoices", icon: "💳" },
@@ -304,7 +307,6 @@ export default async function DashboardPage() {
         )}
 
         {/* Module shortcuts */}
-        <h2 className="text-base font-semibold text-foreground mb-3">Platform Services</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {MODULE_LINKS.map((m) => (
             <Link key={m.href} href={m.href}>

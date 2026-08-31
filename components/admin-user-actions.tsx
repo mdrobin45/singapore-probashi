@@ -437,3 +437,115 @@ export function UserActionsMenu({ user, actorRole }: Props) {
     </div>
   );
 }
+
+export function DirectAdjustWalletButton({
+  user,
+}: {
+  user: { id: string; fullName: string; email: string };
+}) {
+  const [open, setOpen] = useState(false);
+  const [walletState, walletAction, walletPending] = useActionState(adjustWalletAction, null);
+
+  useEffect(() => {
+    if (walletState?.success) {
+      setOpen(false);
+    }
+  }, [walletState]);
+
+  return (
+    <>
+      <button
+        type="button"
+        onClick={() => setOpen(true)}
+        className="inline-flex items-center gap-1 text-[11px] font-semibold text-brand bg-brand-50 hover:bg-brand-100 px-2 py-0.5 rounded transition-colors cursor-pointer"
+        title="Credit or Debit user wallet"
+      >
+        ± Adjust
+      </button>
+
+      {open && (
+        <div className="fixed inset-0 z-70 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-xs" onClick={() => setOpen(false)} />
+          <div className="relative bg-white rounded-2xl border border-border shadow-2xl w-full max-w-sm overflow-hidden text-left">
+            <div className="px-6 py-4 border-b border-border flex items-center justify-between">
+              <div>
+                <h2 className="font-bold text-foreground text-sm">Adjust Wallet Balance</h2>
+                <p className="text-xs text-muted-foreground">{user.fullName} ({user.email})</p>
+              </div>
+              <button onClick={() => setOpen(false)} className="text-muted-foreground hover:text-foreground cursor-pointer">
+                ✕
+              </button>
+            </div>
+
+            <form action={walletAction} className="p-6 space-y-4">
+              <input type="hidden" name="userId" value={user.id} />
+
+              <div>
+                <label className="block text-xs font-medium text-foreground mb-1">Direction</label>
+                <div className="grid grid-cols-2 gap-2">
+                  <label className="cursor-pointer">
+                    <input type="radio" name="direction" value="CREDIT" defaultChecked className="sr-only peer" />
+                    <div className="border border-border rounded-lg px-3 py-2 text-xs font-semibold text-center transition-colors peer-checked:bg-green-50 peer-checked:border-green-500 peer-checked:text-green-700 text-muted-foreground">
+                      + Add Credit
+                    </div>
+                  </label>
+                  <label className="cursor-pointer">
+                    <input type="radio" name="direction" value="DEBIT" className="sr-only peer" />
+                    <div className="border border-border rounded-lg px-3 py-2 text-xs font-semibold text-center transition-colors peer-checked:bg-red-50 peer-checked:border-red-500 peer-checked:text-red-700 text-muted-foreground">
+                      − Deduct Debit
+                    </div>
+                  </label>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-foreground mb-1">Amount (৳)</label>
+                <input
+                  name="amount"
+                  type="number"
+                  min={0.01}
+                  step={0.01}
+                  required
+                  placeholder="e.g. 500"
+                  className="w-full px-3 py-2 rounded-lg border border-border text-sm focus:outline-none focus:ring-2 focus:ring-brand/30 focus:border-brand"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-foreground mb-1">Reason / Note</label>
+                <textarea
+                  name="reason"
+                  required
+                  rows={2}
+                  placeholder="e.g. Manual top-up, bonus, or adjustment"
+                  className="w-full px-3 py-2 rounded-lg border border-border text-sm resize-none focus:outline-none focus:ring-2 focus:ring-brand/30 focus:border-brand"
+                />
+              </div>
+
+              {walletState?.error && (
+                <p className="text-xs text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">{walletState.error}</p>
+              )}
+
+              <div className="flex gap-2 pt-1">
+                <button
+                  type="submit"
+                  disabled={walletPending}
+                  className="flex-1 bg-brand text-white rounded-lg py-2 text-xs font-semibold hover:bg-brand-dark transition-colors disabled:opacity-60 cursor-pointer"
+                >
+                  {walletPending ? "Applying…" : "Apply Adjustment"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setOpen(false)}
+                  className="px-3 py-2 text-xs font-medium text-muted-foreground border border-border rounded-lg hover:bg-muted cursor-pointer"
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+    </>
+  );
+}

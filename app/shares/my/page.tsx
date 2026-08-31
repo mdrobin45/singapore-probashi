@@ -24,7 +24,7 @@ async function getMyShareData(userId: string) {
     prisma.shareCertificate.findMany({
       where: { ownerId: userId },
       orderBy: { shareNumber: "asc" },
-      select: { projectId: true, shareNumber: true },
+      select: { id: true, projectId: true, shareNumber: true, code: true },
     }),
     prisma.shareBuyRequest.findMany({
       where: { buyerId: userId },
@@ -66,9 +66,9 @@ export default async function MySharesPage() {
   ]);
 
   // Group certificates by projectId
-  const certsByProject = certificates.reduce<Record<string, number[]>>((acc, c) => {
+  const certsByProject = certificates.reduce<Record<string, { id: string; shareNumber: number; code: string | null }[]>>((acc, c) => {
     if (!acc[c.projectId]) acc[c.projectId] = [];
-    acc[c.projectId].push(c.shareNumber);
+    acc[c.projectId].push(c);
     return acc;
   }, {});
 
@@ -151,9 +151,28 @@ export default async function MySharesPage() {
                     {ownerships.map((o) => (
                       <tr key={o.id} className="hover:bg-muted/30">
                         <td className="px-5 py-3.5 font-medium text-foreground">{o.project.name}</td>
-                        <td className="px-4 py-3.5 text-foreground">{o.quantity}</td>
-                        <td className="px-4 py-3.5 text-xs font-mono text-brand">
-                          {formatShareNumbers(certsByProject[o.projectId] ?? [])}
+                        <td className="px-4 py-3.5 text-foreground font-semibold">{o.quantity}</td>
+                        <td className="px-4 py-3.5 text-xs">
+                          {certsByProject[o.projectId] && certsByProject[o.projectId].length > 0 ? (
+                            <div className="flex flex-wrap gap-1">
+                              {certsByProject[o.projectId].map((c) => (
+                                <Link
+                                  key={c.id}
+                                  href={`/shares/certificate/${c.id}`}
+                                  target="_blank"
+                                  title="View / Print Official Certificate"
+                                  className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-brand-50 text-brand font-mono font-bold hover:bg-brand hover:text-white transition-colors"
+                                >
+                                  {c.code ?? `#${String(c.shareNumber).padStart(6, "0")}`}
+                                  <svg className="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                                  </svg>
+                                </Link>
+                              ))}
+                            </div>
+                          ) : (
+                            <span className="text-muted-foreground font-mono">—</span>
+                          )}
                         </td>
                         <td className="px-4 py-3.5 text-muted-foreground">
                           ${Number(o.project.sharePriceSgd).toFixed(2)}
@@ -163,12 +182,23 @@ export default async function MySharesPage() {
                           ৳{sgdToBdt(Number(o.project.sharePriceSgd) * o.quantity, rate).toFixed(2)}
                         </td>
                         <td className="px-4 py-3.5">
-                          <Link
-                            href={`/shares/resell?ownershipId=${o.id}`}
-                            className="text-xs font-semibold text-brand border border-brand/30 px-2.5 py-1 rounded-lg hover:bg-brand hover:text-white transition-colors"
-                          >
-                            List for Sale
-                          </Link>
+                          <div className="flex items-center gap-2">
+                            {certsByProject[o.projectId]?.[0] && (
+                              <Link
+                                href={`/shares/certificate/${certsByProject[o.projectId][0].id}`}
+                                target="_blank"
+                                className="text-xs font-semibold text-amber-800 bg-amber-50 border border-amber-200 px-2.5 py-1 rounded-lg hover:bg-amber-100 transition-colors whitespace-nowrap inline-flex items-center gap-1"
+                              >
+                                📜 Certificate
+                              </Link>
+                            )}
+                            <Link
+                              href={`/shares/resell?ownershipId=${o.id}`}
+                              className="text-xs font-semibold text-brand border border-brand/30 px-2.5 py-1 rounded-lg hover:bg-brand hover:text-white transition-colors whitespace-nowrap"
+                            >
+                              List for Sale
+                            </Link>
+                          </div>
                         </td>
                       </tr>
                     ))}

@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { ProcessDepositForm } from "./process-form";
+import { ScreenshotViewerModal } from "@/components/screenshot-modal";
 
 async function getDeposits() {
   return prisma.depositRequest.findMany({
@@ -56,8 +57,14 @@ export default async function AdminDepositsPage() {
                     <p className="text-xs text-muted-foreground">{d.user.email}</p>
                   </td>
                   <td className="px-4 py-3.5 font-bold text-foreground">৳{Number(d.amount).toFixed(2)}</td>
-                  <td className="px-4 py-3.5 text-muted-foreground">{METHOD_LABELS[d.paymentMethod] ?? d.paymentMethod}</td>
-                  <td className="px-4 py-3.5 font-mono text-xs text-muted-foreground">{d.txId}</td>
+                  <td className="px-4 py-3.5 text-xs">
+                    {d.txId ? <p className="font-mono text-muted-foreground">{d.txId}</p> : <span className="text-muted-foreground">—</span>}
+                    {d.screenshotUrl && (
+                      <div className="mt-1">
+                        <ScreenshotViewerModal url={d.screenshotUrl} label="📎 Screenshot" />
+                      </div>
+                    )}
+                  </td>
                   <td className="px-4 py-3.5">
                     <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${STATUS_STYLES[d.status]}`}>
                       {d.status}

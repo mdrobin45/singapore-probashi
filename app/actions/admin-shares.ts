@@ -568,3 +568,27 @@ export async function processResellAction({
 
   revalidatePath("/admin/shares");
 }
+
+export async function resetDemoSharesAction(): Promise<{ error?: string; success?: boolean; message?: string }> {
+  await requireAdmin();
+  try {
+    await prisma.$transaction([
+      prisma.shareTrade.deleteMany({}),
+      prisma.shareListing.deleteMany({}),
+      prisma.shareCertificate.deleteMany({}),
+      prisma.sharePurchaseRequest.deleteMany({}),
+      prisma.shareOwnership.deleteMany({}),
+      prisma.shareBuyRequest.deleteMany({}),
+    ]);
+    revalidatePath("/admin/shares");
+    revalidatePath("/shares");
+    revalidatePath("/dashboard");
+    return {
+      success: true,
+      message: "All demo share data (purchases, trades, listings, buy requests, certificates, ownerships) has been successfully deleted!",
+    };
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : "Failed to reset demo share data.";
+    return { error: msg };
+  }
+}
