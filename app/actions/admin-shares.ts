@@ -208,15 +208,15 @@ export async function createProjectAction(
   const imageUrl = (formData.get("imageUrl") as string) || null;
 
   const numbersRaw = formData.get("shareNumbers") as string;
-  let shareNumbers: { number: number; priceSgd: number | null }[] = [];
+  let shareNumbers: { number: number; priceSgd: number | null; code?: string | null }[] = [];
   try {
     const parsed = JSON.parse(numbersRaw || "[]");
     if (Array.isArray(parsed)) {
       const valid = parsed.filter(
-        (e: unknown): e is { number: number; priceSgd: number | null } =>
+        (e: unknown): e is { number: number; priceSgd: number | null; code?: string | null } =>
           typeof e === "object" && e !== null && typeof (e as { number: unknown }).number === "number" && (e as { number: number }).number > 0
       );
-      shareNumbers = [...new Map(valid.map((e) => [e.number, { number: e.number, priceSgd: e.priceSgd ?? null }])).values()];
+      shareNumbers = [...new Map(valid.map((e) => [e.number, { number: e.number, priceSgd: e.priceSgd ?? null, code: e.code ?? null }])).values()];
     }
   } catch { /* ignore — no numbers provided */ }
 
@@ -234,7 +234,12 @@ export async function createProjectAction(
 
   if (shareNumbers.length > 0) {
     await prisma.shareCertificate.createMany({
-      data: shareNumbers.map((e) => ({ projectId: project.id, shareNumber: e.number, priceSgd: e.priceSgd })),
+      data: shareNumbers.map((e) => ({
+        projectId: project.id,
+        shareNumber: e.number,
+        priceSgd: e.priceSgd,
+        code: e.code ? String(e.code).trim() : null,
+      })),
     });
   }
 

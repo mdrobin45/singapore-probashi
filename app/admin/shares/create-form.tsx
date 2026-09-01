@@ -16,9 +16,10 @@ export function CreateProjectForm() {
   const [basePriceInput, setBasePriceInput] = useState("");
   const basePrice = parseFloat(basePriceInput) || 0;
 
-  // Share numbers — one-by-one entry, each with its own optional price
-  const [shareNums, setShareNums] = useState<{ number: number; priceSgd: number | null }[]>([]);
+  // Share numbers — one-by-one entry, each with its own optional price and optional Word / Plot code
+  const [shareNums, setShareNums] = useState<{ number: number; priceSgd: number | null; code?: string | null }[]>([]);
   const [numInput, setNumInput] = useState("");
+  const [codeInput, setCodeInput] = useState("");
   const [priceInput, setPriceInput] = useState("");
   const [numError, setNumError] = useState("");
   const numInputRef = useRef<HTMLInputElement>(null);
@@ -41,9 +42,11 @@ export function CreateProjectForm() {
     const priceRaw = priceInput.trim();
     const priceSgd = priceRaw ? parseFloat(priceRaw) : null;
     if (priceSgd !== null && (isNaN(priceSgd) || priceSgd <= 0)) { setNumError("Enter a valid price or leave it blank."); return; }
-    const next = [...shareNums, { number: n, priceSgd }].sort((a, b) => a.number - b.number);
+    const code = codeInput.trim() || null;
+    const next = [...shareNums, { number: n, priceSgd, code }].sort((a, b) => a.number - b.number);
     setShareNums(next);
     setNumInput("");
+    setCodeInput("");
     setPriceInput("");
     setNumError("");
     numInputRef.current?.focus();
@@ -137,7 +140,7 @@ export function CreateProjectForm() {
           <p className="text-[11px] text-muted-foreground mb-3">
             Each number is the unique identity of one individual share. Give it its own price, or leave it blank to use the price above{basePrice ? ` ($${basePrice.toFixed(2)})` : ""}. Type and press Enter or +.
           </p>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap sm:flex-nowrap gap-2">
             <input
               ref={numInputRef}
               type="number"
@@ -145,8 +148,16 @@ export function CreateProjectForm() {
               value={numInput}
               onChange={(e) => { setNumInput(e.target.value); setNumError(""); }}
               onKeyDown={handleNumKeyDown}
-              placeholder="e.g. 1001"
-              className="flex-1 px-3 py-2 rounded-lg border border-border text-sm focus:outline-none focus:ring-2 focus:ring-brand/30 focus:border-brand"
+              placeholder="Share # (e.g. 101)"
+              className="w-full sm:w-32 px-3 py-2 rounded-lg border border-border text-sm focus:outline-none focus:ring-2 focus:ring-brand/30 focus:border-brand"
+            />
+            <input
+              type="text"
+              value={codeInput}
+              onChange={(e) => { setCodeInput(e.target.value); setNumError(""); }}
+              onKeyDown={handleNumKeyDown}
+              placeholder="Word / Plot Code (e.g. PLOT-01, LAND-05)"
+              className="flex-1 px-3 py-2 rounded-lg border border-border text-sm focus:outline-none focus:ring-2 focus:ring-brand/30 focus:border-brand uppercase font-mono"
             />
             <input
               type="number"
@@ -156,12 +167,13 @@ export function CreateProjectForm() {
               onChange={(e) => { setPriceInput(e.target.value); setNumError(""); }}
               onKeyDown={handleNumKeyDown}
               placeholder={basePrice ? `$${basePrice.toFixed(2)} (default)` : "price (optional)"}
-              className="w-36 px-3 py-2 rounded-lg border border-border text-sm focus:outline-none focus:ring-2 focus:ring-brand/30 focus:border-brand"
+              className="w-full sm:w-36 px-3 py-2 rounded-lg border border-border text-sm focus:outline-none focus:ring-2 focus:ring-brand/30 focus:border-brand"
             />
             <button
               type="button"
               onClick={addShareNum}
-              className="w-10 h-10 flex items-center justify-center rounded-lg bg-brand text-white hover:bg-brand-dark transition-colors text-xl font-bold shrink-0"
+              className="w-10 h-10 flex items-center justify-center rounded-lg bg-brand text-white hover:bg-brand-dark transition-colors text-xl font-bold shrink-0 cursor-pointer"
+              title="Add share"
             >
               +
             </button>
@@ -171,16 +183,21 @@ export function CreateProjectForm() {
 
           {shareNums.length > 0 && (
             <div className="mt-3">
-              <p className="text-[11px] text-muted-foreground mb-2">{shareNums.length} number{shareNums.length !== 1 ? "s" : ""} added:</p>
+              <p className="text-[11px] text-muted-foreground mb-2">{shareNums.length} share{shareNums.length !== 1 ? "s" : ""} added:</p>
               <div className="flex flex-wrap gap-1.5 max-h-32 overflow-y-auto">
                 {shareNums.map((n) => (
                   <span key={n.number} className="inline-flex items-center gap-1 text-xs font-mono bg-brand-50 border border-brand/30 text-brand px-2 py-1 rounded-lg">
-                    #{String(n.number).padStart(6, "0")}
-                    <span className="text-brand/70">${(n.priceSgd ?? basePrice).toFixed(2)}</span>
+                    {n.code ? (
+                      <span><strong>{n.code}</strong> <span className="text-brand/70">(#{String(n.number).padStart(6, "0")})</span></span>
+                    ) : (
+                      <span>#{String(n.number).padStart(6, "0")}</span>
+                    )}
+                    <span className="text-brand/80 font-bold ml-1">${(n.priceSgd ?? basePrice).toFixed(2)}</span>
                     <button
                       type="button"
                       onClick={() => removeShareNum(n.number)}
-                      className="text-brand/60 hover:text-red-500 ml-0.5 leading-none transition-colors"
+                      className="text-brand/60 hover:text-red-500 ml-1 leading-none transition-colors cursor-pointer"
+                      title="Remove"
                     >
                       ×
                     </button>

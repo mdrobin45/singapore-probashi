@@ -2,7 +2,7 @@ import { getCurrencySettings, getLiveBdtRate } from "@/lib/currency";
 import { getAllCommissionSettings, getShareAdminCutPercent } from "@/lib/commission";
 import { getShareSgdRate } from "@/lib/share-pricing";
 import { getAdminNotificationEmail } from "@/lib/notifications";
-import { getAdSenseSettings } from "@/app/actions/admin-settings";
+import { getAdSenseSettings, getReminderPriceSetting } from "@/app/actions/admin-settings";
 import { prisma } from "@/lib/prisma";
 import { CurrencySettingsForm } from "./currency-form";
 import { BankRatesForm } from "./bank-rates-form";
@@ -12,6 +12,7 @@ import { ShareAdminCutForm } from "./share-admin-cut-form";
 import { NotificationEmailForm } from "./notification-email-form";
 import { PaymentAccountsForm } from "./payment-accounts-form";
 import { AdSenseSettingsForm } from "./adsense-form";
+import { ReminderPriceForm } from "./reminder-price-form";
 
 async function getBankRates() {
   try {
@@ -31,7 +32,7 @@ async function getPaymentAccounts() {
 }
 
 export default async function AdminSettingsPage() {
-  const [settings, liveRate, banks, paymentAccounts, commissionSettings, shareRate, shareAdminCutPercent, notificationEmail, adSenseSettings] = await Promise.all([
+  const [settings, liveRate, banks, paymentAccounts, commissionSettings, shareRate, shareAdminCutPercent, notificationEmail, adSenseSettings, reminderSlotPrice] = await Promise.all([
     getCurrencySettings(),
     getLiveBdtRate(),
     getBankRates(),
@@ -41,6 +42,7 @@ export default async function AdminSettingsPage() {
     getShareAdminCutPercent(),
     getAdminNotificationEmail(),
     getAdSenseSettings(),
+    getReminderPriceSetting(),
   ]);
 
   return (
@@ -223,6 +225,26 @@ export default async function AdminSettingsPage() {
         </div>
         <div className="p-6">
           <AdSenseSettingsForm settings={adSenseSettings} />
+        </div>
+      </div>
+
+      {/* Reminder Alarm Price */}
+      <div className="bg-white rounded-xl border border-border overflow-hidden">
+        <div className="px-6 py-5 border-b border-border">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-amber-50 flex items-center justify-center">
+              <span className="text-lg">⏰</span>
+            </div>
+            <div>
+              <h2 className="font-semibold text-foreground">Alarm & Reminder Settings</h2>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Set unlock fee for reminder slots (Slots 2–10)
+              </p>
+            </div>
+          </div>
+        </div>
+        <div className="p-6">
+          <ReminderPriceForm currentPrice={reminderSlotPrice} />
         </div>
       </div>
     </div>

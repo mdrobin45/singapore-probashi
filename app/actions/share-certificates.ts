@@ -14,10 +14,10 @@ async function requireAdmin() {
   return session;
 }
 
-type PendingNumber = { number: number; priceSgd: number | null };
+type PendingNumber = { number: number; priceSgd: number | null; code?: string | null };
 
 // Admin saves a batch of individually-entered share numbers for a project,
-// each with its own optional price override.
+// each with its own optional price override and optional word/code identifier.
 export async function createShareNumbersAction(
   _prev: ActionState,
   formData: FormData
@@ -33,9 +33,10 @@ export async function createShareNumbersAction(
   try {
     const parsed = JSON.parse(numbersRaw);
     if (!Array.isArray(parsed) || parsed.length === 0) throw new Error();
-    entries = parsed.map((e: { number: number; priceSgd: number | null }) => ({
+    entries = parsed.map((e: { number: number; priceSgd: number | null; code?: string | null }) => ({
       number: e.number,
       priceSgd: e.priceSgd ?? null,
+      code: e.code ? String(e.code).trim() : null,
     }));
   } catch {
     return { error: "Invalid data." };
@@ -56,7 +57,12 @@ export async function createShareNumbersAction(
   }
 
   await prisma.shareCertificate.createMany({
-    data: unique.map((e) => ({ projectId, shareNumber: e.number, priceSgd: e.priceSgd })),
+    data: unique.map((e) => ({
+      projectId,
+      shareNumber: e.number,
+      priceSgd: e.priceSgd,
+      code: e.code?.trim() || null,
+    })),
   });
 
   revalidatePath(`/admin/shares/${projectId}`);

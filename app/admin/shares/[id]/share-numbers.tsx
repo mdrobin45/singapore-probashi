@@ -6,13 +6,14 @@ import { createShareNumbersAction, deleteShareNumberAction, deleteAllUnassignedA
 type Cert = {
   id: string;
   shareNumber: number;
+  code?: string | null;
   priceSgd: number | null;
   ownerId: string | null;
   issuedAt: Date | null;
   owner: { fullName: string; email: string } | null;
 };
 
-type PendingNumber = { number: number; priceSgd: number | null };
+type PendingNumber = { number: number; priceSgd: number | null; code?: string | null };
 
 export function ShareNumbersManager({
   projectId,
@@ -26,6 +27,7 @@ export function ShareNumbersManager({
   // Pending list (client-side, not yet saved)
   const [pending, setPending] = useState<PendingNumber[]>([]);
   const [inputVal, setInputVal] = useState("");
+  const [codeVal, setCodeVal] = useState("");
   const [priceVal, setPriceVal] = useState("");
   const [inputError, setInputError] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
@@ -53,8 +55,10 @@ export function ShareNumbersManager({
     const priceRaw = priceVal.trim();
     const priceSgd = priceRaw ? parseFloat(priceRaw) : null;
     if (priceSgd !== null && (isNaN(priceSgd) || priceSgd <= 0)) { setInputError("Enter a valid price or leave it blank."); return; }
-    setPending((prev) => [...prev, { number: n, priceSgd }].sort((a, b) => a.number - b.number));
+    const code = codeVal.trim() || null;
+    setPending((prev) => [...prev, { number: n, priceSgd, code }].sort((a, b) => a.number - b.number));
     setInputVal("");
+    setCodeVal("");
     setPriceVal("");
     setInputError("");
     inputRef.current?.focus();
@@ -126,7 +130,7 @@ export function ShareNumbersManager({
         </p>
 
         {/* Input row */}
-        <div className="flex gap-2 mb-3">
+        <div className="flex flex-wrap sm:flex-nowrap gap-2 mb-3">
           <input
             ref={inputRef}
             type="number"
@@ -134,8 +138,16 @@ export function ShareNumbersManager({
             value={inputVal}
             onChange={(e) => { setInputVal(e.target.value); setInputError(""); }}
             onKeyDown={handleKeyDown}
-            placeholder="e.g. 1001"
-            className="flex-1 px-3 py-2 rounded-lg border border-border text-sm focus:outline-none focus:ring-2 focus:ring-brand/30 focus:border-brand"
+            placeholder="Share # (e.g. 101)"
+            className="w-full sm:w-32 px-3 py-2 rounded-lg border border-border text-sm focus:outline-none focus:ring-2 focus:ring-brand/30 focus:border-brand"
+          />
+          <input
+            type="text"
+            value={codeVal}
+            onChange={(e) => { setCodeVal(e.target.value); setInputError(""); }}
+            onKeyDown={handleKeyDown}
+            placeholder="Word / Plot Code (e.g. PLOT-01, LAND-05)"
+            className="flex-1 px-3 py-2 rounded-lg border border-border text-sm focus:outline-none focus:ring-2 focus:ring-brand/30 focus:border-brand uppercase font-mono"
           />
           <input
             type="number"
@@ -145,12 +157,12 @@ export function ShareNumbersManager({
             onChange={(e) => { setPriceVal(e.target.value); setInputError(""); }}
             onKeyDown={handleKeyDown}
             placeholder={`$${projectSharePriceSgd.toFixed(2)} (default)`}
-            className="w-40 px-3 py-2 rounded-lg border border-border text-sm focus:outline-none focus:ring-2 focus:ring-brand/30 focus:border-brand"
+            className="w-full sm:w-36 px-3 py-2 rounded-lg border border-border text-sm focus:outline-none focus:ring-2 focus:ring-brand/30 focus:border-brand"
           />
           <button
             type="button"
             onClick={addNumber}
-            className="w-10 h-10 flex items-center justify-center rounded-lg bg-brand text-white hover:bg-brand-dark transition-colors text-lg font-bold shrink-0"
+            className="w-10 h-10 flex items-center justify-center rounded-lg bg-brand text-white hover:bg-brand-dark transition-colors text-lg font-bold shrink-0 cursor-pointer"
             title="Add number"
           >
             +
@@ -167,13 +179,17 @@ export function ShareNumbersManager({
             <p className="text-[11px] text-muted-foreground mb-2">{pending.length} number{pending.length !== 1 ? "s" : ""} ready to save:</p>
             <div className="flex flex-wrap gap-1.5 max-h-36 overflow-y-auto">
               {pending.map((p) => (
-                <span key={p.number} className="inline-flex items-center gap-1 text-xs font-mono bg-brand-50 border border-brand/30 text-brand px-2 py-1 rounded-lg">
-                  #{String(p.number).padStart(6, "0")}
-                  <span className="text-brand/70">${(p.priceSgd ?? projectSharePriceSgd).toFixed(2)}</span>
+                <span key={p.number} className="inline-flex items-center gap-1 text-xs font-mono bg-brand-50 border border-brand/30 text-brand px-2.5 py-1 rounded-lg">
+                  {p.code ? (
+                    <span><strong>{p.code}</strong> <span className="text-brand/70">(#{String(p.number).padStart(6, "0")})</span></span>
+                  ) : (
+                    <span>#{String(p.number).padStart(6, "0")}</span>
+                  )}
+                  <span className="text-brand/80 font-bold ml-1">${(p.priceSgd ?? projectSharePriceSgd).toFixed(2)}</span>
                   <button
                     type="button"
                     onClick={() => removeFromPending(p.number)}
-                    className="text-brand/60 hover:text-red-500 ml-0.5 leading-none transition-colors"
+                    className="text-brand/60 hover:text-red-500 ml-1 leading-none transition-colors cursor-pointer"
                     title="Remove"
                   >
                     ×
@@ -189,7 +205,7 @@ export function ShareNumbersManager({
           <form action={handleSave}>
             <input type="hidden" name="projectId" value={projectId} />
             <button type="submit" disabled={saving}
-              className="bg-brand text-white text-sm font-semibold px-5 py-2 rounded-lg hover:bg-brand-dark disabled:opacity-60 transition-colors">
+              className="bg-brand text-white text-sm font-semibold px-5 py-2 rounded-lg hover:bg-brand-dark disabled:opacity-60 transition-colors cursor-pointer">
               {saving ? "Saving…" : `Save ${pending.length} Share Number${pending.length !== 1 ? "s" : ""}`}
             </button>
           </form>
@@ -215,7 +231,7 @@ export function ShareNumbersManager({
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-border bg-muted/40">
-                <th className="text-left text-xs font-semibold text-muted-foreground px-5 py-3">Share #</th>
+                <th className="text-left text-xs font-semibold text-muted-foreground px-5 py-3">Share / Code</th>
                 <th className="text-left text-xs font-semibold text-muted-foreground px-4 py-3">Price</th>
                 <th className="text-left text-xs font-semibold text-muted-foreground px-4 py-3">Status</th>
                 <th className="text-left text-xs font-semibold text-muted-foreground px-4 py-3">Holder</th>
@@ -227,9 +243,20 @@ export function ShareNumbersManager({
               {certificates.map((cert) => (
                 <tr key={cert.id} className="hover:bg-muted/20 transition-colors">
                   <td className="px-5 py-2.5">
-                    <span className="font-mono font-semibold text-foreground text-base">
-                      #{String(cert.shareNumber).padStart(6, "0")}
-                    </span>
+                    {cert.code ? (
+                      <div className="flex items-center gap-1.5">
+                        <span className="font-mono font-bold text-xs bg-brand-50 text-brand px-2 py-0.5 rounded border border-brand/20">
+                          {cert.code}
+                        </span>
+                        <span className="text-[11px] font-mono text-muted-foreground">
+                          #{String(cert.shareNumber).padStart(6, "0")}
+                        </span>
+                      </div>
+                    ) : (
+                      <span className="font-mono font-semibold text-foreground text-base">
+                        #{String(cert.shareNumber).padStart(6, "0")}
+                      </span>
+                    )}
                   </td>
                   <td className="px-4 py-2.5">
                     {editingId === cert.id ? (

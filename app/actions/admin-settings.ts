@@ -334,3 +334,36 @@ export async function saveAdSenseSettingsAction(_prev: State, formData: FormData
   revalidatePath("/", "layout");
   return { success: true };
 }
+
+export async function getReminderPriceSetting(): Promise<number> {
+  try {
+    const row = await prisma.siteSetting.findUnique({ where: { key: "reminder_slot_price" } });
+    const val = row ? parseFloat(row.value) : 100;
+    return isNaN(val) || val < 0 ? 100 : val;
+  } catch {
+    return 100;
+  }
+}
+
+export async function saveReminderSlotPriceAction(_prev: State, formData: FormData): Promise<State> {
+  const session = await getSession();
+  if (!session || !["SUPER_ADMIN", "ADMIN"].includes(session.role)) {
+    return { error: "Unauthorized." };
+  }
+
+  const rawPrice = formData.get("slotPrice") as string;
+  const price = parseFloat(rawPrice);
+  if (isNaN(price) || price < 0) {
+    return { error: "Please enter a valid price." };
+  }
+
+  await prisma.siteSetting.upsert({
+    where: { key: "reminder_slot_price" },
+    create: { key: "reminder_slot_price", value: String(price) },
+    update: { value: String(price) },
+  });
+
+  revalidatePath("/reminders");
+  revalidatePath("/admin/settings");
+  return { success: true };
+}

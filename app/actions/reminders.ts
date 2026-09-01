@@ -6,7 +6,15 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { sendEmail } from "@/lib/email";
 
-const SLOT_PRICE_BDT = 50;
+export async function getReminderSlotPrice(): Promise<number> {
+  try {
+    const row = await prisma.siteSetting.findUnique({ where: { key: "reminder_slot_price" } });
+    const val = row ? parseFloat(row.value) : 100;
+    return isNaN(val) || val < 0 ? 100 : val;
+  } catch {
+    return 100;
+  }
+}
 
 async function requireUser() {
   const session = await getSession();
@@ -17,7 +25,7 @@ async function requireUser() {
 export async function getRemindersDataAction() {
   const session = await requireUser();
 
-  const [reminders, wallet, user] = await Promise.all([
+  const [reminders, wallet, user, slotPrice] = await Promise.all([
     prisma.reminder.findMany({
       where: { userId: session.userId },
       orderBy: { slotIndex: "asc" },
@@ -30,18 +38,20 @@ export async function getRemindersDataAction() {
       where: { id: session.userId },
       select: { email: true, phone: true, fullName: true },
     }),
+    getReminderSlotPrice(),
   ]);
 
   return {
     reminders,
     walletBalance: wallet ? Number(wallet.balance) : 0,
-    slotPrice: SLOT_PRICE_BDT,
+    slotPrice,
     user,
   };
 }
 
 export async function unlockSlotAction(slotIndex: number) {
   const session = await requireUser();
+  const slotPrice = await getReminderSlotPrice();
 
   if (slotIndex < 2 || slotIndex > 10) {
     return { error: "Invalid slot number." };
@@ -51,12 +61,12 @@ export async function unlockSlotAction(slotIndex: number) {
     return await prisma.$transaction(async (tx) => {
       const wallet = await tx.wallet.findUnique({ where: { userId: session.userId } });
       if (!wallet) throw new Error("Wallet not found.");
-      if (Number(wallet.balance) < SLOT_PRICE_BDT) {
-        throw new Error(`Insufficient wallet balance. You need at least ৳${SLOT_PRICE_BDT} to unlock Slot #${slotIndex}.`);
+      if (Number(wallet.balance) < slotPrice) {
+        throw new Error(`Insufficient wallet balance. You need at least ৳${slotPrice} to unlock Slot #${slotIndex}.`);
       }
 
       // Deduct from wallet
-      const newBalance = Number(wallet.balance) - SLOT_PRICE_BDT;
+      const newBalance = Number(wallet.balance) - slotPrice;
       await tx.wallet.update({
         where: { id: wallet.id },
         data: { balance: newBalance },
@@ -66,7 +76,7 @@ export async function unlockSlotAction(slotIndex: number) {
         data: {
           walletId: wallet.id,
           type: "REFUND", // Or custom type
-          amount: SLOT_PRICE_BDT,
+          amount: slotPrice,
           description: `Unlocked Reminder Alarm Slot #${slotIndex}`,
           balanceBefore: wallet.balance,
           balanceAfter: newBalance,
