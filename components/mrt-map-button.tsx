@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { MRTMapViewer } from "./mrt-map-viewer";
 
 export function MRTMapButton({
 	showDownload = true,
@@ -29,8 +30,9 @@ export function MRTMapButton({
 		<>
 			{/* Trigger buttons */}
 			<button
+				type="button"
 				onClick={() => setOpen(true)}
-				className="inline-flex items-center gap-1 md:gap-2 px-3 md:px-5 py-2 md:py-2.5 text-xs md:text-sm font-semibold text-white bg-brand rounded-full hover:bg-brand-dark active:scale-95 transition-all shadow-md"
+				className="inline-flex items-center gap-1.5 md:gap-2 px-3 md:px-5 py-2 md:py-2.5 text-xs md:text-sm font-semibold text-white bg-brand rounded-full hover:bg-brand-dark active:scale-95 transition-all shadow-md cursor-pointer"
 			>
 				<svg
 					className="w-4 h-4 shrink-0"
@@ -41,16 +43,17 @@ export function MRTMapButton({
 					strokeLinecap="round"
 					strokeLinejoin="round"
 				>
-					<path d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+					<path d="M15 15l6 6m-11-4a7 7 0 110-14 7 7 0 010 14zM10 7v6m3-3H7" />
 				</svg>
-				View Full Map
+				Interactive HD Map (Zoom & Pan)
 			</button>
 
 			{showDownload && (
 				<a
 					href="/mrt-map.pdf"
-					download
-					className="inline-flex items-center gap-2 px-3 md:px-5 py-2 md:py-2.5 text-xs md:text-sm font-semibold text-muted-foreground bg-white border border-border rounded-full hover:border-brand hover:text-brand active:scale-95 transition-all"
+					target="_blank"
+					rel="noopener noreferrer"
+					className="inline-flex items-center gap-1.5 md:gap-2 px-3 md:px-5 py-2 md:py-2.5 text-xs md:text-sm font-semibold text-muted-foreground bg-white border border-border rounded-full hover:border-brand hover:text-brand active:scale-95 transition-all shadow-xs"
 				>
 					<svg
 						className="w-4 h-4 shrink-0"
@@ -61,13 +64,13 @@ export function MRTMapButton({
 						strokeLinecap="round"
 						strokeLinejoin="round"
 					>
-						<path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3" />
+						<path d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
 					</svg>
-					Download PDF
+					Official PDF
 				</a>
 			)}
 
-			{/* Modal */}
+			{/* Fullscreen HD Modal */}
 			{open && (
 				<div className="fixed inset-0 z-60 flex flex-col">
 					{/* Backdrop */}
@@ -76,92 +79,152 @@ export function MRTMapButton({
 						onClick={() => setOpen(false)}
 					/>
 
-					{/* Sheet */}
-					<div className="relative flex flex-col w-full h-full max-w-5xl mx-auto my-0 sm:my-6 sm:rounded-2xl bg-white shadow-2xl overflow-hidden">
-						{/* Header */}
-						<div className="flex items-center justify-between px-4 py-3 border-b border-border shrink-0">
-							<div className="flex items-center gap-2.5">
-								<span className="w-7 h-7 rounded-lg bg-brand flex items-center justify-center text-white shrink-0">
-									<svg
-										className="w-4 h-4"
-										viewBox="0 0 24 24"
-										fill="none"
-										stroke="currentColor"
-										strokeWidth={2.5}
-										strokeLinecap="round"
-										strokeLinejoin="round"
-									>
-										<path d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
-									</svg>
-								</span>
-								<div>
-									<p className="text-sm font-semibold text-foreground leading-tight">
-										Singapore MRT Map
-									</p>
-									<p className="text-[11px] text-muted-foreground leading-tight">
-										Mass Rapid Transit Network
-									</p>
-								</div>
-							</div>
-							<div className="flex items-center gap-2">
-								<a
-									href="/mrt-map.pdf"
-									download
-									className="hidden sm:flex items-center gap-1.5 text-xs font-medium text-muted-foreground hover:text-brand px-3 py-1.5 rounded-lg hover:bg-muted transition-colors"
-								>
-									<svg
-										className="w-3.5 h-3.5"
-										viewBox="0 0 24 24"
-										fill="none"
-										stroke="currentColor"
-										strokeWidth={2}
-										strokeLinecap="round"
-										strokeLinejoin="round"
-									>
-										<path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3" />
-									</svg>
-									Download
-								</a>
-								<button
-									onClick={() => setOpen(false)}
-									className="w-8 h-8 rounded-full hover:bg-muted flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
-									aria-label="Close"
-								>
-									<svg
-										className="w-4 h-4"
-										viewBox="0 0 24 24"
-										fill="none"
-										stroke="currentColor"
-										strokeWidth={2.5}
-										strokeLinecap="round"
-									>
-										<path d="M18 6L6 18M6 6l12 12" />
-									</svg>
-								</button>
-							</div>
-						</div>
+					{/* Sheet Container */}
+					<div className="relative flex flex-col w-full h-full max-w-6xl mx-auto my-0 sm:my-4 sm:rounded-2xl bg-slate-900 shadow-2xl overflow-hidden border border-slate-800">
+						<MRTMapViewer onClose={() => setOpen(false)} />
+					</div>
+				</div>
+			)}
+		</>
+	);
+}
 
-						{/* PDF embed */}
-						<iframe
-							src="/mrt-map.pdf#view=FitH&toolbar=0"
-							className="flex-1 w-full border-0"
-							title="Singapore MRT Map"
-						/>
+export function MRTMapCard() {
+	const [open, setOpen] = useState(false);
 
-						{/* Mobile fallback footer */}
-						<div className="sm:hidden flex items-center justify-center gap-3 px-4 py-3 border-t border-border bg-muted/30 shrink-0">
-							<p className="text-xs text-muted-foreground">
-								Having trouble viewing?
-							</p>
-							<a
-								href="/mrt-map.pdf"
-								target="_blank"
-								rel="noopener noreferrer"
-								className="text-xs font-semibold text-brand hover:underline"
+	useEffect(() => {
+		if (open) document.body.style.overflow = "hidden";
+		else document.body.style.overflow = "";
+		return () => {
+			document.body.style.overflow = "";
+		};
+	}, [open]);
+
+	useEffect(() => {
+		function onKey(e: KeyboardEvent) {
+			if (e.key === "Escape") setOpen(false);
+		}
+		document.addEventListener("keydown", onKey);
+		return () => document.removeEventListener("keydown", onKey);
+	}, []);
+
+	return (
+		<>
+			<div className="bg-white rounded-2xl border border-border shadow-lg overflow-hidden flex flex-col">
+				{/* Header */}
+				<div className="flex items-center justify-between px-4 sm:px-5 py-3.5 border-b border-border bg-slate-50/50">
+					<div className="flex items-center gap-3">
+						<div className="w-8 h-8 rounded-xl bg-brand flex items-center justify-center text-white shrink-0 shadow-xs">
+							<svg
+								className="w-4 h-4"
+								viewBox="0 0 24 24"
+								fill="none"
+								stroke="currentColor"
+								strokeWidth={2}
+								strokeLinecap="round"
+								strokeLinejoin="round"
 							>
-								Open in browser →
-							</a>
+								<rect x="5" y="2" width="14" height="20" rx="2" />
+								<line x1="5" y1="9" x2="19" y2="9" />
+								<line x1="5" y1="15" x2="19" y2="15" />
+								<circle cx="8.5" cy="18" r="1" />
+								<circle cx="15.5" cy="18" r="1" />
+							</svg>
 						</div>
+						<div>
+							<p className="text-sm font-bold text-foreground leading-tight">
+								Singapore MRT Map
+							</p>
+							<p className="text-[11px] text-muted-foreground leading-tight">
+								Mass Rapid Transit & LRT Network
+							</p>
+						</div>
+					</div>
+					<span className="text-[10px] font-bold uppercase tracking-wider text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200">
+						Ultra HD
+					</span>
+				</div>
+
+				{/* Clickable Image Preview with Hover Overlay */}
+				<div
+					onClick={() => setOpen(true)}
+					className="relative aspect-square bg-slate-100 flex items-center justify-center p-3 sm:p-5 overflow-hidden group cursor-pointer"
+					title="Click to open interactive HD Zoom & Pan viewer"
+				>
+					{/* eslint-disable-next-line @next/next/no-img-element */}
+					<img
+						src="/mrt-map.png"
+						alt="Singapore MRT & LRT Map High Resolution"
+						className="w-full h-full object-contain drop-shadow-sm transition-transform duration-300 group-hover:scale-[1.03]"
+						loading="eager"
+					/>
+
+					{/* Hover Prompt Overlay */}
+					<div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center pointer-events-none">
+						<span className="bg-brand text-white text-xs font-semibold px-4 py-2 rounded-full shadow-lg flex items-center gap-2 transform translate-y-1 group-hover:translate-y-0 transition-transform">
+							<svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+								<path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v6m3-3H7" />
+							</svg>
+							Click to Zoom & Pan
+						</span>
+					</div>
+				</div>
+
+				{/* Action Buttons */}
+				<div className="flex flex-wrap justify-center items-center gap-2.5 px-3 md:px-5 py-3 border-t border-border bg-slate-50/50">
+					<button
+						type="button"
+						onClick={() => setOpen(true)}
+						className="inline-flex items-center gap-1.5 px-4 py-2 text-xs sm:text-sm font-semibold text-white bg-brand rounded-full hover:bg-brand-dark active:scale-95 transition-all shadow-xs cursor-pointer"
+					>
+						<svg
+							className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0"
+							viewBox="0 0 24 24"
+							fill="none"
+							stroke="currentColor"
+							strokeWidth={2}
+							strokeLinecap="round"
+							strokeLinejoin="round"
+						>
+							<path d="M15 15l6 6m-11-4a7 7 0 110-14 7 7 0 010 14zM10 7v6m3-3H7" />
+						</svg>
+						Interactive HD Map
+					</button>
+
+					<a
+						href="/mrt-map.pdf"
+						target="_blank"
+						rel="noopener noreferrer"
+						className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs sm:text-sm font-semibold text-muted-foreground bg-white border border-border rounded-full hover:border-brand hover:text-brand active:scale-95 transition-all shadow-2xs"
+					>
+						<svg
+							className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0"
+							viewBox="0 0 24 24"
+							fill="none"
+							stroke="currentColor"
+							strokeWidth={2}
+							strokeLinecap="round"
+							strokeLinejoin="round"
+						>
+							<path d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+						</svg>
+						Official PDF
+					</a>
+				</div>
+			</div>
+
+			{/* Fullscreen HD Modal */}
+			{open && (
+				<div className="fixed inset-0 z-60 flex flex-col">
+					{/* Backdrop */}
+					<div
+						className="absolute inset-0 bg-black/80 backdrop-blur-sm"
+						onClick={() => setOpen(false)}
+					/>
+
+					{/* Sheet Container */}
+					<div className="relative flex flex-col w-full h-full max-w-6xl mx-auto my-0 sm:my-4 sm:rounded-2xl bg-slate-900 shadow-2xl overflow-hidden border border-slate-800">
+						<MRTMapViewer onClose={() => setOpen(false)} />
 					</div>
 				</div>
 			)}

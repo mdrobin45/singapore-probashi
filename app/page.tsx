@@ -1,4 +1,4 @@
-import { MRTMapButton } from "@/components/mrt-map-button";
+import { MRTMapCard } from "@/components/mrt-map-button";
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { getShareSgdRate } from "@/lib/share-pricing";
@@ -204,56 +204,7 @@ export default async function HomePage() {
 
 				<div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-16 lg:py-36">
 					<div className="max-w-xl mx-auto">
-						<div className="bg-white rounded-3xl shadow-2xl border border-border overflow-hidden">
-							{/* Card header */}
-							<div className="flex items-center justify-between px-3 md:px-5 py-3 md:py-4 border-b border-border">
-								<div className="flex items-center gap-2.5">
-									<div className="w-8 h-8 rounded-lg bg-brand flex items-center justify-center text-white shrink-0">
-										<svg
-											className="w-4.5 h-4.5"
-											viewBox="0 0 24 24"
-											fill="none"
-											stroke="currentColor"
-											strokeWidth={2}
-											strokeLinecap="round"
-											strokeLinejoin="round"
-										>
-											<rect x="5" y="2" width="14" height="20" rx="2" />
-											<line x1="5" y1="9" x2="19" y2="9" />
-											<line x1="5" y1="15" x2="19" y2="15" />
-											<circle cx="8.5" cy="18" r="1" />
-											<circle cx="15.5" cy="18" r="1" />
-										</svg>
-									</div>
-									<div>
-										<p className="text-sm font-semibold text-foreground leading-tight">
-											Singapore MRT Map
-										</p>
-										<p className="text-[11px] text-muted-foreground leading-tight">
-											Mass Rapid Transit Network
-										</p>
-									</div>
-								</div>
-								<span className="text-[10px] font-bold uppercase tracking-wider text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200">
-									Live
-								</span>
-							</div>
-
-							{/* Full map, always visible without browser PDF toolbar or cropping */}
-							<div className="relative aspect-square bg-slate-50 flex items-center justify-center p-2 sm:p-4 overflow-hidden group">
-								<img
-									src="/mrt-map.png"
-									alt="Singapore MRT Map Network"
-									className="w-full h-full object-contain drop-shadow-xs transition-transform duration-300 group-hover:scale-[1.02]"
-									loading="lazy"
-								/>
-							</div>
-
-							{/* Actions */}
-							<div className="flex justify-center items-center gap-2.5 px-3 md:px-5 py-2 md:py-4 border-t border-border">
-								<MRTMapButton />
-							</div>
-						</div>
+						<MRTMapCard />
 					</div>
 				</div>
 			</section>
