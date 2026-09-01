@@ -42,18 +42,45 @@ export async function sendWhatsAppMessage({
   }
 
   const digits = to.replace(/[^\d]/g, "");
+
   try {
-    const res = await fetch(config.apiUrl, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${config.apiToken}`,
-      },
-      body: JSON.stringify({
+    let headers: Record<string, string> = { "Content-Type": "application/json" };
+    let body: Record<string, unknown> = {};
+
+    const url = config.apiUrl.trim();
+
+    // 1. Green API support (Instant free & easiest)
+    if (url.includes("green-api.com")) {
+      body = {
+        chatId: `${digits}@c.us`,
+        message: text,
+      };
+    }
+    // 2. UltraMsg support
+    else if (url.includes("ultramsg.com")) {
+      body = {
+        token: config.apiToken,
+        to: digits,
+        body: text,
+      };
+    }
+    // 3. Standard / Custom / Meta Cloud API
+    else {
+      headers["Authorization"] = `Bearer ${config.apiToken}`;
+      body = {
         to: digits,
         text,
+        message: text,
+        body: text,
+        chatId: `${digits}@c.us`,
         mediaUrl: mediaUrl || undefined,
-      }),
+      };
+    }
+
+    const res = await fetch(url, {
+      method: "POST",
+      headers,
+      body: JSON.stringify(body),
     });
 
     if (!res.ok) {
