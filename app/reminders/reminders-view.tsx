@@ -70,9 +70,14 @@ export function RemindersView({
     setLoadingSlot(slotIndex);
     setMsg(null);
 
-    // Trigger WhatsApp directly if phone available
-    const waText = encodeURIComponent(`🔔 Singapore Probashi Reminder (Slot #${slotIndex}):\n\n${note}`);
-    window.open(`https://wa.me/?text=${waText}`, "_blank");
+    // If user has a phone number saved in profile, open their WhatsApp chat directly
+    const rawNote = `🔔 Singapore Probashi Reminder (Slot #${slotIndex}):\n\n${note}`;
+    if (userPhone) {
+      const digits = userPhone.replace(/[^\d]/g, "");
+      window.open(`https://wa.me/${digits}?text=${encodeURIComponent(rawNote)}`, "_blank");
+    } else {
+      window.open(`https://wa.me/?text=${encodeURIComponent(rawNote)}`, "_blank");
+    }
 
     const res = await triggerTestReminderAction(slotIndex);
     setLoadingSlot(null);
