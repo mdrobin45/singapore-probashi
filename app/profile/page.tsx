@@ -4,6 +4,7 @@ import { getSession } from "@/lib/session";
 import { redirect } from "next/navigation";
 import { AvatarUpload } from "./avatar-upload";
 import { ReferralCard } from "./referral-card";
+import { EditProfileForm } from "./edit-profile-form";
 
 export default async function ProfilePage() {
 	const session = await getSession();
@@ -90,37 +91,34 @@ export default async function ProfilePage() {
 						</div>
 					</div>
 
-					{/* Details */}
-					<div className="px-7 py-5 grid grid-cols-1 sm:grid-cols-2 gap-4">
-						{[
-							{ label: "Full Name", value: user.fullName },
-							{ label: "NID Number", value: user.nidNumber, mono: true },
-							{ label: "Email Address", value: user.email },
-							{ label: "Phone Number", value: user.phone },
-							{
-								label: "Member since",
-								value: user.createdAt.toLocaleDateString("en-GB", {
+					{/* Account summary cards */}
+					<div className="px-7 pt-5 pb-2 grid grid-cols-2 gap-4">
+						<div className="bg-slate-50 p-3 rounded-xl border border-border">
+							<p className="text-[11px] text-muted-foreground font-medium">Member Since</p>
+							<p className="text-xs sm:text-sm font-semibold text-foreground mt-0.5">
+								{user.createdAt.toLocaleDateString("en-GB", {
 									day: "2-digit",
-									month: "long",
+									month: "short",
 									year: "numeric",
-								}),
-							},
-							{
-								label: "Wallet Balance",
-								value: `৳${Number(user.wallet?.balance ?? 0).toFixed(2)}`,
-							},
-						].map((f) => (
-							<div key={f.label}>
-								<p className="text-xs text-muted-foreground font-medium mb-0.5">
-									{f.label}
-								</p>
-								<p
-									className={`text-sm text-foreground ${f.mono ? "font-mono" : "font-medium"}`}
-								>
-									{f.value}
-								</p>
-							</div>
-						))}
+								})}
+							</p>
+						</div>
+						<div className="bg-slate-50 p-3 rounded-xl border border-border">
+							<p className="text-[11px] text-muted-foreground font-medium">Wallet Balance</p>
+							<p className="text-xs sm:text-sm font-bold text-brand mt-0.5">
+								৳{Number(user.wallet?.balance ?? 0).toFixed(2)}
+							</p>
+						</div>
+					</div>
+
+					{/* Editable Profile & Contact Details Form */}
+					<div className="px-7 pb-7">
+						<EditProfileForm
+							initialFullName={user.fullName}
+							initialPhone={user.phone}
+							initialNidNumber={user.nidNumber}
+							email={user.email}
+						/>
 					</div>
 				</div>
 
