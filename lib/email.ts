@@ -1,30 +1,56 @@
 import nodemailer from "nodemailer";
+import { prisma } from "@/lib/prisma";
 
-// Create lazily so env vars are always read at call time, not at module load
-function getTransporter() {
-  return nodemailer.createTransport({
-    host: process.env.SMTP_HOST,
-    port: Number(process.env.SMTP_PORT ?? 587),
-    secure: process.env.SMTP_SECURE === "true",
+async function getEmailConfig() {
+  try {
+    const settings = await prisma.siteSetting.findMany({
+      where: {
+        key: { in: ["smtp_host", "smtp_port", "smtp_user", "smtp_pass", "smtp_from", "smtp_secure"] },
+      },
+    });
+
+    const map = new Map(settings.map((s) => [s.key, s.value]));
+
+    const host = map.get("smtp_host") || process.env.SMTP_HOST || "";
+    const port = Number(map.get("smtp_port") || process.env.SMTP_PORT || 587);
+    const user = map.get("smtp_user") || process.env.SMTP_USER || "";
+    const pass = map.get("smtp_pass") || process.env.SMTP_PASS || "";
+    const from = map.get("smtp_from") || process.env.SMTP_FROM || user || "";
+    const secure = map.get("smtp_secure") === "true" || process.env.SMTP_SECURE === "true";
+
+    return { host, port, user, pass, from, secure };
+  } catch {
+    return {
+      host: process.env.SMTP_HOST || "",
+      port: Number(process.env.SMTP_PORT ?? 587),
+      user: process.env.SMTP_USER || "",
+      pass: process.env.SMTP_PASS || "",
+      from: process.env.SMTP_FROM || process.env.SMTP_USER || "",
+      secure: process.env.SMTP_SECURE === "true",
+    };
+  }
+}
+
+export async function sendEmail(to: string, subject: string, html: string): Promise<void> {
+  const config = await getEmailConfig();
+
+  if (!config.host || !config.user || !config.pass) {
+    console.warn("⚠️ SMTP credentials not configured (in SiteSetting or .env). Email to:", to, "was skipped.");
+    return;
+  }
+
+  const transporter = nodemailer.createTransport({
+    host: config.host,
+    port: config.port,
+    secure: config.secure,
     auth: {
-      user: process.env.SMTP_USER,
-      pass: process.env.SMTP_PASS,
+      user: config.user,
+      pass: config.pass,
     },
   });
-}
 
-function getFrom() {
-  const from = process.env.SMTP_FROM ?? process.env.SMTP_USER ?? "";
-  // If SMTP_FROM already has the "Name <addr>" format, use as-is
-  return from.includes("<") ? from : `Singapur Probashi <${from}>`;
-}
-
-// Generic send used by every notification (OTP, admin alerts, buyer
-// confirmations). Deliberately does not catch errors — callers that must
-// never fail because of email (e.g. "new request" notifications) should
-// wrap this in their own try/catch.
-export async function sendEmail(to: string, subject: string, html: string): Promise<void> {
-  await getTransporter().sendMail({ from: getFrom(), to, subject, html });
+  const fromAddress = config.from.includes("<") ? config.from : `Singapore Probashi <${config.from}>`;
+  await transporter.sendMail({ from: fromAddress, to, subject, html });
 }
 
 export function generateOTP(): string {
@@ -38,7 +64,7 @@ export async function sendOTPEmail(
 ): Promise<void> {
   const isVerification = type === "verification";
   const subject = isVerification
-    ? "Verify your Singapur Probashi account"
+    ? "Verify your Singapore Probashi account"
     : "Reset your password";
 
   const html = `
@@ -53,46 +79,30 @@ export async function sendOTPEmail(
           <tr>
             <td align="center">
               <table width="100%" cellpadding="0" cellspacing="0" style="max-width:480px;background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.08);">
-                <!-- Header -->
                 <tr>
-                  <td style="background:#2563eb;padding:28px 32px;text-align:center;">
+                  <td style="background:#047857;padding:28px 32px;text-align:center;">
                     <p style="margin:0;font-size:20px;font-weight:700;color:#ffffff;letter-spacing:-0.3px;">
-                      Singapur Probashi
-                    </p>
-                    <p style="margin:4px 0 0;font-size:12px;color:rgba(255,255,255,0.7);text-transform:uppercase;letter-spacing:1px;">
-                      ${isVerification ? "Email Verification" : "Password Reset"}
+                      Singapore Probashi
                     </p>
                   </td>
                 </tr>
-                <!-- Body -->
                 <tr>
-                  <td style="padding:36px 32px 28px;">
-                    <p style="margin:0 0 8px;font-size:16px;font-weight:600;color:#111827;">
-                      ${isVerification ? "Verify your email address" : "Reset your password"}
+                  <td style="padding:32px;">
+                    <p style="margin:0 0 8px;font-size:16px;font-weight:600;color:#18181b;">
+                      ${isVerification ? "Welcome to Singapore Probashi!" : "Password Reset Request"}
                     </p>
-                    <p style="margin:0 0 28px;font-size:14px;color:#6b7280;line-height:1.6;">
-                      ${
-                        isVerification
-                          ? "Enter the code below to complete your registration. The code expires in 10 minutes."
-                          : "Use the code below to reset your password. The code expires in 10 minutes."
-                      }
+                    <p style="margin:0 0 24px;font-size:14px;color:#71717a;line-height:1.5;">
+                      ${isVerification
+                        ? "Please use the verification code below to confirm your email address. This code expires in 10 minutes."
+                        : "We received a request to reset your password. Use the code below to proceed. This code expires in 10 minutes."}
                     </p>
-                    <!-- OTP box -->
-                    <div style="background:#f0f4ff;border:1.5px dashed #2563eb;border-radius:12px;padding:24px;text-align:center;margin-bottom:28px;">
-                      <p style="margin:0 0 6px;font-size:11px;font-weight:600;color:#6b7280;text-transform:uppercase;letter-spacing:1px;">Your OTP code</p>
-                      <p style="margin:0;font-size:40px;font-weight:700;color:#2563eb;letter-spacing:10px;">${otp}</p>
+                    <div style="background:#f4f4f5;border-radius:12px;padding:20px;text-align:center;margin-bottom:24px;">
+                      <span style="font-family:monospace;font-size:36px;font-weight:700;letter-spacing:8px;color:#047857;">
+                        ${otp}
+                      </span>
                     </div>
-                    <p style="margin:0;font-size:13px;color:#9ca3af;line-height:1.5;">
-                      If you didn't request this, you can safely ignore this email.
-                      Never share this code with anyone.
-                    </p>
-                  </td>
-                </tr>
-                <!-- Footer -->
-                <tr>
-                  <td style="background:#f9fafb;border-top:1px solid #f3f4f6;padding:16px 32px;text-align:center;">
-                    <p style="margin:0;font-size:12px;color:#9ca3af;">
-                      © ${new Date().getFullYear()} Singapur Probashi Community. All rights reserved.
+                    <p style="margin:0;font-size:12px;color:#a1a1aa;line-height:1.5;">
+                      If you did not request this, you can safely ignore this email.
                     </p>
                   </td>
                 </tr>

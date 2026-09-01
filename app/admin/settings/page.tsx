@@ -2,7 +2,7 @@ import { getCurrencySettings, getLiveBdtRate } from "@/lib/currency";
 import { getAllCommissionSettings, getShareAdminCutPercent } from "@/lib/commission";
 import { getShareSgdRate } from "@/lib/share-pricing";
 import { getAdminNotificationEmail } from "@/lib/notifications";
-import { getAdSenseSettings, getReminderPriceSetting } from "@/app/actions/admin-settings";
+import { getAdSenseSettings, getReminderPriceSetting, getSmtpSettings, getWhatsAppApiSettings } from "@/app/actions/admin-settings";
 import { prisma } from "@/lib/prisma";
 import { CurrencySettingsForm } from "./currency-form";
 import { BankRatesForm } from "./bank-rates-form";
@@ -13,6 +13,8 @@ import { NotificationEmailForm } from "./notification-email-form";
 import { PaymentAccountsForm } from "./payment-accounts-form";
 import { AdSenseSettingsForm } from "./adsense-form";
 import { ReminderPriceForm } from "./reminder-price-form";
+import { SmtpSettingsForm } from "./smtp-form";
+import { WhatsAppApiSettingsForm } from "./whatsapp-form";
 
 async function getBankRates() {
   try {
@@ -32,7 +34,7 @@ async function getPaymentAccounts() {
 }
 
 export default async function AdminSettingsPage() {
-  const [settings, liveRate, banks, paymentAccounts, commissionSettings, shareRate, shareAdminCutPercent, notificationEmail, adSenseSettings, reminderSlotPrice] = await Promise.all([
+  const [settings, liveRate, banks, paymentAccounts, commissionSettings, shareRate, shareAdminCutPercent, notificationEmail, adSenseSettings, reminderSlotPrice, smtpSettings, whatsAppSettings] = await Promise.all([
     getCurrencySettings(),
     getLiveBdtRate(),
     getBankRates(),
@@ -43,6 +45,8 @@ export default async function AdminSettingsPage() {
     getAdminNotificationEmail(),
     getAdSenseSettings(),
     getReminderPriceSetting(),
+    getSmtpSettings(),
+    getWhatsAppApiSettings(),
   ]);
 
   return (
@@ -245,6 +249,48 @@ export default async function AdminSettingsPage() {
         </div>
         <div className="p-6">
           <ReminderPriceForm currentPrice={reminderSlotPrice} />
+        </div>
+      </div>
+
+      {/* SMTP Email Configuration */}
+      <div className="bg-white rounded-xl border border-border overflow-hidden">
+        <div className="px-6 py-5 border-b border-border">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-purple-50 flex items-center justify-center">
+              <svg className="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+              </svg>
+            </div>
+            <div>
+              <h2 className="font-semibold text-foreground">SMTP Email Server Settings</h2>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Configure Gmail or custom SMTP to send OTPs, reminders, and notifications
+              </p>
+            </div>
+          </div>
+        </div>
+        <div className="p-6">
+          <SmtpSettingsForm settings={smtpSettings} />
+        </div>
+      </div>
+
+      {/* WhatsApp Automated API */}
+      <div className="bg-white rounded-xl border border-border overflow-hidden">
+        <div className="px-6 py-5 border-b border-border">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-emerald-50 flex items-center justify-center">
+              <span className="text-lg">💬</span>
+            </div>
+            <div>
+              <h2 className="font-semibold text-foreground">Automated WhatsApp API Gateway</h2>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Configure WhatsApp REST API (UltraMsg / GreenAPI / Meta Cloud API) for 100% silent background messaging
+              </p>
+            </div>
+          </div>
+        </div>
+        <div className="p-6">
+          <WhatsAppApiSettingsForm settings={whatsAppSettings} />
         </div>
       </div>
     </div>

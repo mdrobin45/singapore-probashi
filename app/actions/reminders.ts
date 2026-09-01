@@ -5,7 +5,7 @@ import { getSession } from "@/lib/session";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { sendEmail } from "@/lib/email";
-import { sendWhatsAppMessage } from "@/lib/whatsapp";
+import { sendWhatsAppMessage } from "@/lib/whatsapp-server";
 
 export async function getReminderSlotPrice(): Promise<number> {
   try {
@@ -195,11 +195,13 @@ export async function triggerTestReminderAction(slotIndex: number) {
   }
 
   // Send Automated WhatsApp message if configured and channel requested
+  let waApiSuccess = false;
   if ((reminder.channel === "WHATSAPP" || reminder.channel === "BOTH") && reminder.user.phone) {
     const waNote = `🔔 Singapore Probashi Reminder (Slot #${slotIndex})\n\n${reminder.note}${
       reminder.remindAt ? `\nTarget Date: ${reminder.remindAt.toLocaleDateString("en-GB")}` : ""
     }`;
-    await sendWhatsAppMessage({ to: reminder.user.phone, text: waNote });
+    const waRes = await sendWhatsAppMessage({ to: reminder.user.phone, text: waNote });
+    waApiSuccess = waRes.success;
   }
 
   // In-app notification
@@ -220,5 +222,5 @@ export async function triggerTestReminderAction(slotIndex: number) {
 
   revalidatePath("/reminders");
   revalidatePath("/alarm");
-  return { success: true, message: `Test reminder alert sent for Slot #${slotIndex}!` };
+  return { success: true, message: `Test reminder alert sent for Slot #${slotIndex}!`, waApiSuccess };
 }

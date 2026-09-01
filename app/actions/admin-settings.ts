@@ -367,3 +367,147 @@ export async function saveReminderSlotPriceAction(_prev: State, formData: FormDa
   revalidatePath("/admin/settings");
   return { success: true };
 }
+
+export async function getSmtpSettings() {
+  try {
+    const settings = await prisma.siteSetting.findMany({
+      where: {
+        key: { in: ["smtp_host", "smtp_port", "smtp_user", "smtp_pass", "smtp_from", "smtp_secure"] },
+      },
+    });
+    const map = new Map(settings.map((s) => [s.key, s.value]));
+    return {
+      host: map.get("smtp_host") || process.env.SMTP_HOST || "smtp.gmail.com",
+      port: Number(map.get("smtp_port") || process.env.SMTP_PORT || 587),
+      user: map.get("smtp_user") || process.env.SMTP_USER || "",
+      pass: map.get("smtp_pass") || (process.env.SMTP_PASS ? "••••••••" : ""),
+      from: map.get("smtp_from") || process.env.SMTP_FROM || "",
+      secure: map.get("smtp_secure") === "true" || process.env.SMTP_SECURE === "true",
+    };
+  } catch {
+    return {
+      host: "smtp.gmail.com",
+      port: 587,
+      user: "",
+      pass: "",
+      from: "",
+      secure: false,
+    };
+  }
+}
+
+export async function saveSmtpSettingsAction(_prev: State, formData: FormData): Promise<State> {
+  const session = await getSession();
+  if (!session || !["SUPER_ADMIN", "ADMIN"].includes(session.role)) {
+    return { error: "Unauthorized." };
+  }
+
+  const host = (formData.get("host") as string)?.trim() || "smtp.gmail.com";
+  const port = (formData.get("port") as string)?.trim() || "587";
+  const user = (formData.get("user") as string)?.trim() || "";
+  const pass = (formData.get("pass") as string)?.trim() || "";
+  const from = (formData.get("from") as string)?.trim() || user;
+  const secure = formData.get("secure") === "on" ? "true" : "false";
+
+  const updates = [
+    prisma.siteSetting.upsert({
+      where: { key: "smtp_host" },
+      create: { key: "smtp_host", value: host },
+      update: { value: host },
+    }),
+    prisma.siteSetting.upsert({
+      where: { key: "smtp_port" },
+      create: { key: "smtp_port", value: port },
+      update: { value: port },
+    }),
+    prisma.siteSetting.upsert({
+      where: { key: "smtp_user" },
+      create: { key: "smtp_user", value: user },
+      update: { value: user },
+    }),
+    prisma.siteSetting.upsert({
+      where: { key: "smtp_from" },
+      create: { key: "smtp_from", value: from },
+      update: { value: from },
+    }),
+    prisma.siteSetting.upsert({
+      where: { key: "smtp_secure" },
+      create: { key: "smtp_secure", value: secure },
+      update: { value: secure },
+    }),
+  ];
+
+  if (pass && pass !== "••••••••") {
+    updates.push(
+      prisma.siteSetting.upsert({
+        where: { key: "smtp_pass" },
+        create: { key: "smtp_pass", value: pass },
+        update: { value: pass },
+      })
+    );
+  }
+
+  await prisma.$transaction(updates);
+  revalidatePath("/admin/settings");
+  return { success: true };
+}
+
+export async function getWhatsAppApiSettings() {
+  try {
+    const settings = await prisma.siteSetting.findMany({
+      where: {
+        key: { in: ["whatsapp_api_url", "whatsapp_api_token", "whatsapp_api_enabled"] },
+      },
+    });
+    const map = new Map(settings.map((s) => [s.key, s.value]));
+    return {
+      enabled: map.get("whatsapp_api_enabled") === "true" || process.env.WHATSAPP_API_ENABLED === "true",
+      apiUrl: map.get("whatsapp_api_url") || process.env.WHATSAPP_API_URL || "",
+      apiToken: map.get("whatsapp_api_token") || (process.env.WHATSAPP_API_TOKEN ? "••••••••" : ""),
+    };
+  } catch {
+    return {
+      enabled: false,
+      apiUrl: "",
+      apiToken: "",
+    };
+  }
+}
+
+export async function saveWhatsAppApiSettingsAction(_prev: State, formData: FormData): Promise<State> {
+  const session = await getSession();
+  if (!session || !["SUPER_ADMIN", "ADMIN"].includes(session.role)) {
+    return { error: "Unauthorized." };
+  }
+
+  const enabled = formData.get("enabled") === "on" ? "true" : "false";
+  const apiUrl = (formData.get("apiUrl") as string)?.trim() || "";
+  const apiToken = (formData.get("apiToken") as string)?.trim() || "";
+
+  const updates = [
+    prisma.siteSetting.upsert({
+      where: { key: "whatsapp_api_enabled" },
+      create: { key: "whatsapp_api_enabled", value: enabled },
+      update: { value: enabled },
+    }),
+    prisma.siteSetting.upsert({
+      where: { key: "whatsapp_api_url" },
+      create: { key: "whatsapp_api_url", value: apiUrl },
+      update: { value: apiUrl },
+    }),
+  ];
+
+  if (apiToken && apiToken !== "••••••••") {
+    updates.push(
+      prisma.siteSetting.upsert({
+        where: { key: "whatsapp_api_token" },
+        create: { key: "whatsapp_api_token", value: apiToken },
+        update: { value: apiToken },
+      })
+    );
+  }
+
+  await prisma.$transaction(updates);
+  revalidatePath("/admin/settings");
+  return { success: true };
+}

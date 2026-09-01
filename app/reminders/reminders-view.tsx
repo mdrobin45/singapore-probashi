@@ -70,21 +70,25 @@ export function RemindersView({
     setLoadingSlot(slotIndex);
     setMsg(null);
 
-    // If user has a phone number saved in profile, open their WhatsApp chat directly
-    const rawNote = `🔔 Singapore Probashi Reminder (Slot #${slotIndex}):\n\n${note}`;
-    if (userPhone) {
-      const digits = userPhone.replace(/[^\d]/g, "");
-      window.open(`https://wa.me/${digits}?text=${encodeURIComponent(rawNote)}`, "_blank");
-    } else {
-      window.open(`https://wa.me/?text=${encodeURIComponent(rawNote)}`, "_blank");
-    }
-
     const res = await triggerTestReminderAction(slotIndex);
     setLoadingSlot(null);
+
     if ("error" in res && res.error) {
       setMsg({ slotIndex, text: res.error, error: true });
     } else {
-      setMsg({ slotIndex, text: "Reminder alert opened in WhatsApp & Email sent!", error: false });
+      if ("waApiSuccess" in res && res.waApiSuccess) {
+        setMsg({ slotIndex, text: "✅ Automated Alert sent directly to your WhatsApp & Email!", error: false });
+      } else {
+        // Fallback: If automated WhatsApp Gateway is not yet configured by admin, open the user's direct chat
+        const rawNote = `🔔 Singapore Probashi Reminder (Slot #${slotIndex}):\n\n${note}`;
+        if (userPhone) {
+          const digits = userPhone.replace(/[^\d]/g, "");
+          window.open(`https://wa.me/${digits}?text=${encodeURIComponent(rawNote)}`, "_blank");
+        } else {
+          window.open(`https://wa.me/?text=${encodeURIComponent(rawNote)}`, "_blank");
+        }
+        setMsg({ slotIndex, text: "Email sent & WhatsApp chat opened!", error: false });
+      }
     }
   }
 
