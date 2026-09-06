@@ -28,25 +28,37 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const [session, contactSettings] = await Promise.all([
-    getSession(),
-    getSiteContactSettings(),
-  ]);
-
+  let session = null;
+  let contactSettings = undefined;
   let walletBalance: number | null = null;
   let pendingCheckout: { token: string; totalAmount: number } | null = null;
 
-  if (session) {
-    const [wallet, checkout] = await Promise.all([
-      prisma.wallet.findUnique({ where: { userId: session.userId }, select: { balance: true } }),
-      prisma.checkout.findFirst({
-        where: { userId: session.userId, status: { in: ["AWAITING_PAYMENT", "PROOF_SUBMITTED"] } },
-        orderBy: { createdAt: "desc" },
-        select: { token: true, totalAmount: true },
-      }),
+  try {
+    const [fetchedSession, fetchedContact] = await Promise.all([
+      getSession().catch(() => null),
+      getSiteContactSettings().catch(() => undefined),
     ]);
-    walletBalance = wallet ? Number(wallet.balance) : 0;
-    pendingCheckout = checkout ? { token: checkout.token, totalAmount: Number(checkout.totalAmount) } : null;
+    session = fetchedSession;
+    contactSettings = fetchedContact;
+
+    if (session) {
+      const [wallet, checkout] = await Promise.all([
+        prisma.wallet
+          .findUnique({ where: { userId: session.userId }, select: { balance: true } })
+          .catch(() => null),
+        prisma.checkout
+          .findFirst({
+            where: { userId: session.userId, status: { in: ["AWAITING_PAYMENT", "PROOF_SUBMITTED"] } },
+            orderBy: { createdAt: "desc" },
+            select: { token: true, totalAmount: true },
+          })
+          .catch(() => null),
+      ]);
+      walletBalance = wallet ? Number(wallet.balance) : 0;
+      pendingCheckout = checkout ? { token: checkout.token, totalAmount: Number(checkout.totalAmount) } : null;
+    }
+  } catch (err) {
+    console.error("RootLayout error:", err);
   }
 
   return (

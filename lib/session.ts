@@ -39,20 +39,28 @@ export async function createSession(payload: SessionPayload, rememberMe = false)
 // user's very next request instead of waiting for the token to expire. Memoized
 // per-request since several layouts/pages call this independently in one render.
 export const getSession = cache(async (): Promise<SessionPayload | null> => {
-  const jar = await cookies();
-  const token = jar.get(COOKIE_NAME)?.value;
-  if (!token) return null;
+  try {
+    const jar = await cookies();
+    const token = jar.get(COOKIE_NAME)?.value;
+    if (!token) return null;
 
-  const claims = await verifySessionToken(token);
-  if (!claims) return null;
+    const claims = await verifySessionToken(token);
+    if (!claims) return null;
 
-  const user = await prisma.user.findUnique({
-    where: { id: claims.userId },
-    select: { role: true, isActive: true, email: true, fullName: true },
-  });
-  if (!user || !user.isActive) return null;
+    const user = await prisma.user.findUnique({
+      where: { id: claims.userId },
+      select: { role: true, isActive: true, email: true, fullName: true },
+    });
+    if (!user || !user.isActive) return null;
 
-  return { userId: claims.userId, role: user.role, email: user.email, fullName: user.fullName };
+    return { userId: claims.userId, role: user.role, email: user.email, fullName: user.fullName };
+  } catch (err) {
+    if (err && typeof err === "object" && "digest" in err && (err as { digest?: string }).digest === "DYNAMIC_SERVER_USAGE") {
+      throw err;
+    }
+    console.error("Session verification error:", err);
+    return null;
+  }
 });
 
 export async function deleteSession() {
