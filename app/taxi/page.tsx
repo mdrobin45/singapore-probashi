@@ -1,22 +1,18 @@
 import { getSession } from "@/lib/session";
 import { TaxiRequestForm } from "./taxi-form";
+import { getSiteContactSettings, formatWhatsAppLink } from "@/lib/site-contact";
 import Link from "next/link";
 
 export default async function TaxiPage() {
-  const session = await getSession();
+  const [session, contact] = await Promise.all([
+    getSession(),
+    getSiteContactSettings(),
+  ]);
 
-  const VEHICLE_TYPES = [
-    { type: "Sedan", capacity: "1–4 passengers", desc: "Standard car, ideal for small groups", icon: "🚗" },
-    { type: "MPV / Minivan", capacity: "1–7 passengers", desc: "Spacious for families or groups", icon: "🚐" },
-    { type: "Van", capacity: "Up to 10 passengers", desc: "Large groups or heavy luggage", icon: "🚌" },
-  ];
-
-  const HOW_IT_WORKS = [
-    "Submit your ride request with pickup and destination",
-    "Our team contacts you within 1 hour to confirm",
-    "Driver picks you up at the scheduled time",
-    "Pay cash or via mobile banking to driver",
-  ];
+  const whatsappHref = formatWhatsAppLink(
+    contact.whatsappNumber,
+    "Hello Singapore Probashi Support, I need urgent assistance with a Taxi booking."
+  );
 
   return (
     <div className="min-h-screen bg-muted">
@@ -57,10 +53,10 @@ export default async function TaxiPage() {
         <div className="bg-brand-50 rounded-2xl border border-brand-100 p-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
             <p className="text-sm font-semibold text-brand">Need urgent booking?</p>
-            <p className="text-xs text-muted-foreground mt-0.5">Contact us directly on WhatsApp for immediate assistance.</p>
+            <p className="text-xs text-muted-foreground mt-0.5">Contact us directly on WhatsApp for immediate assistance ({contact.whatsappNumber}).</p>
           </div>
           <a
-            href="https://wa.me/+65XXXXXXXX"
+            href={whatsappHref}
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center justify-center gap-2 text-xs font-semibold text-white bg-[#25D366] px-5 py-2.5 rounded-xl hover:bg-[#1ebe5a] transition-colors shrink-0 shadow-xs"

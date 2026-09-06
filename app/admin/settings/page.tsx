@@ -3,6 +3,7 @@ import { getAllCommissionSettings, getShareAdminCutPercent } from "@/lib/commiss
 import { getShareSgdRate } from "@/lib/share-pricing";
 import { getAdminNotificationEmail } from "@/lib/notifications";
 import { getAdSenseSettings, getReminderPriceSetting, getSmtpSettings, getWhatsAppApiSettings } from "@/app/actions/admin-settings";
+import { getSiteContactSettings } from "@/lib/site-contact";
 import { prisma } from "@/lib/prisma";
 import { CurrencySettingsForm } from "./currency-form";
 import { BankRatesForm } from "./bank-rates-form";
@@ -15,6 +16,7 @@ import { AdSenseSettingsForm } from "./adsense-form";
 import { ReminderPriceForm } from "./reminder-price-form";
 import { SmtpSettingsForm } from "./smtp-form";
 import { WhatsAppApiSettingsForm } from "./whatsapp-form";
+import { SiteContactForm } from "./site-contact-form";
 
 async function getBankRates() {
   try {
@@ -34,7 +36,7 @@ async function getPaymentAccounts() {
 }
 
 export default async function AdminSettingsPage() {
-  const [settings, liveRate, banks, paymentAccounts, commissionSettings, shareRate, shareAdminCutPercent, notificationEmail, adSenseSettings, reminderSlotPrice, smtpSettings, whatsAppSettings] = await Promise.all([
+  const [settings, liveRate, banks, paymentAccounts, commissionSettings, shareRate, shareAdminCutPercent, notificationEmail, adSenseSettings, reminderSlotPrice, smtpSettings, whatsAppSettings, contactSettings] = await Promise.all([
     getCurrencySettings(),
     getLiveBdtRate(),
     getBankRates(),
@@ -47,6 +49,7 @@ export default async function AdminSettingsPage() {
     getReminderPriceSetting(),
     getSmtpSettings(),
     getWhatsAppApiSettings(),
+    getSiteContactSettings(),
   ]);
 
   return (
@@ -291,6 +294,26 @@ export default async function AdminSettingsPage() {
         </div>
         <div className="p-6">
           <WhatsAppApiSettingsForm settings={whatsAppSettings} />
+        </div>
+      </div>
+
+      {/* Public Contact & Social Links */}
+      <div className="bg-white rounded-xl border border-border overflow-hidden">
+        <div className="px-6 py-5 border-b border-border">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-blue-50 flex items-center justify-center">
+              <span className="text-lg">📞</span>
+            </div>
+            <div>
+              <h2 className="font-semibold text-foreground">Site Contact & Social Links</h2>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Manage WhatsApp support number, support email, hotline, Facebook group, and office info
+              </p>
+            </div>
+          </div>
+        </div>
+        <div className="p-6">
+          <SiteContactForm settings={contactSettings} />
         </div>
       </div>
     </div>

@@ -5,6 +5,7 @@ import { Shell } from "@/components/shell";
 import { getSession } from "@/lib/session";
 import { CurrencyRateBar } from "@/components/currency-rate-bar";
 import { prisma } from "@/lib/prisma";
+import { getSiteContactSettings } from "@/lib/site-contact";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -27,7 +28,10 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const session = await getSession();
+  const [session, contactSettings] = await Promise.all([
+    getSession(),
+    getSiteContactSettings(),
+  ]);
 
   let walletBalance: number | null = null;
   let pendingCheckout: { token: string; totalAmount: number } | null = null;
@@ -56,6 +60,7 @@ export default async function RootLayout({
           rateBar={<CurrencyRateBar />}
           walletBalance={walletBalance}
           pendingCheckout={pendingCheckout}
+          contactSettings={contactSettings}
         >
           {children}
         </Shell>

@@ -1,4 +1,8 @@
+import { getSiteContactSettings } from "@/lib/site-contact";
+
 export default async function PrivacyPage() {
+  const contact = await getSiteContactSettings();
+
   const sections = [
     {
       title: "1. Information We Collect",
@@ -26,7 +30,7 @@ export default async function PrivacyPage() {
     },
     {
       title: "7. Your Rights",
-      body: "Under Singapore's Personal Data Protection Act (PDPA) 2012, you have the right to:\n\n• Access the personal data we hold about you.\n• Correct inaccurate personal data.\n• Withdraw consent for data use (which may affect your ability to use certain features).\n• Request deletion of your account and personal data.\n\nTo exercise these rights, contact us at privacy@singapurprobashi.com.",
+      body: `Under Singapore's Personal Data Protection Act (PDPA) 2012, you have the right to:\n\n• Access the personal data we hold about you.\n• Correct inaccurate personal data.\n• Withdraw consent for data use (which may affect your ability to use certain features).\n• Request deletion of your account and personal data.\n\nTo exercise these rights, contact us at ${contact.supportEmail}.`,
     },
     {
       title: "8. Changes to This Policy",
@@ -34,7 +38,7 @@ export default async function PrivacyPage() {
     },
     {
       title: "9. Contact",
-      body: "For privacy-related questions or data requests, contact:\n\nEmail: privacy@singapurprobashi.com\nWhatsApp: +65 XXXX XXXX",
+      body: `For privacy-related questions or data requests, contact:\n\nEmail: ${contact.supportEmail}\nWhatsApp: ${contact.whatsappNumber}\nAddress: ${contact.officeAddress}`,
     },
   ];
 
@@ -42,9 +46,9 @@ export default async function PrivacyPage() {
     <div className="min-h-screen bg-muted">
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="bg-white rounded-2xl border border-border p-8 sm:p-10">
-          <p className="text-xs text-muted-foreground mb-2">Last updated: January 2026</p>
+          <p className="text-xs text-muted-foreground mb-2">Last updated: 2026</p>
           <h1 className="text-3xl font-bold text-foreground mb-2">Privacy Policy</h1>
-          <p className="text-muted-foreground mb-8">Singapur Probashi Community Platform (&quot;we&quot;, &quot;our&quot;, &quot;the Platform&quot;) is committed to protecting the privacy of our members. This policy explains how we collect, use, and protect your personal data.</p>
+          <p className="text-muted-foreground mb-8">Singapore Probashi Community Platform (&quot;we&quot;, &quot;our&quot;, &quot;the Platform&quot;) is committed to protecting the privacy of our members. This policy explains how we collect, use, and protect your personal data.</p>
 
           {sections.map((section) => (
             <div key={section.title} className="mb-7">

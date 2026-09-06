@@ -511,3 +511,64 @@ export async function saveWhatsAppApiSettingsAction(_prev: State, formData: Form
   revalidatePath("/admin/settings");
   return { success: true };
 }
+
+export async function saveSiteContactSettingsAction(_prev: State, formData: FormData): Promise<State> {
+  const session = await getSession();
+  if (!session || !["SUPER_ADMIN", "ADMIN"].includes(session.role)) {
+    return { error: "Unauthorized." };
+  }
+
+  const whatsappNumber = (formData.get("whatsappNumber") as string)?.trim() || "";
+  const whatsappMessage = (formData.get("whatsappMessage") as string)?.trim() || "";
+  const supportEmail = (formData.get("supportEmail") as string)?.trim() || "";
+  const supportPhone = (formData.get("supportPhone") as string)?.trim() || "";
+  const facebookUrl = (formData.get("facebookUrl") as string)?.trim() || "";
+  const officeAddress = (formData.get("officeAddress") as string)?.trim() || "";
+  const officeHours = (formData.get("officeHours") as string)?.trim() || "";
+
+  await prisma.$transaction([
+    prisma.siteSetting.upsert({
+      where: { key: "site_whatsapp_number" },
+      create: { key: "site_whatsapp_number", value: whatsappNumber },
+      update: { value: whatsappNumber },
+    }),
+    prisma.siteSetting.upsert({
+      where: { key: "site_whatsapp_message" },
+      create: { key: "site_whatsapp_message", value: whatsappMessage },
+      update: { value: whatsappMessage },
+    }),
+    prisma.siteSetting.upsert({
+      where: { key: "site_support_email" },
+      create: { key: "site_support_email", value: supportEmail },
+      update: { value: supportEmail },
+    }),
+    prisma.siteSetting.upsert({
+      where: { key: "site_support_phone" },
+      create: { key: "site_support_phone", value: supportPhone },
+      update: { value: supportPhone },
+    }),
+    prisma.siteSetting.upsert({
+      where: { key: "site_facebook_url" },
+      create: { key: "site_facebook_url", value: facebookUrl },
+      update: { value: facebookUrl },
+    }),
+    prisma.siteSetting.upsert({
+      where: { key: "site_office_address" },
+      create: { key: "site_office_address", value: officeAddress },
+      update: { value: officeAddress },
+    }),
+    prisma.siteSetting.upsert({
+      where: { key: "site_office_hours" },
+      create: { key: "site_office_hours", value: officeHours },
+      update: { value: officeHours },
+    }),
+  ]);
+
+  revalidatePath("/", "layout");
+  revalidatePath("/contact");
+  revalidatePath("/air-ticket");
+  revalidatePath("/taxi");
+  revalidatePath("/privacy");
+  revalidatePath("/admin/settings");
+  return { success: true };
+}
