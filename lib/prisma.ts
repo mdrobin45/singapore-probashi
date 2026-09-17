@@ -10,8 +10,8 @@ function createClient() {
 
   const pool = new Pool({
     connectionString,
-    max: 5, // stay well under Supabase/PostgreSQL connection limit
-    idleTimeoutMillis: 30_000,
+    max: process.env.NODE_ENV === "production" ? 2 : 5, // stay well under Supabase/PostgreSQL connection limit in serverless
+    idleTimeoutMillis: 20_000,
     connectionTimeoutMillis: 10_000,
   });
 

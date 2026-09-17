@@ -3,12 +3,17 @@ import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { getShareSgdRate } from "@/lib/share-pricing";
 
-function getFeaturedProjects() {
-	return prisma.project.findMany({
-		where: { status: "ACTIVE" },
-		orderBy: { createdAt: "desc" },
-		take: 3,
-	});
+async function getFeaturedProjects() {
+	try {
+		return await prisma.project.findMany({
+			where: { status: "ACTIVE" },
+			orderBy: { createdAt: "desc" },
+			take: 3,
+		});
+	} catch (err) {
+		console.error("Failed to load featured projects on home page:", err);
+		return [];
+	}
 }
 
 // SVG icons — purely visual, not translated
@@ -173,6 +178,7 @@ const ICONS = {
 			stroke="currentColor"
 			strokeWidth="3"
 			strokeLinecap="round"
+			strokeLinejoin="round"
 		>
 			<polyline points="20 6 9 17 4 12" />
 		</svg>
@@ -180,10 +186,19 @@ const ICONS = {
 };
 
 export default async function HomePage() {
-	const [featuredProjects, shareRate] = await Promise.all([
-		getFeaturedProjects(),
-		getShareSgdRate(),
-	]);
+	let featuredProjects: Awaited<ReturnType<typeof getFeaturedProjects>> = [];
+	let shareRate = 83.5;
+
+	try {
+		const [projects, rate] = await Promise.all([
+			getFeaturedProjects(),
+			getShareSgdRate().catch(() => 83.5),
+		]);
+		featuredProjects = projects ?? [];
+		shareRate = typeof rate === "number" && !isNaN(rate) ? rate : 83.5;
+	} catch (err) {
+		console.error("HomePage data loading error:", err);
+	}
 
 	const mktPoints = [
 		"Admin-created and verified investment projects",
@@ -270,10 +285,10 @@ export default async function HomePage() {
 										</div>
 										<div className="text-right">
 											<p className="font-bold text-sm text-foreground">
-												${Number(project.sharePriceSgd).toFixed(2)}
+												${Number(project.sharePriceSgd ?? 0).toFixed(2)}
 											</p>
 											<p className="text-[11px] text-muted-foreground">
-												1 SGD = ৳{shareRate.toFixed(2)}
+												1 SGD = ৳{Number(shareRate ?? 83.5).toFixed(2)}
 											</p>
 										</div>
 									</Link>
