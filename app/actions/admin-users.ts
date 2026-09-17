@@ -112,30 +112,35 @@ export async function updateUserAction(
   _prev: ActionState,
   formData: FormData
 ): Promise<ActionState> {
-  const session = await requireAdminSession();
-  const userId = formData.get("userId") as string;
+  try {
+    const session = await requireAdminSession();
+    const userId = formData.get("userId") as string;
 
-  const target = await prisma.user.findUnique({ where: { id: userId }, select: { id: true, role: true } });
-  if (!target) return { error: "User not found." };
-  if (target.id !== session.userId && !canManage(session.role, target.role)) {
-    return { error: "You don't have permission to edit this user." };
+    const target = await prisma.user.findUnique({ where: { id: userId }, select: { id: true, role: true } });
+    if (!target) return { error: "User not found." };
+    if (target.id !== session.userId && !canManage(session.role, target.role)) {
+      return { error: "You don't have permission to edit this user." };
+    }
+
+    const parse = updateUserSchema.safeParse({
+      fullName: formData.get("fullName"),
+      email: formData.get("email"),
+      phone: formData.get("phone"),
+    });
+    if (!parse.success) return { error: parse.error.issues[0].message };
+
+    const { fullName, email, phone } = parse.data;
+
+    const emailOwner = await prisma.user.findUnique({ where: { email }, select: { id: true } });
+    if (emailOwner && emailOwner.id !== userId) return { error: "Another user already has this email." };
+
+    await prisma.user.update({ where: { id: userId }, data: { fullName, email, phone } });
+    revalidatePath("/", "layout");
+    return { success: "User updated." };
+  } catch (err: unknown) {
+    console.error("Update user error:", err);
+    return { error: err instanceof Error ? err.message : "Failed to update user." };
   }
-
-  const parse = updateUserSchema.safeParse({
-    fullName: formData.get("fullName"),
-    email: formData.get("email"),
-    phone: formData.get("phone"),
-  });
-  if (!parse.success) return { error: parse.error.issues[0].message };
-
-  const { fullName, email, phone } = parse.data;
-
-  const emailOwner = await prisma.user.findUnique({ where: { email }, select: { id: true } });
-  if (emailOwner && emailOwner.id !== userId) return { error: "Another user already has this email." };
-
-  await prisma.user.update({ where: { id: userId }, data: { fullName, email, phone } });
-  revalidatePath("/", "layout");
-  return { success: "User updated." };
 }
 
 // ── Delete user ───────────────────────────────────────────────────────────────
@@ -144,39 +149,100 @@ export async function deleteUserAction(
   _prev: ActionState,
   formData: FormData
 ): Promise<ActionState> {
-  const session = await requireAdminSession();
-  const userId = formData.get("userId") as string;
-
-  const target = await prisma.user.findUnique({
-    where: { id: userId },
-    select: { id: true, role: true },
-  });
-  if (!target) return { error: "User not found." };
-  if (target.id === session.userId) return { error: "You cannot delete your own account." };
-  if (!canManage(session.role, target.role))
-    return { error: "You don't have permission to delete this user." };
-
-  // Prevent deleting the last SUPER_ADMIN
-  if (target.role === "SUPER_ADMIN") {
-    const count = await prisma.user.count({ where: { role: "SUPER_ADMIN" } });
-    if (count <= 1) return { error: "Cannot delete the last Super Admin." };
-  }
-
   try {
-    await prisma.user.delete({ where: { id: userId } });
-  } catch (err) {
-    // Most relations on User have no cascade configured (share ownership,
-    // purchase/deposit/withdrawal history, etc.) — deleting a user with real
-    // activity throws a foreign-key violation. Surface a clear message
-    // instead of a raw 500, and point admins at the safe alternative.
-    if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2003") {
-      return { error: "Cannot delete — this user has existing activity (purchases, transactions, requests, etc.). Ban the account instead to disable access without losing history." };
-    }
-    throw err;
-  }
+    const session = await requireAdminSession();
+    const userId = formData.get("userId") as string;
 
-  revalidatePath("/", "layout");
-  return { success: "User deleted." };
+    if (!userId) return { error: "User ID is required." };
+
+    const target = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { id: true, role: true, fullName: true },
+    });
+    if (!target) return { error: "User not found." };
+    if (target.id === session.userId) return { error: "You cannot delete your own account." };
+    if (!canManage(session.role, target.role))
+      return { error: "You don't have permission to delete this user." };
+
+    // Prevent deleting the last SUPER_ADMIN
+    if (target.role === "SUPER_ADMIN") {
+      const count = await prisma.user.count({ where: { role: "SUPER_ADMIN" } });
+      if (count <= 1) return { error: "Cannot delete the last Super Admin." };
+    }
+
+    // Clean up all related user records in an atomic transaction
+    await prisma.$transaction(async (tx) => {
+      // 1. Disassociate agent and admin assignments
+      await tx.user.updateMany({ where: { referredByAgentId: userId }, data: { referredByAgentId: null } });
+      await tx.sharePurchaseRequest.updateMany({ where: { referredById: userId }, data: { referredById: null } });
+      await tx.sharePurchaseRequest.updateMany({ where: { processedById: userId }, data: { processedById: null } });
+      await tx.taxiRequest.updateMany({ where: { referredById: userId }, data: { referredById: null } });
+      await tx.taxiRequest.updateMany({ where: { assignedManagerId: userId }, data: { assignedManagerId: null } });
+      await tx.taxiRequest.updateMany({ where: { processedById: userId }, data: { processedById: null } });
+      await tx.airTicketRequest.updateMany({ where: { referredById: userId }, data: { referredById: null } });
+      await tx.airTicketRequest.updateMany({ where: { assignedManagerId: userId }, data: { assignedManagerId: null } });
+      await tx.airTicketRequest.updateMany({ where: { processedById: userId }, data: { processedById: null } });
+      await tx.serviceRequest.updateMany({ where: { referredById: userId }, data: { referredById: null } });
+      await tx.checkout.updateMany({ where: { createdById: userId }, data: { createdById: session.userId } });
+      await tx.checkout.updateMany({ where: { processedById: userId }, data: { processedById: null } });
+      await tx.project.updateMany({ where: { createdById: userId }, data: { createdById: session.userId } });
+      await tx.depositRequest.updateMany({ where: { processedById: userId }, data: { processedById: null } });
+      await tx.withdrawalRequest.updateMany({ where: { processedById: userId }, data: { processedById: null } });
+      await tx.shareBuyRequest.updateMany({ where: { processedById: userId }, data: { processedById: null } });
+      await tx.shareTrade.updateMany({ where: { processedById: userId }, data: { processedById: null } });
+
+      // 2. Clear checkout items tied to user requests or checkouts
+      await tx.checkoutItem.deleteMany({
+        where: {
+          OR: [
+            { checkout: { userId } },
+            { taxiRequest: { userId } },
+            { airTicketRequest: { userId } },
+            { serviceRequest: { userId } },
+          ],
+        },
+      });
+
+      // 3. Delete user-specific activity records
+      await tx.reminder.deleteMany({ where: { userId } });
+      await tx.notification.deleteMany({ where: { userId } });
+      await tx.otpToken.deleteMany({ where: { userId } });
+      await tx.auditLog.deleteMany({ where: { userId } });
+      await tx.forumReply.deleteMany({ where: { userId } });
+      await tx.forumTopic.deleteMany({ where: { userId } });
+      await tx.lostFoundPost.deleteMany({ where: { userId } });
+      await tx.applyApplication.deleteMany({ where: { userId } });
+      await tx.serviceRequest.deleteMany({ where: { userId } });
+      await tx.airTicketRequest.deleteMany({ where: { userId } });
+      await tx.taxiRequest.deleteMany({ where: { userId } });
+      await tx.checkout.deleteMany({ where: { userId } });
+      await tx.depositRequest.deleteMany({ where: { userId } });
+      await tx.withdrawalRequest.deleteMany({ where: { userId } });
+      await tx.shareBuyRequest.deleteMany({ where: { buyerId: userId } });
+      await tx.shareTrade.deleteMany({ where: { buyerId: userId } });
+      await tx.shareListing.deleteMany({ where: { sellerId: userId } });
+      await tx.shareOwnership.deleteMany({ where: { ownerId: userId } });
+      await tx.shareCertificate.updateMany({ where: { ownerId: userId }, data: { ownerId: null, issuedAt: null } });
+      await tx.sharePurchaseRequest.deleteMany({ where: { buyerId: userId } });
+      await tx.walletTransaction.deleteMany({ where: { wallet: { userId } } });
+      await tx.wallet.deleteMany({ where: { userId } });
+      await tx.blog.deleteMany({ where: { authorId: userId } });
+      await tx.islamicArticle.deleteMany({ where: { authorId: userId } });
+      await tx.pdfDocument.deleteMany({ where: { authorId: userId } });
+
+      // 4. Delete the user
+      await tx.user.delete({ where: { id: userId } });
+    });
+
+    revalidatePath("/", "layout");
+    revalidatePath("/admin/users");
+    return { success: `User "${target.fullName}" was successfully deleted.` };
+  } catch (err: unknown) {
+    console.error("Delete user error:", err);
+    return {
+      error: err instanceof Error ? err.message : "Failed to delete user. Please try again.",
+    };
+  }
 }
 
 // ── Toggle active / ban ───────────────────────────────────────────────────────
@@ -185,25 +251,30 @@ export async function toggleUserActiveAction(
   _prev: ActionState,
   formData: FormData
 ): Promise<ActionState> {
-  const session = await requireAdminSession();
-  const userId = formData.get("userId") as string;
-  const currentlyActive = formData.get("isActive") === "true";
+  try {
+    const session = await requireAdminSession();
+    const userId = formData.get("userId") as string;
+    const currentlyActive = formData.get("isActive") === "true";
 
-  const target = await prisma.user.findUnique({
-    where: { id: userId },
-    select: { id: true, role: true },
-  });
-  if (!target) return { error: "User not found." };
-  if (target.id === session.userId) return { error: "You cannot ban your own account." };
-  if (!canManage(session.role, target.role))
-    return { error: "You don't have permission to manage this user." };
+    const target = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { id: true, role: true },
+    });
+    if (!target) return { error: "User not found." };
+    if (target.id === session.userId) return { error: "You cannot ban your own account." };
+    if (!canManage(session.role, target.role))
+      return { error: "You don't have permission to manage this user." };
 
-  await prisma.user.update({
-    where: { id: userId },
-    data: { isActive: !currentlyActive },
-  });
-  revalidatePath("/", "layout");
-  return { success: currentlyActive ? "User banned." : "User activated." };
+    await prisma.user.update({
+      where: { id: userId },
+      data: { isActive: !currentlyActive },
+    });
+    revalidatePath("/", "layout");
+    return { success: currentlyActive ? "User banned." : "User activated." };
+  } catch (err: unknown) {
+    console.error("Toggle user active error:", err);
+    return { error: err instanceof Error ? err.message : "Failed to update user status." };
+  }
 }
 
 // ── Verify user manually ──────────────────────────────────────────────────────
@@ -212,21 +283,26 @@ export async function verifyUserAction(
   _prev: ActionState,
   formData: FormData
 ): Promise<ActionState> {
-  const session = await requireAdminSession();
-  const userId = formData.get("userId") as string;
+  try {
+    const session = await requireAdminSession();
+    const userId = formData.get("userId") as string;
 
-  const target = await prisma.user.findUnique({
-    where: { id: userId },
-    select: { id: true, role: true, isVerified: true },
-  });
-  if (!target) return { error: "User not found." };
-  if (target.isVerified) return { error: "User is already verified." };
-  if (!canManage(session.role, target.role))
-    return { error: "You don't have permission to verify this user." };
+    const target = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { id: true, role: true, isVerified: true },
+    });
+    if (!target) return { error: "User not found." };
+    if (target.isVerified) return { error: "User is already verified." };
+    if (!canManage(session.role, target.role))
+      return { error: "You don't have permission to verify this user." };
 
-  await prisma.user.update({ where: { id: userId }, data: { isVerified: true } });
-  revalidatePath("/", "layout");
-  return { success: "User verified." };
+    await prisma.user.update({ where: { id: userId }, data: { isVerified: true } });
+    revalidatePath("/", "layout");
+    return { success: "User verified." };
+  } catch (err: unknown) {
+    console.error("Verify user error:", err);
+    return { error: err instanceof Error ? err.message : "Failed to verify user." };
+  }
 }
 
 // ── Change role (SUPER_ADMIN only) ────────────────────────────────────────────
@@ -235,32 +311,37 @@ export async function changeUserRoleAction(
   _prev: ActionState,
   formData: FormData
 ): Promise<ActionState> {
-  const session = await requireAdminSession();
+  try {
+    const session = await requireAdminSession();
 
-  if (session.role !== "SUPER_ADMIN")
-    return { error: "Only Super Admins can change roles." };
+    if (session.role !== "SUPER_ADMIN")
+      return { error: "Only Super Admins can change roles." };
 
-  const userId = formData.get("userId") as string;
-  const newRole = formData.get("role") as string;
-  const validRoles = Object.values(Role);
-  if (!validRoles.includes(newRole as Role)) return { error: "Invalid role." };
+    const userId = formData.get("userId") as string;
+    const newRole = formData.get("role") as string;
+    const validRoles = Object.values(Role);
+    if (!validRoles.includes(newRole as Role)) return { error: "Invalid role." };
 
-  const target = await prisma.user.findUnique({
-    where: { id: userId },
-    select: { id: true, role: true },
-  });
-  if (!target) return { error: "User not found." };
-  if (target.id === session.userId) return { error: "You cannot change your own role." };
+    const target = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { id: true, role: true },
+    });
+    if (!target) return { error: "User not found." };
+    if (target.id === session.userId) return { error: "You cannot change your own role." };
 
-  // Prevent stripping last SUPER_ADMIN
-  if (target.role === "SUPER_ADMIN" && newRole !== "SUPER_ADMIN") {
-    const count = await prisma.user.count({ where: { role: "SUPER_ADMIN" } });
-    if (count <= 1) return { error: "Cannot demote the last Super Admin." };
+    // Prevent stripping last SUPER_ADMIN
+    if (target.role === "SUPER_ADMIN" && newRole !== "SUPER_ADMIN") {
+      const count = await prisma.user.count({ where: { role: "SUPER_ADMIN" } });
+      if (count <= 1) return { error: "Cannot demote the last Super Admin." };
+    }
+
+    await prisma.user.update({ where: { id: userId }, data: { role: newRole as Role } });
+    revalidatePath("/", "layout");
+    return { success: `Role changed to ${newRole.replace("_", " ")}.` };
+  } catch (err: unknown) {
+    console.error("Change role error:", err);
+    return { error: err instanceof Error ? err.message : "Failed to change user role." };
   }
-
-  await prisma.user.update({ where: { id: userId }, data: { role: newRole as Role } });
-  revalidatePath("/", "layout");
-  return { success: `Role changed to ${newRole.replace("_", " ")}.` };
 }
 
 // ── Toggle agent status (referral commission) ────────────────────────────────
@@ -269,28 +350,33 @@ export async function toggleAgentAction(
   _prev: ActionState,
   formData: FormData
 ): Promise<ActionState> {
-  const session = await requireAdminSession();
-  const userId = formData.get("userId") as string;
-  const currentlyAgent = formData.get("isAgent") === "true";
+  try {
+    const session = await requireAdminSession();
+    const userId = formData.get("userId") as string;
+    const currentlyAgent = formData.get("isAgent") === "true";
 
-  const target = await prisma.user.findUnique({
-    where: { id: userId },
-    select: { id: true, role: true, fullName: true, referralCode: true },
-  });
-  if (!target) return { error: "User not found." };
-  if (!canManage(session.role, target.role))
-    return { error: "You don't have permission to manage this user." };
+    const target = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { id: true, role: true, fullName: true, referralCode: true },
+    });
+    if (!target) return { error: "User not found." };
+    if (!canManage(session.role, target.role))
+      return { error: "You don't have permission to manage this user." };
 
-  if (!currentlyAgent) {
-    const referralCode = target.referralCode ?? (await generateReferralCode(target.fullName));
-    await prisma.user.update({ where: { id: userId }, data: { isAgent: true, referralCode } });
+    if (!currentlyAgent) {
+      const referralCode = target.referralCode ?? (await generateReferralCode(target.fullName));
+      await prisma.user.update({ where: { id: userId }, data: { isAgent: true, referralCode } });
+      revalidatePath("/", "layout");
+      return { success: `${target.fullName} is now an agent — code ${referralCode}.` };
+    }
+
+    await prisma.user.update({ where: { id: userId }, data: { isAgent: false } });
     revalidatePath("/", "layout");
-    return { success: `${target.fullName} is now an agent — code ${referralCode}.` };
+    return { success: "Agent status removed." };
+  } catch (err: unknown) {
+    console.error("Toggle agent error:", err);
+    return { error: err instanceof Error ? err.message : "Failed to toggle agent status." };
   }
-
-  await prisma.user.update({ where: { id: userId }, data: { isAgent: false } });
-  revalidatePath("/", "layout");
-  return { success: "Agent status removed." };
 }
 
 // ── Manual wallet adjustment (correction, bonus, refund outside a request) ───
