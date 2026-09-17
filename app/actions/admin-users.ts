@@ -219,7 +219,7 @@ export async function deleteUserAction(
       await tx.depositRequest.deleteMany({ where: { userId } });
       await tx.withdrawalRequest.deleteMany({ where: { userId } });
       await tx.shareBuyRequest.deleteMany({ where: { buyerId: userId } });
-      await tx.shareTrade.deleteMany({ where: { buyerId: userId } });
+      await tx.shareTrade.deleteMany({ where: { OR: [{ buyerId: userId }, { listing: { sellerId: userId } }] } });
       await tx.shareListing.deleteMany({ where: { sellerId: userId } });
       await tx.shareOwnership.deleteMany({ where: { ownerId: userId } });
       await tx.shareCertificate.updateMany({ where: { ownerId: userId }, data: { ownerId: null, issuedAt: null } });
