@@ -5,45 +5,101 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 
 async function getDashboardData(userId: string) {
-  const [user, wallet, ownerships, pendingPurchases, recentNotifications, pendingDeposits, pendingCheckouts] =
-    await Promise.all([
-      prisma.user.findUnique({
-        where: { id: userId },
-        select: { fullName: true, role: true, createdAt: true, isVerified: true },
-      }),
-      prisma.wallet.findUnique({
-        where: { userId },
-        include: {
-          transactions: { orderBy: { createdAt: "desc" }, take: 5 },
-        },
-      }),
-      prisma.shareOwnership.findMany({
-        where: { ownerId: userId },
-        include: { project: { select: { name: true, sharePriceSgd: true, status: true } } },
-      }),
-      prisma.sharePurchaseRequest.findMany({
-        where: { buyerId: userId, status: "PENDING" },
-        include: { project: { select: { name: true } } },
-        orderBy: { createdAt: "desc" },
-        take: 3,
-      }),
-      prisma.notification.findMany({
-        where: { userId },
-        orderBy: { createdAt: "desc" },
-        take: 5,
-      }),
-      prisma.depositRequest.findMany({
-        where: { userId, status: "PENDING" },
-        take: 3,
-      }),
-      prisma.checkout.findMany({
-        where: { userId, status: { in: ["AWAITING_PAYMENT", "REJECTED"] } },
-        include: { items: true },
-        orderBy: { createdAt: "desc" },
-      }),
-    ]);
+  try {
+    const [user, wallet, ownerships, pendingPurchases, recentNotifications, pendingDeposits, pendingCheckouts] =
+      await Promise.all([
+        prisma.user
+          .findUnique({
+            where: { id: userId },
+            select: { fullName: true, role: true, createdAt: true, isVerified: true },
+          })
+          .catch((err) => {
+            console.error("Dashboard user fetch error:", err);
+            return null;
+          }),
+        prisma.wallet
+          .findUnique({
+            where: { userId },
+            include: {
+              transactions: { orderBy: { createdAt: "desc" }, take: 5 },
+            },
+          })
+          .catch((err) => {
+            console.error("Dashboard wallet fetch error:", err);
+            return null;
+          }),
+        prisma.shareOwnership
+          .findMany({
+            where: { ownerId: userId },
+            include: { project: { select: { name: true, sharePriceSgd: true, status: true } } },
+          })
+          .catch((err) => {
+            console.error("Dashboard ownerships fetch error:", err);
+            return [];
+          }),
+        prisma.sharePurchaseRequest
+          .findMany({
+            where: { buyerId: userId, status: "PENDING" },
+            include: { project: { select: { name: true } } },
+            orderBy: { createdAt: "desc" },
+            take: 3,
+          })
+          .catch((err) => {
+            console.error("Dashboard purchases fetch error:", err);
+            return [];
+          }),
+        prisma.notification
+          .findMany({
+            where: { userId },
+            orderBy: { createdAt: "desc" },
+            take: 5,
+          })
+          .catch((err) => {
+            console.error("Dashboard notifications fetch error:", err);
+            return [];
+          }),
+        prisma.depositRequest
+          .findMany({
+            where: { userId, status: "PENDING" },
+            take: 3,
+          })
+          .catch((err) => {
+            console.error("Dashboard deposits fetch error:", err);
+            return [];
+          }),
+        prisma.checkout
+          .findMany({
+            where: { userId, status: { in: ["AWAITING_PAYMENT", "REJECTED"] } },
+            include: { items: true },
+            orderBy: { createdAt: "desc" },
+          })
+          .catch((err) => {
+            console.error("Dashboard checkouts fetch error:", err);
+            return [];
+          }),
+      ]);
 
-  return { user, wallet, ownerships, pendingPurchases, recentNotifications, pendingDeposits, pendingCheckouts };
+    return {
+      user,
+      wallet,
+      ownerships: ownerships ?? [],
+      pendingPurchases: pendingPurchases ?? [],
+      recentNotifications: recentNotifications ?? [],
+      pendingDeposits: pendingDeposits ?? [],
+      pendingCheckouts: pendingCheckouts ?? [],
+    };
+  } catch (err) {
+    console.error("getDashboardData error:", err);
+    return {
+      user: null,
+      wallet: null,
+      ownerships: [],
+      pendingPurchases: [],
+      recentNotifications: [],
+      pendingDeposits: [],
+      pendingCheckouts: [],
+    };
+  }
 }
 
 export default async function DashboardPage() {
@@ -51,13 +107,16 @@ export default async function DashboardPage() {
   if (!session) redirect("/login");
 
   const [{ user, wallet, ownerships, pendingPurchases, recentNotifications, pendingDeposits, pendingCheckouts }, shareRate] =
-    await Promise.all([getDashboardData(session.userId), getShareSgdRate()]);
+    await Promise.all([
+      getDashboardData(session.userId),
+      getShareSgdRate().catch(() => 83.5),
+    ]);
 
-  const portfolioValue = ownerships.reduce(
-    (sum, o) => sum + sgdToBdt(Number(o.project.sharePriceSgd) * o.quantity, shareRate),
+  const portfolioValue = (ownerships ?? []).reduce(
+    (sum, o) => sum + sgdToBdt(Number(o?.project?.sharePriceSgd ?? 0) * (o?.quantity ?? 0), shareRate),
     0
   );
-  const totalShares = ownerships.reduce((sum, o) => sum + o.quantity, 0);
+  const totalShares = (ownerships ?? []).reduce((sum, o) => sum + (o?.quantity ?? 0), 0);
 
   const MODULE_LINKS = [
     { href: "/history", label: "All History", desc: "Shares, Taxi, Flights & Wallet history", icon: "📑" },
@@ -94,11 +153,13 @@ export default async function DashboardPage() {
         {/* Header */}
         <div className="mb-7">
           <h1 className="text-2xl font-bold text-foreground">
-            Welcome back, {user?.fullName ?? session.email.split("@")[0]} 👋
+            Welcome back, {user?.fullName ?? session.fullName ?? session.email.split("@")[0]} 👋
           </h1>
           <p className="text-sm text-muted-foreground mt-0.5">
             Member since{" "}
-            {user?.createdAt.toLocaleDateString("en-GB", { month: "long", year: "numeric" })}
+            {user?.createdAt
+              ? new Date(user.createdAt).toLocaleDateString("en-GB", { month: "long", year: "numeric" })
+              : "recently"}
           </p>
         </div>
 
@@ -122,7 +183,7 @@ export default async function DashboardPage() {
                       </span>
                     </div>
                     <p className="text-xs text-amber-800 mt-0.5">
-                      {c.items.map((i) => i.description).join(" · ")}
+                      {(c.items ?? []).map((i) => i.description).join(" · ")}
                     </p>
                     <p className="text-xs font-semibold text-amber-950 mt-1">
                       Total Payable: ৳{Number(c.totalAmount).toFixed(2)}
@@ -228,16 +289,16 @@ export default async function DashboardPage() {
                 {ownerships.map((o) => (
                   <div key={o.id} className="px-6 py-4 flex items-center justify-between gap-4">
                     <div className="flex-1 min-w-0">
-                      <p className="font-medium text-foreground text-sm truncate">{o.project.name}</p>
+                      <p className="font-medium text-foreground text-sm truncate">{o.project?.name ?? "Project"}</p>
                       <p className="text-xs text-muted-foreground mt-0.5">
-                        {o.quantity} shares · ${Number(o.project.sharePriceSgd).toFixed(2)}/share
+                        {o.quantity} shares · ${Number(o.project?.sharePriceSgd ?? 0).toFixed(2)}/share
                         <span className="text-muted-foreground/70"> (1 SGD = ৳{shareRate.toFixed(2)})</span>
                       </p>
                     </div>
                     <div className="flex items-center gap-3 shrink-0">
                       <div className="text-right">
                         <p className="font-semibold text-foreground text-sm">
-                          ৳{sgdToBdt(Number(o.project.sharePriceSgd) * o.quantity, shareRate).toFixed(2)}
+                          ৳{sgdToBdt(Number(o.project?.sharePriceSgd ?? 0) * o.quantity, shareRate).toFixed(2)}
                         </p>
                         <p className="text-xs text-muted-foreground">current value</p>
                       </div>
@@ -270,7 +331,7 @@ export default async function DashboardPage() {
                     <p className="text-sm font-medium text-foreground leading-snug">{n.title}</p>
                     <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{n.message}</p>
                     <p className="text-[11px] text-muted-foreground mt-1">
-                      {n.createdAt.toLocaleDateString("en-GB", { day: "2-digit", month: "short" })}
+                      {n.createdAt ? new Date(n.createdAt).toLocaleDateString("en-GB", { day: "2-digit", month: "short" }) : ""}
                     </p>
                   </div>
                 ))}
@@ -280,7 +341,7 @@ export default async function DashboardPage() {
         </div>
 
         {/* Recent wallet transactions */}
-        {wallet && wallet.transactions.length > 0 && (
+        {wallet && (wallet.transactions ?? []).length > 0 && (
           <div className="bg-white rounded-2xl border border-border overflow-hidden mb-7">
             <div className="px-6 py-4 border-b border-border flex items-center justify-between">
               <h2 className="font-semibold text-foreground">Recent Transactions</h2>
@@ -297,7 +358,7 @@ export default async function DashboardPage() {
                       {CREDIT_TX_TYPES.includes(tx.type) ? "+" : "-"}৳{Number(tx.amount).toFixed(2)}
                     </p>
                     <p className="text-[11px] text-muted-foreground">
-                      {tx.createdAt.toLocaleDateString("en-GB", { day: "2-digit", month: "short" })}
+                      {tx.createdAt ? new Date(tx.createdAt).toLocaleDateString("en-GB", { day: "2-digit", month: "short" }) : ""}
                     </p>
                   </div>
                 </div>
