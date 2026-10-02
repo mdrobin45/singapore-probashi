@@ -1,7 +1,7 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
-import { createSession } from "@/lib/session";
+import { createSession, getSession } from "@/lib/session";
 import { generateOTP, sendOTPEmail } from "@/lib/email";
 import { attachReferralIfNeeded } from "@/lib/commission";
 import { REFERRAL_COOKIE_NAME } from "@/lib/referral-constants";
@@ -49,7 +49,7 @@ const registerSchema = z
   .object({
     email: z.string().email("Invalid email address"),
     phone: z.string().min(10, "Phone must be at least 10 digits"),
-    password: z.string().min(8, "Password must be at least 8 characters"),
+    password: z.string().min(4, "Password / PIN must be at least 4 digits"),
     confirmPassword: z.string(),
   })
   .refine((data) => data.password === data.confirmPassword, {
@@ -379,7 +379,7 @@ export async function resetPasswordAction(
     const confirm = formData.get("confirmPassword") as string;
 
     if (password !== confirm) return { error: "Passwords do not match." };
-    if (password.length < 8) return { error: "Password must be at least 8 characters." };
+    if (password.length < 4) return { error: "Password / PIN must be at least 4 digits." };
 
     const record = await prisma.otpToken.findFirst({
       where: { email, token: otp, type: "FORGOT_PASSWORD", usedAt: null },
@@ -402,3 +402,58 @@ export async function resetPasswordAction(
 
   redirect("/login?reset=1");
 }
+
+// ─── Set 4-Digit Security PIN (Google login onboarding / profile) ─────────────
+
+const setPinSchema = z
+  .object({
+    pin: z.string().regex(/^\d{4}$/, "PIN must be exactly 4 digits"),
+    confirmPin: z.string(),
+  })
+  .refine((data) => data.pin === data.confirmPin, {
+    message: "PINs do not match",
+    path: ["confirmPin"],
+  });
+
+export async function setPinAction(
+  _prev: ActionState,
+  formData: FormData
+): Promise<ActionState> {
+  let redirectUrl = "";
+  try {
+    const session = await getSession();
+    if (!session) redirect("/login");
+
+    const parse = setPinSchema.safeParse({
+      pin: formData.get("pin"),
+      confirmPin: formData.get("confirmPin"),
+    });
+
+    if (!parse.success) {
+      const fieldErrors: Record<string, string> = {};
+      for (const issue of parse.error.issues) {
+        const field = issue.path[0] as string;
+        if (!fieldErrors[field]) fieldErrors[field] = issue.message;
+      }
+      return { fieldErrors };
+    }
+
+    const { pin } = parse.data;
+    const passwordHash = await bcrypt.hash(pin, 12);
+
+    await prisma.user.update({
+      where: { id: session.userId },
+      data: { passwordHash },
+    });
+
+    redirectUrl = "/dashboard?pin_set=1";
+  } catch (err: unknown) {
+    if (isNextRedirect(err)) throw err;
+    console.error("Set PIN error:", err);
+    return { error: err instanceof Error ? err.message : "Failed to set PIN. Please try again." };
+  }
+
+  if (redirectUrl) redirect(redirectUrl);
+  return null;
+}
+

@@ -4,10 +4,11 @@ import { usePathname } from "next/navigation";
 import { Navbar } from "@/components/navbar";
 import { Footer } from "@/components/footer";
 import { BottomNav } from "@/components/bottom-nav";
+import { FloatingWhatsApp } from "@/components/floating-whatsapp";
 import type { SessionPayload } from "@/lib/session";
 import type { SiteContactSettings } from "@/lib/site-contact-types";
 
-const AUTH_PATHS = ["/login", "/register", "/verify-otp", "/forgot-password", "/reset-password", "/admin"];
+const AUTH_PATHS = ["/login", "/register", "/verify-otp", "/forgot-password", "/reset-password", "/set-pin", "/admin"];
 
 type ShellProps = {
   children: React.ReactNode;
@@ -32,6 +33,10 @@ export function Shell({ children, user, rateBar, walletBalance, pendingCheckout,
       <main className="flex-1 pb-16 lg:pb-0">{children}</main>
       <Footer contact={contactSettings} />
       <BottomNav user={user} />
+      <FloatingWhatsApp
+        whatsappNumber={contactSettings?.whatsappNumber}
+        defaultMessage={contactSettings?.whatsappMessage}
+      />
     </>
   );
 }

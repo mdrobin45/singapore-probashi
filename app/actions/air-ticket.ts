@@ -149,11 +149,47 @@ export async function updateAirTicketStatusAction(
   id: string,
   status: BookingStatus,
   adminNote?: string,
-  ticketUrl?: string
-) {
+  ticketUrl?: string,
+  farePrice?: number
+): Promise<{ error?: string; success?: boolean }> {
   await requireAdmin();
 
+  const existing = await prisma.airTicketRequest.findUnique({ where: { id } });
+  if (!existing) return { error: "Request not found." };
+
+  const effectiveFare = farePrice !== undefined ? farePrice : (existing.price ? Number(existing.price) : 0);
+
+  // Deduct fare from customer's platform balance upon confirmation if price is set and not already confirmed
+  if (status === "CONFIRMED" && existing.status !== "CONFIRMED" && effectiveFare > 0) {
+    const userWallet = await prisma.wallet.findUnique({ where: { userId: existing.userId } });
+    if (!userWallet || Number(userWallet.balance) < effectiveFare) {
+      return {
+        error: `Customer has insufficient platform wallet balance (৳${Number(userWallet?.balance ?? 0).toFixed(2)}) for this flight fare of ৳${effectiveFare.toFixed(2)}.`,
+      };
+    }
+    const newBal = Number(userWallet.balance) - effectiveFare;
+    await prisma.$transaction([
+      prisma.wallet.update({
+        where: { id: userWallet.id },
+        data: { balance: newBal },
+      }),
+      prisma.walletTransaction.create({
+        data: {
+          walletId: userWallet.id,
+          type: "CHECKOUT_PAYMENT",
+          amount: effectiveFare,
+          description: `Air ticket fare deduction: ${existing.origin} → ${existing.destination}`,
+          balanceBefore: userWallet.balance,
+          balanceAfter: newBal,
+        },
+      }),
+    ]);
+  }
+
   const dataToUpdate: any = { status, adminNote: adminNote || null };
+  if (farePrice !== undefined) {
+    dataToUpdate.price = farePrice;
+  }
   if (ticketUrl) {
     dataToUpdate.ticketUrl = ticketUrl;
   }
@@ -184,4 +220,7 @@ export async function updateAirTicketStatusAction(
 
   revalidatePath("/admin/air-ticket");
   revalidatePath("/air-ticket/my");
+  revalidatePath("/dashboard");
+  revalidatePath("/wallet");
+  return { success: true };
 }

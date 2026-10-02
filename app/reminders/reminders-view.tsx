@@ -130,6 +130,9 @@ export function RemindersView({
           const defaultDate = s.remindAt
             ? new Date(s.remindAt).toISOString().split("T")[0]
             : "";
+          const defaultTime = s.remindAt
+            ? new Date(s.remindAt).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" })
+            : "09:00";
 
           return (
             <div
@@ -184,8 +187,8 @@ export function RemindersView({
                       />
                     </div>
 
-                    {/* Date selection + Channel */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {/* Date + Time selection + Channel */}
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                       <div>
                         <label className="block text-xs font-medium text-foreground mb-1">
                           Remind On Date
@@ -194,6 +197,19 @@ export function RemindersView({
                           type="date"
                           name="remindAt"
                           defaultValue={defaultDate}
+                          required
+                          className="w-full text-xs px-3 py-2 rounded-xl border border-border focus:outline-none focus:ring-2 focus:ring-brand/30 focus:border-brand text-foreground"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-medium text-foreground mb-1">
+                          Alarm Time
+                        </label>
+                        <input
+                          type="time"
+                          name="remindTime"
+                          defaultValue={defaultTime}
                           required
                           className="w-full text-xs px-3 py-2 rounded-xl border border-border focus:outline-none focus:ring-2 focus:ring-brand/30 focus:border-brand text-foreground"
                         />

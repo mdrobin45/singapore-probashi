@@ -175,8 +175,7 @@ export default async function MySharesPage() {
                           )}
                         </td>
                         <td className="px-4 py-3.5 text-muted-foreground">
-                          ${Number(o.project.sharePriceSgd).toFixed(2)}
-                          <span className="text-muted-foreground/70"> (1 SGD = ৳{rate.toFixed(2)})</span>
+                          ৳{sgdToBdt(Number(o.project.sharePriceSgd), rate).toFixed(2)}
                         </td>
                         <td className="px-4 py-3.5 font-semibold text-foreground">
                           ৳{sgdToBdt(Number(o.project.sharePriceSgd) * o.quantity, rate).toFixed(2)}
@@ -297,43 +296,98 @@ export default async function MySharesPage() {
             <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">
               My Buy Requests ({buyRequests.length})
             </h2>
-            <div className="bg-white rounded-xl border border-border overflow-hidden">
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b border-border bg-muted/50">
-                      <th className="text-left text-xs font-semibold text-muted-foreground px-5 py-3">Name</th>
-                      <th className="text-left text-xs font-semibold text-muted-foreground px-4 py-3">Share #</th>
-                      <th className="text-left text-xs font-semibold text-muted-foreground px-4 py-3">Size</th>
-                      <th className="text-left text-xs font-semibold text-muted-foreground px-4 py-3">Price</th>
-                      <th className="text-left text-xs font-semibold text-muted-foreground px-4 py-3">Preferred Date</th>
-                      <th className="text-left text-xs font-semibold text-muted-foreground px-4 py-3">Status</th>
-                      <th className="text-left text-xs font-semibold text-muted-foreground px-4 py-3">Submitted</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-border">
-                    {buyRequests.map((r) => (
-                      <tr key={r.id} className={`hover:bg-muted/30 ${r.status === "REJECTED" ? "opacity-60" : ""}`}>
-                        <td className="px-5 py-3.5 font-medium text-foreground">{r.name}</td>
-                        <td className="px-4 py-3.5 text-foreground font-mono">#{r.shareNumber}</td>
-                        <td className="px-4 py-3.5 text-foreground">{r.size}</td>
-                        <td className="px-4 py-3.5 text-foreground">${Number(r.price).toFixed(2)} (৳{sgdToBdt(Number(r.price), rate).toFixed(2)})</td>
-                        <td className="px-4 py-3.5 text-xs text-muted-foreground whitespace-nowrap">
-                          {r.preferredDate.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })}
-                        </td>
-                        <td className="px-4 py-3.5">
-                          <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${STATUS_STYLES[r.status] ?? ""}`}>
-                            {r.status}
+            <div className="space-y-3">
+              {buyRequests.map((r) => {
+                const isConfirmed = r.status === "APPROVED";
+                return (
+                  <div
+                    key={r.id}
+                    className={`bg-white rounded-2xl border p-4.5 transition-all shadow-xs ${
+                      isConfirmed
+                        ? "border-green-200 bg-green-50/20"
+                        : r.status === "REJECTED"
+                        ? "border-border opacity-70 bg-gray-50/50"
+                        : "border-border"
+                    }`}
+                  >
+                    <div className="flex flex-col gap-2.5">
+                      {/* Name & Status */}
+                      <div className="flex items-start justify-between gap-2">
+                        <div>
+                          <p className="text-[11px] text-muted-foreground font-semibold uppercase tracking-wider">Name</p>
+                          <p className="font-bold text-foreground text-sm">
+                            {r.name} <span className="font-mono font-medium text-brand text-xs">(Share #{r.shareNumber} · {r.size})</span>
+                          </p>
+                        </div>
+                        <div>
+                          <span
+                            className={`inline-flex items-center gap-1 text-[11px] font-bold uppercase tracking-wider px-3 py-1 rounded-full ${
+                              isConfirmed
+                                ? "bg-green-100 text-green-700 border border-green-200"
+                                : r.status === "REJECTED"
+                                ? "bg-red-100 text-red-700 border border-red-200"
+                                : "bg-amber-100 text-amber-700 border border-amber-200"
+                            }`}
+                          >
+                            {isConfirmed ? "✓ Confirmed" : r.status}
                           </span>
-                        </td>
-                        <td className="px-4 py-3.5 text-xs text-muted-foreground whitespace-nowrap">
-                          {r.createdAt.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                        </div>
+                      </div>
+
+                      {/* Price & Date */}
+                      <div className="grid grid-cols-2 gap-3 pt-2 border-t border-border/60">
+                        <div>
+                          <p className="text-[11px] text-muted-foreground font-semibold uppercase tracking-wider">Price</p>
+                          <p className="font-bold text-foreground text-sm">৳{Number(r.price).toFixed(2)}</p>
+                        </div>
+                        <div>
+                          <p className="text-[11px] text-muted-foreground font-semibold uppercase tracking-wider">Date</p>
+                          <p className="font-medium text-foreground text-xs mt-0.5">
+                            {r.preferredDate.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })}
+                          </p>
+                        </div>
+                      </div>
+
+                      {r.adminNote && (() => {
+                        let noteText: string | null = r.adminNote;
+                        let hasFile = false;
+                        try {
+                          const parsed = JSON.parse(r.adminNote);
+                          if (parsed && typeof parsed === "object") {
+                            noteText = parsed.note || null;
+                            hasFile = Boolean(parsed.fileUrl);
+                          }
+                        } catch {
+                          if (r.adminNote.startsWith("data:") || r.adminNote.startsWith("http")) {
+                            noteText = null;
+                            hasFile = true;
+                          }
+                        }
+
+                        return (
+                          <div className="pt-2 border-t border-border/40 space-y-1.5">
+                            {noteText && (
+                              <p className="text-[11px] text-muted-foreground bg-muted/60 rounded-lg px-2.5 py-1.5 border border-border/40">
+                                Note: {noteText}
+                              </p>
+                            )}
+                            {hasFile && (
+                              <a
+                                href={`/api/share-slips/${r.id}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-1.5 text-xs font-semibold text-brand bg-brand-50 hover:bg-brand-100 border border-brand/20 px-3 py-1.5 rounded-lg transition-colors"
+                              >
+                                <span>📎 View / Download Attached Slip</span>
+                              </a>
+                            )}
+                          </div>
+                        );
+                      })()}
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </section>
         )}

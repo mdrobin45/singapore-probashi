@@ -31,55 +31,67 @@ export async function processDepositAction(
 
   if (!request) return { error: "Request not found or already processed." };
 
-  if (decision === "APPROVED") {
-    await prisma.$transaction(async (tx) => {
-      await tx.depositRequest.update({
+  try {
+    if (decision === "APPROVED") {
+      await prisma.$transaction(async (tx) => {
+        await tx.depositRequest.update({
+          where: { id: requestId },
+          data: { status: "APPROVED", adminNote, processedById: session.userId, processedAt: new Date() },
+        });
+
+        let wallet = await tx.wallet.findUnique({ where: { userId: request.userId } });
+        if (!wallet) {
+          wallet = await tx.wallet.create({
+            data: { userId: request.userId, balance: 0 },
+          });
+        }
+
+        const newBalance = Number(wallet.balance) + Number(request.amount);
+        await tx.wallet.update({ where: { id: wallet.id }, data: { balance: newBalance } });
+
+        await tx.walletTransaction.create({
+          data: {
+            walletId: wallet.id,
+            type: "DEPOSIT",
+            amount: request.amount,
+            description: `Deposit via ${request.paymentMethod} — TXN: ${request.txId}`,
+            balanceBefore: wallet.balance,
+            balanceAfter: newBalance,
+          },
+        });
+
+        await tx.notification.create({
+          data: {
+            userId: request.userId,
+            title: "Deposit approved",
+            message: `৳${Number(request.amount).toFixed(2)} has been added to your wallet.`,
+            type: "WALLET",
+          },
+        });
+      });
+    } else {
+      await prisma.depositRequest.update({
         where: { id: requestId },
-        data: { status: "APPROVED", adminNote, processedById: session.userId, processedAt: new Date() },
+        data: { status: "REJECTED", adminNote, processedById: session.userId, processedAt: new Date() },
       });
 
-      const wallet = await tx.wallet.findUnique({ where: { userId: request.userId } });
-      if (!wallet) throw new Error("Wallet not found");
-
-      const newBalance = Number(wallet.balance) + Number(request.amount);
-      await tx.wallet.update({ where: { id: wallet.id }, data: { balance: newBalance } });
-
-      await tx.walletTransaction.create({
-        data: {
-          walletId: wallet.id,
-          type: "DEPOSIT",
-          amount: request.amount,
-          description: `Deposit via ${request.paymentMethod} — TXN: ${request.txId}`,
-          balanceBefore: wallet.balance,
-          balanceAfter: newBalance,
-        },
-      });
-
-      await tx.notification.create({
+      await prisma.notification.create({
         data: {
           userId: request.userId,
-          title: "Deposit approved",
-          message: `৳{Number(request.amount).toFixed(2)} has been added to your wallet.`,
+          title: "Deposit rejected",
+          message: `Your deposit of ৳${Number(request.amount).toFixed(2)} was rejected.${adminNote ? ` Reason: ${adminNote}` : ""}`,
           type: "WALLET",
         },
       });
-    });
-  } else {
-    await prisma.depositRequest.update({
-      where: { id: requestId },
-      data: { status: "REJECTED", adminNote, processedById: session.userId, processedAt: new Date() },
-    });
+    }
 
-    await prisma.notification.create({
-      data: {
-        userId: request.userId,
-        title: "Deposit rejected",
-        message: `Your deposit of ৳{Number(request.amount).toFixed(2)} was rejected.${adminNote ? ` Reason: ${adminNote}` : ""}`,
-        type: "WALLET",
-      },
-    });
+    revalidatePath("/admin/deposits");
+    revalidatePath("/dashboard");
+    revalidatePath("/wallet");
+    revalidatePath("/history");
+    return { success: true };
+  } catch (err: unknown) {
+    console.error("Failed to process deposit:", err);
+    return { error: err instanceof Error ? err.message : "Failed to process deposit." };
   }
-
-  revalidatePath("/admin/deposits");
-  return { success: true };
 }

@@ -100,7 +100,9 @@ export async function GET(req: NextRequest) {
     fullName: user.fullName,
   });
 
-  const response = NextResponse.redirect(new URL("/dashboard", req.url));
+  // Prompt Google users who don't have a 4-digit PIN set to create one
+  const targetPath = user.passwordHash ? "/dashboard" : "/set-pin";
+  const response = NextResponse.redirect(new URL(targetPath, req.url));
   if (refCode) response.cookies.delete(REFERRAL_COOKIE_NAME);
   return response;
 }

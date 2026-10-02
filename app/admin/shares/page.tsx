@@ -100,7 +100,7 @@ export default async function AdminSharesPage() {
                     <div className="flex gap-4 mt-2 text-xs">
                       <span>Share #: <strong className="text-foreground font-mono">{r.shareNumber}</strong></span>
                       <span>Size: <strong className="text-foreground">{r.size}</strong></span>
-                      <span>Offered: <strong className="text-foreground">৳{Number(r.price).toFixed(2)}</strong> <span className="text-muted-foreground text-[11px]">(${(Number(r.price) / rate).toFixed(2)} SGD)</span></span>
+                      <span>Offered: <strong className="text-foreground">৳{Number(r.price).toFixed(2)}</strong> <span className="text-muted-foreground font-normal">(~${(Number(r.price) / rate).toFixed(2)} SGD)</span></span>
                       <span>Preferred Date: <strong className="text-foreground">{r.preferredDate.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })}</strong></span>
                     </div>
                   </div>
@@ -209,8 +209,8 @@ export default async function AdminSharesPage() {
                 </div>
                 <div className="grid grid-cols-4 gap-3 text-center mb-3">
                   <div>
-                    <p className="font-bold text-foreground">${Number(p.sharePriceSgd).toFixed(2)}</p>
-                    <p className="text-[11px] text-muted-foreground">1 SGD = ৳{rate.toFixed(2)}</p>
+                    <p className="font-bold text-foreground">৳{Number(p.sharePriceSgd).toFixed(2)}</p>
+                    <p className="text-[11px] text-muted-foreground">per share</p>
                   </div>
                   <div>
                     <p className="font-bold text-foreground">{p.totalShares}</p>

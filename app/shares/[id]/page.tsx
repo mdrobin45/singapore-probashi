@@ -105,7 +105,7 @@ export default async function ShareDetailPage({
               {/* Stats row */}
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-px bg-border">
                 {[
-                  { label: "Share Price", value: `$${Number(project.sharePriceSgd).toFixed(2)} (1 SGD = ৳${rate.toFixed(2)})` },
+                  { label: "Share Price", value: `৳${sgdToBdt(Number(project.sharePriceSgd), rate).toFixed(2)}` },
                   { label: "Total Shares", value: project.totalShares.toLocaleString() },
                   { label: "Available", value: project.availableShares.toLocaleString() },
                   { label: "Total Fund", value: `৳${totalValue.toLocaleString()}` },

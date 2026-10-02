@@ -6,7 +6,8 @@ import { sgdToBdt } from "@/lib/share-pricing-utils";
 
 export function BuyRequestForm({ defaultName, rate }: { defaultName: string; rate: number }) {
   const [state, action, pending] = useActionState(createShareBuyRequestAction, null);
-  const [price, setPrice] = useState("");
+  const [price, setPrice] = useState("100");
+  const [isCustom, setIsCustom] = useState(false);
 
   if (state?.success) {
     return (
@@ -63,31 +64,66 @@ export function BuyRequestForm({ defaultName, rate }: { defaultName: string; rat
         </select>
       </div>
 
-      {/* Price */}
+      {/* Price with Dropdown */}
       <div>
         <label className="block text-sm font-medium text-foreground mb-1.5">
-          Desired Offer Price (BDT ৳){" "}
-          <span className="text-muted-foreground font-normal">(1 SGD = ৳{rate.toFixed(2)} BDT)</span>
+          Select Offer Amount (BDT ৳) <span className="text-muted-foreground font-normal">(1 SGD ≈ ৳{rate.toFixed(2)} BDT)</span>
         </label>
-        <div className="relative">
-          <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground text-sm font-medium">৳</span>
-          <input
-            type="number"
-            name="priceBdt"
-            min={1}
-            step="1"
-            placeholder="e.g. 500"
-            value={price}
-            onChange={(e) => setPrice(e.target.value)}
-            required
-            className="w-full pl-8 pr-3.5 py-2.5 rounded-xl border border-border text-foreground focus:outline-none focus:ring-2 focus:ring-brand/30 focus:border-brand text-sm"
-          />
+        
+        <div className="space-y-2.5">
+          <select
+            value={isCustom ? "custom" : price}
+            onChange={(e) => {
+              if (e.target.value === "custom") {
+                setIsCustom(true);
+                setPrice("");
+              } else {
+                setIsCustom(false);
+                setPrice(e.target.value);
+              }
+            }}
+            className="w-full px-3.5 py-2.5 rounded-xl border border-border text-foreground bg-white focus:outline-none focus:ring-2 focus:ring-brand/30 focus:border-brand text-sm font-medium cursor-pointer"
+          >
+            <option value="100">৳100 BDT (≈ ${(100 / rate).toFixed(2)} SGD)</option>
+            <option value="50">৳50 BDT (≈ ${(50 / rate).toFixed(2)} SGD)</option>
+            <option value="200">৳200 BDT (≈ ${(200 / rate).toFixed(2)} SGD)</option>
+            <option value="500">৳500 BDT (≈ ${(500 / rate).toFixed(2)} SGD)</option>
+            <option value="1000">৳1,000 BDT (≈ ${(1000 / rate).toFixed(2)} SGD)</option>
+            <option value="2000">৳2,000 BDT (≈ ${(2000 / rate).toFixed(2)} SGD)</option>
+            <option value="5000">৳5,000 BDT (≈ ${(5000 / rate).toFixed(2)} SGD)</option>
+            <option value="custom">✍️ Custom Amount...</option>
+          </select>
+
+          {isCustom && (
+            <div className="relative animate-in fade-in duration-200">
+              <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground text-sm font-medium">৳</span>
+              <input
+                type="number"
+                name="priceBdt"
+                min={1}
+                step="1"
+                placeholder="Enter custom amount in BDT e.g. 150"
+                value={price}
+                onChange={(e) => setPrice(e.target.value)}
+                required
+                className="w-full pl-8 pr-3.5 py-2.5 rounded-xl border border-border text-foreground focus:outline-none focus:ring-2 focus:ring-brand/30 focus:border-brand text-sm font-medium"
+              />
+            </div>
+          )}
+
+          {!isCustom && (
+            <input type="hidden" name="priceBdt" value={price} />
+          )}
+
+          {price && Number(price) > 0 && (
+            <div className="p-3 bg-muted rounded-xl flex items-center justify-between text-xs">
+              <span className="text-muted-foreground">Total from platform wallet:</span>
+              <span className="font-bold text-foreground text-sm">
+                ৳{Number(price).toLocaleString()} BDT <span className="text-muted-foreground font-normal text-xs">(≈ ${(Number(price) / rate).toFixed(2)} SGD)</span>
+              </span>
+            </div>
+          )}
         </div>
-        {price && Number(price) > 0 && (
-          <p className="text-xs text-muted-foreground mt-1">
-            SGD equivalent: <span className="font-semibold text-foreground">${(Number(price) / rate).toFixed(2)} SGD</span>
-          </p>
-        )}
       </div>
 
       {/* Preferred date */}

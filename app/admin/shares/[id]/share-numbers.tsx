@@ -162,10 +162,11 @@ export function ShareNumbersManager({
           <button
             type="button"
             onClick={addNumber}
-            className="w-10 h-10 flex items-center justify-center rounded-lg bg-brand text-white hover:bg-brand-dark transition-colors text-lg font-bold shrink-0 cursor-pointer"
-            title="Add number"
+            className="h-10 px-4.5 flex items-center justify-center gap-1.5 rounded-lg bg-brand text-white hover:bg-brand-dark active:scale-95 transition-all text-sm font-semibold shrink-0 cursor-pointer shadow-xs"
+            title="Add number to list"
           >
-            +
+            <span className="text-lg leading-none font-bold">+</span>
+            <span className="hidden sm:inline">Add</span>
           </button>
         </div>
 

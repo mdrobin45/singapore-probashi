@@ -34,12 +34,18 @@ export function StatusPill({
   const [open, setOpen] = useState(false);
   const [note, setNote] = useState("");
   const [ticketBase64, setTicketBase64] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
   function update(s: Status) {
+    setError(null);
     startTransition(async () => {
-      await updateAirTicketStatusAction(id, s, note, ticketBase64 ?? undefined);
-      setOpen(false);
+      const res = await updateAirTicketStatusAction(id, s, note, ticketBase64 ?? undefined);
+      if (res?.error) {
+        setError(res.error);
+      } else {
+        setOpen(false);
+      }
     });
   }
 
@@ -47,7 +53,10 @@ export function StatusPill({
     <div className="relative inline-block">
       <button
         type="button"
-        onClick={() => setOpen((v) => !v)}
+        onClick={() => {
+          setError(null);
+          setOpen((v) => !v);
+        }}
         className={`text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full cursor-pointer ${STATUS_STYLES[status]}`}
       >
         {status}
@@ -81,7 +90,7 @@ export function StatusPill({
             />
             {currentTicketUrl && (
               <a
-                href={currentTicketUrl}
+                href={`/api/tickets/${id}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-[10px] text-brand hover:underline block mt-1"
@@ -90,6 +99,12 @@ export function StatusPill({
               </a>
             )}
           </div>
+
+          {error && (
+            <div className="text-[11px] text-red-600 bg-red-50 p-2 rounded-lg border border-red-200">
+              {error}
+            </div>
+          )}
 
           <div className="grid grid-cols-2 gap-1.5 pt-1">
             {STATUS_OPTIONS.map((opt) => (

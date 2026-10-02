@@ -329,7 +329,9 @@ export default async function DashboardPage() {
                 {recentNotifications.map((n) => (
                   <div key={n.id} className={`px-5 py-3.5 ${!n.isRead ? "bg-brand-50/40" : ""}`}>
                     <p className="text-sm font-medium text-foreground leading-snug">{n.title}</p>
-                    <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{n.message}</p>
+                    <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">
+                      {n.message?.replace(/৳?\{Number\(request\.amount\)\.toFixed\(2\)\}/g, "৳ (Amount verified)")}
+                    </p>
                     <p className="text-[11px] text-muted-foreground mt-1">
                       {n.createdAt ? new Date(n.createdAt).toLocaleDateString("en-GB", { day: "2-digit", month: "short" }) : ""}
                     </p>

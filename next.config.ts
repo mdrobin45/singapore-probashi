@@ -7,6 +7,9 @@ const nextConfig: NextConfig = {
     // filesystem cache (default on since Next 16.1) grows to gigabytes of
     // small random-access reads/writes there and corrupts, causing repeated
     // "Next.js package not found" panics and an HMR reload loop.
+    serverActions: {
+      bodySizeLimit: "10mb",
+    },
     turbopackFileSystemCacheForDev: false,
   },
 };

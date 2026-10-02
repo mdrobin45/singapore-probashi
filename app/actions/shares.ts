@@ -307,6 +307,30 @@ export async function createShareBuyRequestAction(
 
   const { name, shareNumber, size, price: offeredBdt, preferredDate } = parse.data;
 
+  const wallet = await prisma.wallet.findUnique({
+    where: { userId: session.userId },
+    select: { balance: true },
+  });
+
+  if (!wallet || Number(wallet.balance) < offeredBdt) {
+    return {
+      error: `Insufficient platform wallet balance. You have ৳${Number(wallet?.balance ?? 0).toFixed(2)}, but this request requires at least ৳${offeredBdt.toFixed(2)}. Please deposit funds to your platform wallet first.`,
+    };
+  }
+
+  const existingPending = await prisma.shareBuyRequest.findFirst({
+    where: {
+      buyerId: session.userId,
+      shareNumber,
+      status: "PENDING",
+    },
+  });
+  if (existingPending) {
+    return {
+      error: `You already have a pending buy request for share #${shareNumber}. Please wait for admin review.`,
+    };
+  }
+
   await prisma.shareBuyRequest.create({
     data: {
       buyerId: session.userId,

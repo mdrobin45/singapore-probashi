@@ -119,14 +119,14 @@ export function CreateProjectForm() {
             <input name="totalShares" type="number" required min={1} placeholder="1000" className={INPUT} />
           </div>
           <div>
-            <label className="block text-xs font-medium text-foreground mb-1">Price per Share (SGD)</label>
+            <label className="block text-xs font-medium text-foreground mb-1">Price per Share (BDT ৳)</label>
             <input
               name="sharePriceSgd"
               type="number"
               required
               min={0.01}
               step={0.01}
-              placeholder="5.99"
+              placeholder="500"
               value={basePriceInput}
               onChange={(e) => setBasePriceInput(e.target.value)}
               className={INPUT}
@@ -138,45 +138,49 @@ export function CreateProjectForm() {
         <div className="border-t border-border pt-4">
           <p className="text-xs font-semibold text-foreground mb-0.5">Share Numbers</p>
           <p className="text-[11px] text-muted-foreground mb-3">
-            Each number is the unique identity of one individual share. Give it its own price, or leave it blank to use the price above{basePrice ? ` ($${basePrice.toFixed(2)})` : ""}. Type and press Enter or +.
+            Each number is the unique identity of one individual share. Give it its own price, or leave it blank to use the price above{basePrice ? ` (৳${basePrice.toFixed(2)})` : ""}. Type and press Enter or +.
           </p>
-          <div className="flex flex-wrap sm:flex-nowrap gap-2">
-            <input
-              ref={numInputRef}
-              type="number"
-              min={1}
-              value={numInput}
-              onChange={(e) => { setNumInput(e.target.value); setNumError(""); }}
-              onKeyDown={handleNumKeyDown}
-              placeholder="Share # (e.g. 101)"
-              className="w-full sm:w-32 px-3 py-2 rounded-lg border border-border text-sm focus:outline-none focus:ring-2 focus:ring-brand/30 focus:border-brand"
-            />
-            <input
-              type="text"
-              value={codeInput}
-              onChange={(e) => { setCodeInput(e.target.value); setNumError(""); }}
-              onKeyDown={handleNumKeyDown}
-              placeholder="Word / Plot Code (e.g. PLOT-01, LAND-05)"
-              className="flex-1 px-3 py-2 rounded-lg border border-border text-sm focus:outline-none focus:ring-2 focus:ring-brand/30 focus:border-brand uppercase font-mono"
-            />
-            <input
-              type="number"
-              min={0.01}
-              step={0.01}
-              value={priceInput}
-              onChange={(e) => { setPriceInput(e.target.value); setNumError(""); }}
-              onKeyDown={handleNumKeyDown}
-              placeholder={basePrice ? `$${basePrice.toFixed(2)} (default)` : "price (optional)"}
-              className="w-full sm:w-36 px-3 py-2 rounded-lg border border-border text-sm focus:outline-none focus:ring-2 focus:ring-brand/30 focus:border-brand"
-            />
-            <button
-              type="button"
-              onClick={addShareNum}
-              className="w-10 h-10 flex items-center justify-center rounded-lg bg-brand text-white hover:bg-brand-dark transition-colors text-xl font-bold shrink-0 cursor-pointer"
-              title="Add share"
-            >
-              +
-            </button>
+          <div className="space-y-2">
+            <div className="grid grid-cols-2 gap-2">
+              <input
+                ref={numInputRef}
+                type="number"
+                min={1}
+                value={numInput}
+                onChange={(e) => { setNumInput(e.target.value); setNumError(""); }}
+                onKeyDown={handleNumKeyDown}
+                placeholder="Share # (e.g. 101)"
+                className="w-full px-3 py-2 rounded-lg border border-border text-sm focus:outline-none focus:ring-2 focus:ring-brand/30 focus:border-brand"
+              />
+              <input
+                type="text"
+                value={codeInput}
+                onChange={(e) => { setCodeInput(e.target.value); setNumError(""); }}
+                onKeyDown={handleNumKeyDown}
+                placeholder="Code (e.g. PLOT-01)"
+                className="w-full px-3 py-2 rounded-lg border border-border text-sm focus:outline-none focus:ring-2 focus:ring-brand/30 focus:border-brand uppercase font-mono"
+              />
+            </div>
+            <div className="flex items-center gap-2">
+              <input
+                type="number"
+                min={0.01}
+                step={0.01}
+                value={priceInput}
+                onChange={(e) => { setPriceInput(e.target.value); setNumError(""); }}
+                onKeyDown={handleNumKeyDown}
+                placeholder={basePrice ? `৳${basePrice.toFixed(2)} (default)` : "Price (৳ BDT)"}
+                className="flex-1 px-3 py-2 rounded-lg border border-border text-sm focus:outline-none focus:ring-2 focus:ring-brand/30 focus:border-brand"
+              />
+              <button
+                type="button"
+                onClick={addShareNum}
+                className="px-4 h-10 flex items-center justify-center gap-1 rounded-lg bg-brand text-white hover:bg-brand-dark transition-colors text-sm font-bold shrink-0 cursor-pointer shadow-xs"
+                title="Add share number"
+              >
+                <span className="text-base">+</span> Add
+              </button>
+            </div>
           </div>
 
           {numError && <p className="text-xs text-red-500 mt-1">{numError}</p>}
@@ -192,7 +196,7 @@ export function CreateProjectForm() {
                     ) : (
                       <span>#{String(n.number).padStart(6, "0")}</span>
                     )}
-                    <span className="text-brand/80 font-bold ml-1">${(n.priceSgd ?? basePrice).toFixed(2)}</span>
+                    <span className="text-brand/80 font-bold ml-1">৳{(n.priceSgd ?? basePrice).toFixed(2)}</span>
                     <button
                       type="button"
                       onClick={() => removeShareNum(n.number)}

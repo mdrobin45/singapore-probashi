@@ -159,17 +159,55 @@ export async function assignTaxiRequestAction(
 export async function updateTaxiStatusAction(
   id: string,
   status: TaxiStatus,
-  adminNote?: string
-) {
+  adminNote?: string,
+  farePrice?: number
+): Promise<{ error?: string; success?: boolean }> {
   await requireAdmin();
+
+  const existing = await prisma.taxiRequest.findUnique({ where: { id } });
+  if (!existing) return { error: "Request not found." };
+
+  const effectiveFare = farePrice !== undefined ? farePrice : (existing.price ? Number(existing.price) : 0);
+
+  // Deduct fare from customer's platform balance upon confirmation if price is set and not already confirmed
+  if (status === "CONFIRMED" && existing.status !== "CONFIRMED" && effectiveFare > 0) {
+    const userWallet = await prisma.wallet.findUnique({ where: { userId: existing.userId } });
+    if (!userWallet || Number(userWallet.balance) < effectiveFare) {
+      return {
+        error: `Customer has insufficient platform wallet balance (৳${Number(userWallet?.balance ?? 0).toFixed(2)}) for this fare of ৳${effectiveFare.toFixed(2)}.`,
+      };
+    }
+    const newBal = Number(userWallet.balance) - effectiveFare;
+    await prisma.$transaction([
+      prisma.wallet.update({
+        where: { id: userWallet.id },
+        data: { balance: newBal },
+      }),
+      prisma.walletTransaction.create({
+        data: {
+          walletId: userWallet.id,
+          type: "CHECKOUT_PAYMENT",
+          amount: effectiveFare,
+          description: `Taxi fare deduction: ${existing.pickupLocation} → ${existing.destination}`,
+          balanceBefore: userWallet.balance,
+          balanceAfter: newBal,
+        },
+      }),
+    ]);
+  }
+
+  const dataToUpdate: any = { status, adminNote: adminNote || null };
+  if (farePrice !== undefined) {
+    dataToUpdate.price = farePrice;
+  }
 
   const request = await prisma.taxiRequest.update({
     where: { id },
-    data: { status, adminNote: adminNote || null },
+    data: dataToUpdate,
   });
 
   const STATUS_MESSAGES: Partial<Record<TaxiStatus, string>> = {
-    CONFIRMED: "Your taxi booking has been confirmed.",
+    CONFIRMED: `Your taxi booking has been confirmed! Fare: ৳${effectiveFare.toFixed(2)}.`,
     COMPLETED: "Your taxi trip is marked as completed. Thanks for riding with us!",
     CANCELLED: "Your taxi request has been cancelled.",
   };
@@ -187,6 +225,9 @@ export async function updateTaxiStatusAction(
 
   revalidatePath("/admin/taxi");
   revalidatePath("/taxi/my");
+  revalidatePath("/dashboard");
+  revalidatePath("/wallet");
+  return { success: true };
 }
 
 // ─── Admin: vendor roster ──────────────────────────────────────────────────────

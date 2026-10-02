@@ -116,6 +116,7 @@ export async function saveReminderAction(formData: FormData) {
   const slotIndex = Number(formData.get("slotIndex"));
   const note = (formData.get("note") as string)?.trim();
   const dateStr = formData.get("remindAt") as string;
+  const timeStr = (formData.get("remindTime") as string) || "09:00";
   const channel = (formData.get("channel") as string) || "WHATSAPP";
 
   if (!slotIndex || slotIndex < 1 || slotIndex > 10) {
@@ -132,7 +133,11 @@ export async function saveReminderAction(formData: FormData) {
     }
   }
 
-  const remindAt = dateStr ? new Date(dateStr) : null;
+  let remindAt: Date | null = null;
+  if (dateStr) {
+    const fullDateTime = timeStr ? `${dateStr}T${timeStr}:00` : dateStr;
+    remindAt = new Date(fullDateTime);
+  }
 
   await prisma.reminder.upsert({
     where: {

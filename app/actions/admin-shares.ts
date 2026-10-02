@@ -345,34 +345,127 @@ export async function processResellAction({
   buyRequestId,
   type,
   status,
+  ticketFileUrl,
+  adminNote,
 }: {
   listingId?: string;
   tradeId?: string;
   buyRequestId?: string;
   type: "listing" | "trade" | "buyRequest";
   status: "APPROVED" | "REJECTED";
+  ticketFileUrl?: string;
+  adminNote?: string;
 }) {
   const session = await requireAdmin();
 
   if (type === "buyRequest" && buyRequestId) {
-    const buyRequest = await prisma.shareBuyRequest.update({
+    const existingReq = await prisma.shareBuyRequest.findUnique({
       where: { id: buyRequestId },
-      data: { status, processedById: session.userId, processedAt: new Date() },
     });
+    if (!existingReq) return { error: "Buy request not found." };
 
-    await prisma.notification.create({
-      data: {
-        userId: buyRequest.buyerId,
-        title: status === "APPROVED" ? "Buy request approved" : "Buy request rejected",
-        message:
-          status === "APPROVED"
-            ? `Your request to buy share #${buyRequest.shareNumber} has been approved. Admin will follow up with you.`
-            : `Your request to buy share #${buyRequest.shareNumber} was not approved.`,
-        type: "PURCHASE",
-      },
-    });
+    if (status === "APPROVED") {
+      const priceBdt = Number(existingReq.price);
+      const buyerWallet = await prisma.wallet.findUnique({
+        where: { userId: existingReq.buyerId },
+      });
+
+      if (!buyerWallet || Number(buyerWallet.balance) < priceBdt) {
+        return {
+          error: `Buyer has insufficient platform wallet balance (৳${Number(buyerWallet?.balance ?? 0).toFixed(2)}) for this purchase of ৳${priceBdt.toFixed(2)}.`,
+        };
+      }
+
+      await prisma.$transaction(async (tx) => {
+        const newBalance = Number(buyerWallet.balance) - priceBdt;
+
+        await tx.wallet.update({
+          where: { id: buyerWallet.id },
+          data: { balance: newBalance },
+        });
+
+        await tx.walletTransaction.create({
+          data: {
+            walletId: buyerWallet.id,
+            type: "SHARE_PURCHASE",
+            amount: priceBdt,
+            description: `Payment for Share #${existingReq.shareNumber} (${existingReq.size}) buy request`,
+            balanceBefore: buyerWallet.balance,
+            balanceAfter: newBalance,
+          },
+        });
+
+        const finalNote = ticketFileUrl
+          ? JSON.stringify({ fileUrl: ticketFileUrl, note: adminNote?.trim() || null })
+          : adminNote?.trim() || null;
+
+        await tx.shareBuyRequest.update({
+          where: { id: buyRequestId },
+          data: { status: "APPROVED", adminNote: finalNote, processedById: session.userId, processedAt: new Date() },
+        });
+
+        // Auto-close other pending buy requests for the same share number so they don't linger
+        const otherPending = await tx.shareBuyRequest.findMany({
+          where: {
+            shareNumber: existingReq.shareNumber,
+            status: "PENDING",
+            id: { not: buyRequestId },
+          },
+          select: { id: true, buyerId: true },
+        });
+
+        if (otherPending.length > 0) {
+          await tx.shareBuyRequest.updateMany({
+            where: { id: { in: otherPending.map((o) => o.id) } },
+            data: {
+              status: "REJECTED",
+              adminNote: `Share #${existingReq.shareNumber} was allocated to another approved buyer.`,
+              processedById: session.userId,
+              processedAt: new Date(),
+            },
+          });
+
+          for (const other of otherPending) {
+            await tx.notification.create({
+              data: {
+                userId: other.buyerId,
+                title: "Buy request closed",
+                message: `Your buy request for share #${existingReq.shareNumber} was closed because the share was purchased by another buyer.`,
+                type: "PURCHASE",
+              },
+            });
+          }
+        }
+
+        await tx.notification.create({
+          data: {
+            userId: existingReq.buyerId,
+            title: "Buy request confirmed & paid",
+            message: `Your request to buy share #${existingReq.shareNumber} has been approved! ৳${priceBdt.toFixed(2)} was paid from your platform wallet.${ticketFileUrl ? " Your ticket/slip is attached." : ""}`,
+            type: "PURCHASE",
+          },
+        });
+      });
+    } else {
+      await prisma.shareBuyRequest.update({
+        where: { id: buyRequestId },
+        data: { status: "REJECTED", adminNote: adminNote?.trim() || null, processedById: session.userId, processedAt: new Date() },
+      });
+
+      await prisma.notification.create({
+        data: {
+          userId: existingReq.buyerId,
+          title: "Buy request not approved",
+          message: `Your request to buy share #${existingReq.shareNumber} was not approved.`,
+          type: "PURCHASE",
+        },
+      });
+    }
 
     revalidatePath("/admin/shares");
+    revalidatePath("/shares/my");
+    revalidatePath("/wallet");
+    revalidatePath("/dashboard");
     return;
   }
 
@@ -549,6 +642,47 @@ export async function processResellAction({
             },
           ],
         });
+
+        // If listing is now completely sold out, mark listing as COMPLETED and reject leftover pending trades
+        const allApprovedTrades = await tx.shareTrade.findMany({
+          where: { listingId: trade.listingId, status: "APPROVED" },
+          select: { quantity: true },
+        });
+        const totalSold = allApprovedTrades.reduce((sum, t) => sum + t.quantity, 0);
+
+        if (totalSold >= trade.listing.quantity) {
+          await tx.shareListing.update({
+            where: { id: trade.listingId },
+            data: { status: "COMPLETED" },
+          });
+
+          const leftoverPending = await tx.shareTrade.findMany({
+            where: { listingId: trade.listingId, status: "PENDING" },
+            select: { id: true, buyerId: true },
+          });
+
+          if (leftoverPending.length > 0) {
+            await tx.shareTrade.updateMany({
+              where: { id: { in: leftoverPending.map((p) => p.id) } },
+              data: {
+                status: "REJECTED",
+                processedById: session.userId,
+                processedAt: new Date(),
+              },
+            });
+
+            for (const p of leftoverPending) {
+              await tx.notification.create({
+                data: {
+                  userId: p.buyerId,
+                  title: "Listing Sold Out",
+                  message: `The resell listing for ${trade.listing.project.name} has been completed as all available shares were purchased.`,
+                  type: "TRADE",
+                },
+              });
+            }
+          }
+        }
       });
       } catch (err: unknown) {
         const msg = err instanceof Error ? err.message : "Transaction failed.";

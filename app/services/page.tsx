@@ -44,6 +44,25 @@ export default async function ServicesPage() {
               </div>
             ))}
           </div>
+
+          {/* Quick CV Builder Link */}
+          <div className="mt-6 bg-gradient-to-r from-brand/10 via-brand/5 to-transparent border border-brand/20 rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div>
+              <p className="font-bold text-foreground text-sm flex items-center gap-2">
+                <span>✨</span> Instant Worker CV / Resume Builder
+              </p>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Build your professional Singapore CV in 2 minutes, download PDF, and share to WhatsApp.
+              </p>
+            </div>
+            <Link
+              href="/services/cv-builder"
+              className="inline-flex items-center justify-center gap-2 bg-brand hover:bg-brand-dark text-white text-xs font-semibold px-4 py-2.5 rounded-xl transition-colors shadow-xs whitespace-nowrap"
+            >
+              <span>Build My CV</span>
+              <span>→</span>
+            </Link>
+          </div>
         </div>
       </div>
 

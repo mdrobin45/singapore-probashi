@@ -1,7 +1,7 @@
 import { MRTMapCard } from "@/components/mrt-map-button";
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
-import { getShareSgdRate } from "@/lib/share-pricing";
+import { getShareSgdRate, sgdToBdt } from "@/lib/share-pricing";
 
 async function getFeaturedProjects() {
 	try {
@@ -285,10 +285,10 @@ export default async function HomePage() {
 										</div>
 										<div className="text-right">
 											<p className="font-bold text-sm text-foreground">
-												${Number(project.sharePriceSgd ?? 0).toFixed(2)}
+												৳{sgdToBdt(Number(project.sharePriceSgd ?? 0), shareRate).toFixed(2)}
 											</p>
 											<p className="text-[11px] text-muted-foreground">
-												1 SGD = ৳{Number(shareRate ?? 83.5).toFixed(2)}
+												Per Share
 											</p>
 										</div>
 									</Link>

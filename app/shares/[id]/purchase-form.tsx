@@ -67,9 +67,10 @@ export function PurchaseForm({ projectId, rate, availableShares, hasPending, isL
       <div className="px-6 py-5 border-b border-border">
         <h3 className="font-bold text-foreground text-lg">Buy Shares</h3>
         <p className="text-xs text-muted-foreground mt-0.5">
-          {minPrice === maxPrice ? `$${minPrice.toFixed(2)} SGD per share` : `$${minPrice.toFixed(2)} – $${maxPrice.toFixed(2)} SGD per share`}
+          {minPrice === maxPrice
+            ? `৳${sgdToBdt(minPrice, rate).toFixed(2)} per share`
+            : `৳${sgdToBdt(minPrice, rate).toFixed(2)} – ৳${sgdToBdt(maxPrice, rate).toFixed(2)} per share`}
         </p>
-        <p className="text-[11px] text-muted-foreground/70 mt-0.5">1 SGD = ৳{rate.toFixed(2)} BDT</p>
       </div>
 
       <form action={action} className="p-6 space-y-5">
@@ -106,7 +107,7 @@ export function PurchaseForm({ projectId, rate, availableShares, hasPending, isL
                     }`}
                   >
                     <span className="text-xs font-mono font-medium">#{String(n).padStart(6, "0")}</span>
-                    <span className={`text-[10px] ${isSelected ? "text-white/80" : "text-muted-foreground/80"}`}>${priceSgd.toFixed(2)}</span>
+                    <span className={`text-[10px] ${isSelected ? "text-white/80" : "text-muted-foreground/80"}`}>৳{sgdToBdt(priceSgd, rate).toFixed(0)}</span>
                   </button>
                 );
               })}
