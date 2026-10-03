@@ -338,6 +338,7 @@ export async function createShareBuyRequestAction(
       shareNumber,
       size,
       price: offeredBdt,
+      sgdRate: await getShareSgdRate(),
       preferredDate,
       status: "PENDING",
     },

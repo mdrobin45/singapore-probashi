@@ -170,6 +170,18 @@ export async function deleteUserAction(
       if (count <= 1) return { error: "Cannot delete the last Super Admin." };
     }
 
+    // Pick & Put bookings in PENDING/ACCEPTED hold the customer's money in
+    // escrow — settle them (deliver or reject) before the user can go.
+    const openPickPut = await prisma.pickPutBooking.count({
+      where: {
+        status: { in: ["PENDING", "ACCEPTED"] },
+        OR: [{ customerId: userId }, { trip: { travelerId: userId } }],
+      },
+    });
+    if (openPickPut > 0) {
+      return { error: `This user has ${openPickPut} open Pick & Put booking(s) holding funds. Deliver or reject them first.` };
+    }
+
     // Clean up all related user records in an atomic transaction
     await prisma.$transaction(async (tx) => {
       // 1. Disassociate agent and admin assignments
@@ -224,6 +236,9 @@ export async function deleteUserAction(
       await tx.shareOwnership.deleteMany({ where: { ownerId: userId } });
       await tx.shareCertificate.updateMany({ where: { ownerId: userId }, data: { ownerId: null, issuedAt: null } });
       await tx.sharePurchaseRequest.deleteMany({ where: { buyerId: userId } });
+      await tx.pickPutBooking.deleteMany({ where: { OR: [{ customerId: userId }, { trip: { travelerId: userId } }] } });
+      await tx.pickPutTrip.deleteMany({ where: { travelerId: userId } });
+      await tx.walletTransfer.deleteMany({ where: { OR: [{ senderId: userId }, { recipientId: userId }] } });
       await tx.walletTransaction.deleteMany({ where: { wallet: { userId } } });
       await tx.wallet.deleteMany({ where: { userId } });
       await tx.blog.deleteMany({ where: { authorId: userId } });

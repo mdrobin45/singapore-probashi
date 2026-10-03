@@ -1,6 +1,5 @@
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/session";
-import { getShareSgdRate, sgdToBdt } from "@/lib/share-pricing";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
@@ -54,16 +53,14 @@ const STATUS_STYLES: Record<string, string> = {
   PENDING: "bg-amber-100 text-amber-700",
   APPROVED: "bg-green-100 text-green-700",
   REJECTED: "bg-red-100 text-red-700",
+  COMPLETED: "bg-blue-100 text-blue-700",
 };
 
 export default async function MySharesPage() {
   const session = await getSession();
   if (!session) redirect("/login");
 
-  const [{ ownerships, purchases, listings, certificates, buyRequests }, rate] = await Promise.all([
-    getMyShareData(session.userId),
-    getShareSgdRate(),
-  ]);
+  const { ownerships, purchases, listings, certificates, buyRequests } = await getMyShareData(session.userId);
 
   // Group certificates by projectId
   const certsByProject = certificates.reduce<Record<string, { id: string; shareNumber: number; code: string | null }[]>>((acc, c) => {
@@ -72,8 +69,10 @@ export default async function MySharesPage() {
     return acc;
   }, {});
 
+  // Owned shares are valued at what the user actually paid — admin changing a
+  // project's current price only affects new purchases.
   const totalValue = ownerships.reduce(
-    (sum, o) => sum + sgdToBdt(Number(o.project.sharePriceSgd) * o.quantity, rate),
+    (sum, o) => sum + Number(o.purchasePrice) * o.quantity,
     0
   );
   const totalShares = ownerships.reduce((sum, o) => sum + o.quantity, 0);
@@ -88,7 +87,7 @@ export default async function MySharesPage() {
             <div>
               <h1 className="text-2xl font-bold text-foreground">My Share Investments</h1>
               <p className="text-sm text-muted-foreground mt-1">
-                {totalShares} shares across {ownerships.length} projects · ৳{totalValue.toFixed(2)} value
+                {totalShares} shares across {ownerships.length} projects · ৳{totalValue.toFixed(2)} invested
               </p>
             </div>
             <Link
@@ -102,7 +101,7 @@ export default async function MySharesPage() {
           {/* Quick stats */}
           <div className="grid grid-cols-3 gap-3 mt-6">
             <div className="bg-muted rounded-xl px-4 py-3">
-              <p className="text-xs text-muted-foreground">Portfolio Value</p>
+              <p className="text-xs text-muted-foreground">Total Invested</p>
               <p className="text-lg font-bold text-foreground">৳{totalValue.toFixed(0)}</p>
             </div>
             <div className="bg-muted rounded-xl px-4 py-3">
@@ -142,8 +141,8 @@ export default async function MySharesPage() {
                       <th className="text-left text-xs font-semibold text-muted-foreground px-5 py-3">Project</th>
                       <th className="text-left text-xs font-semibold text-muted-foreground px-4 py-3">Shares</th>
                       <th className="text-left text-xs font-semibold text-muted-foreground px-4 py-3">Share Numbers</th>
-                      <th className="text-left text-xs font-semibold text-muted-foreground px-4 py-3">Price/Share</th>
-                      <th className="text-left text-xs font-semibold text-muted-foreground px-4 py-3">Value</th>
+                      <th className="text-left text-xs font-semibold text-muted-foreground px-4 py-3">Bought At (per share)</th>
+                      <th className="text-left text-xs font-semibold text-muted-foreground px-4 py-3">Total Paid</th>
                       <th className="text-left text-xs font-semibold text-muted-foreground px-4 py-3">Action</th>
                     </tr>
                   </thead>
@@ -175,10 +174,10 @@ export default async function MySharesPage() {
                           )}
                         </td>
                         <td className="px-4 py-3.5 text-muted-foreground">
-                          ৳{sgdToBdt(Number(o.project.sharePriceSgd), rate).toFixed(2)}
+                          ৳{Number(o.purchasePrice).toFixed(2)}
                         </td>
                         <td className="px-4 py-3.5 font-semibold text-foreground">
-                          ৳{sgdToBdt(Number(o.project.sharePriceSgd) * o.quantity, rate).toFixed(2)}
+                          ৳{(Number(o.purchasePrice) * o.quantity).toFixed(2)}
                         </td>
                         <td className="px-4 py-3.5">
                           <div className="flex items-center gap-2">

@@ -17,6 +17,8 @@ import { ReminderPriceForm } from "./reminder-price-form";
 import { SmtpSettingsForm } from "./smtp-form";
 import { WhatsAppApiSettingsForm } from "./whatsapp-form";
 import { SiteContactForm } from "./site-contact-form";
+import { TransferFeeForm } from "./transfer-fee-form";
+import { getTransferFeeSetting } from "@/lib/wallet";
 
 async function getBankRates() {
   try {
@@ -36,7 +38,7 @@ async function getPaymentAccounts() {
 }
 
 export default async function AdminSettingsPage() {
-  const [settings, liveRate, banks, paymentAccounts, commissionSettings, shareRate, shareAdminCutPercent, notificationEmail, adSenseSettings, reminderSlotPrice, smtpSettings, whatsAppSettings, contactSettings] = await Promise.all([
+  const [settings, liveRate, banks, paymentAccounts, commissionSettings, shareRate, shareAdminCutPercent, notificationEmail, adSenseSettings, reminderSlotPrice, smtpSettings, whatsAppSettings, contactSettings, transferFee] = await Promise.all([
     getCurrencySettings(),
     getLiveBdtRate(),
     getBankRates(),
@@ -50,6 +52,7 @@ export default async function AdminSettingsPage() {
     getSmtpSettings(),
     getWhatsAppApiSettings(),
     getSiteContactSettings(),
+    getTransferFeeSetting(),
   ]);
 
   return (
@@ -166,6 +169,28 @@ export default async function AdminSettingsPage() {
         </div>
         <div className="p-6">
           <CommissionSettingsForm settings={commissionSettings} />
+        </div>
+      </div>
+
+      {/* User-to-user wallet transfer fee */}
+      <div className="bg-white rounded-xl border border-border overflow-hidden">
+        <div className="px-6 py-5 border-b border-border">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-teal-50 flex items-center justify-center">
+              <svg className="w-5 h-5 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+              </svg>
+            </div>
+            <div>
+              <h2 className="font-semibold text-foreground">Wallet Transfer Fee</h2>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Charge for members sending money to each other from their wallets
+              </p>
+            </div>
+          </div>
+        </div>
+        <div className="p-6">
+          <TransferFeeForm setting={transferFee} />
         </div>
       </div>
 

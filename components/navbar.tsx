@@ -192,7 +192,7 @@ function AvatarDropdown({ user }: { user: SessionPayload }) {
 							My Investments
 						</Link>
 						<Link
-							href="/lost-found/my"
+							href="/pick-put/my"
 							onClick={() => setOpen(false)}
 							className="flex items-center gap-2.5 px-4 py-2 text-sm text-foreground hover:bg-muted transition-colors"
 						>
@@ -468,7 +468,7 @@ export function Navbar({
 		{ href: "/forum", label: "Forum" },
 		{ href: "/currency", label: "Currency" },
 		{ href: "/islamic-center", label: "Islamic Center" },
-		{ href: "/lost-found", label: "Pick & Put" },
+		{ href: "/pick-put", label: "Pick & Put" },
 	];
 
 	// Wallet/Checkout/Reminders/History surface in mobile menu once logged in

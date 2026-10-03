@@ -119,7 +119,7 @@ export default async function AdminDashboard() {
     { href: "/admin/checkouts", label: "Checkouts",   icon: "🧾" },
     { href: "/admin/blog",      label: "Blog",        icon: "📝" },
     { href: "/admin/islamic",   label: "Islamic",     icon: "🌙" },
-    { href: "/admin/lost-found",label: "Pick & Put",  icon: "🔍" },
+    { href: "/admin/pick-put",label: "Pick & Put",  icon: "🔍" },
   ];
 
   return (

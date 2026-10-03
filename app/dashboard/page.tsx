@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/session";
-import { getShareSgdRate, sgdToBdt } from "@/lib/share-pricing";
 import { redirect } from "next/navigation";
+import { CREDIT_TX_TYPES, WALLET_TX_LABELS } from "@/lib/wallet-tx";
 import Link from "next/link";
 
 async function getDashboardData(userId: string) {
@@ -106,14 +106,11 @@ export default async function DashboardPage() {
   const session = await getSession();
   if (!session) redirect("/login");
 
-  const [{ user, wallet, ownerships, pendingPurchases, recentNotifications, pendingDeposits, pendingCheckouts }, shareRate] =
-    await Promise.all([
-      getDashboardData(session.userId),
-      getShareSgdRate().catch(() => 83.5),
-    ]);
+  const { user, wallet, ownerships, pendingPurchases, recentNotifications, pendingDeposits, pendingCheckouts } =
+    await getDashboardData(session.userId);
 
   const portfolioValue = (ownerships ?? []).reduce(
-    (sum, o) => sum + sgdToBdt(Number(o?.project?.sharePriceSgd ?? 0) * (o?.quantity ?? 0), shareRate),
+    (sum, o) => sum + Number(o?.purchasePrice ?? 0) * (o?.quantity ?? 0),
     0
   );
   const totalShares = (ownerships ?? []).reduce((sum, o) => sum + (o?.quantity ?? 0), 0);
@@ -127,24 +124,12 @@ export default async function DashboardPage() {
     { href: "/air-ticket", label: "Air Tickets", desc: "Book Biman, SQ, US-Bangla, AirAsia", icon: "✈️" },
     { href: "/checkout", label: "My Checkouts", desc: "View and pay booking invoices", icon: "💳" },
     { href: "/currency", label: "Currency Converter", desc: "SGD ↔ BDT live rates & calculator", icon: "💱" },
-    { href: "/lost-found/my", label: "My Pick & Put", desc: "Manage your pick & put posts", icon: "🔍" },
+    { href: "/pick-put/my", label: "My Pick & Put", desc: "Your trips & items you're sending", icon: "🔍" },
     { href: "/apply", label: "Apply for Service", desc: "Upload documents & apply for services", icon: "📋" },
     { href: "/islamic-center", label: "Islamic Center", desc: "Quran, Duas, articles & PDFs", icon: "🕌" },
     { href: "/blog", label: "Community Blog", desc: "News, tips & community stories", icon: "📝" },
   ];
 
-  const TX_LABELS: Record<string, string> = {
-    DEPOSIT: "Deposit",
-    WITHDRAWAL: "Withdrawal",
-    SHARE_PURCHASE: "Share Purchase",
-    SHARE_SALE: "Share Sale",
-    REFUND: "Refund",
-    COMMISSION: "Referral Commission",
-    ADMIN_CREDIT: "Admin Credit",
-    ADMIN_DEBIT: "Admin Debit",
-    CHECKOUT_PAYMENT: "Checkout Payment",
-  };
-  const CREDIT_TX_TYPES = ["DEPOSIT", "SHARE_SALE", "REFUND", "COMMISSION", "ADMIN_CREDIT"];
 
   return (
     <div className="min-h-screen bg-muted">
@@ -291,16 +276,15 @@ export default async function DashboardPage() {
                     <div className="flex-1 min-w-0">
                       <p className="font-medium text-foreground text-sm truncate">{o.project?.name ?? "Project"}</p>
                       <p className="text-xs text-muted-foreground mt-0.5">
-                        {o.quantity} shares · ${Number(o.project?.sharePriceSgd ?? 0).toFixed(2)}/share
-                        <span className="text-muted-foreground/70"> (1 SGD = ৳{shareRate.toFixed(2)})</span>
+                        {o.quantity} shares · bought at ৳{Number(o.purchasePrice ?? 0).toFixed(2)}/share
                       </p>
                     </div>
                     <div className="flex items-center gap-3 shrink-0">
                       <div className="text-right">
                         <p className="font-semibold text-foreground text-sm">
-                          ৳{sgdToBdt(Number(o.project?.sharePriceSgd ?? 0) * o.quantity, shareRate).toFixed(2)}
+                          ৳{(Number(o.purchasePrice ?? 0) * o.quantity).toFixed(2)}
                         </p>
-                        <p className="text-xs text-muted-foreground">current value</p>
+                        <p className="text-xs text-muted-foreground">total paid</p>
                       </div>
                       <Link
                         href={`/shares/resell?ownershipId=${o.id}`}
@@ -352,12 +336,12 @@ export default async function DashboardPage() {
               {wallet.transactions.map((tx) => (
                 <div key={tx.id} className="px-6 py-3.5 flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-foreground">{TX_LABELS[tx.type] ?? tx.type}</p>
+                    <p className="text-sm font-medium text-foreground">{WALLET_TX_LABELS[tx.type] ?? tx.type}</p>
                     <p className="text-xs text-muted-foreground">{tx.description}</p>
                   </div>
                   <div className="text-right">
-                    <p className={`text-sm font-semibold ${CREDIT_TX_TYPES.includes(tx.type) ? "text-green-600" : "text-red-600"}`}>
-                      {CREDIT_TX_TYPES.includes(tx.type) ? "+" : "-"}৳{Number(tx.amount).toFixed(2)}
+                    <p className={`text-sm font-semibold ${CREDIT_TX_TYPES.has(tx.type) ? "text-green-600" : "text-red-600"}`}>
+                      {CREDIT_TX_TYPES.has(tx.type) ? "+" : "-"}৳{Number(tx.amount).toFixed(2)}
                     </p>
                     <p className="text-[11px] text-muted-foreground">
                       {tx.createdAt ? new Date(tx.createdAt).toLocaleDateString("en-GB", { day: "2-digit", month: "short" }) : ""}

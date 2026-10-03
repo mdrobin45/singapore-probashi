@@ -17,7 +17,7 @@ export function Footer({ contact = DEFAULT_CONTACT_SETTINGS }: { contact?: SiteC
     Community: [
       { href: "/forum", label: "Community Forum" },
       { href: "/islamic-center", label: "Islamic Center & Quran" },
-      { href: "/lost-found", label: "Pick & Put (Lost/Found)" },
+      { href: "/pick-put", label: "Pick & Put" },
       { href: "/reminders", label: "Alarm & Reminders" },
       { href: "/blog", label: "Probashi News & Blog" },
       { href: "/contact", label: "Contact Support" },

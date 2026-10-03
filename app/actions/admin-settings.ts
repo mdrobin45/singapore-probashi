@@ -6,6 +6,7 @@ import { revalidatePath } from "next/cache";
 import { COMMISSION_MODULES, saveCommissionSetting, saveShareAdminCutPercent, type CommissionMode } from "@/lib/commission";
 import { saveShareSgdRate } from "@/lib/share-pricing";
 import { saveAdminNotificationEmail } from "@/lib/notifications";
+import { saveTransferFeeSetting } from "@/lib/wallet";
 
 type State = { error?: string; success?: boolean } | null;
 
@@ -109,6 +110,27 @@ export async function saveShareAdminCutAction(_prev: State, formData: FormData):
   revalidatePath("/admin/settings");
   revalidatePath("/admin/purchases");
   revalidatePath("/admin/shares");
+  return { success: true };
+}
+
+// ── User-to-user wallet transfer fee ─────────────────────────────────────────
+
+export async function saveTransferFeeAction(_prev: State, formData: FormData): Promise<State> {
+  const session = await getSession();
+  if (!session || !["SUPER_ADMIN", "ADMIN"].includes(session.role)) {
+    return { error: "Unauthorized." };
+  }
+
+  const mode = formData.get("mode");
+  const value = parseFloat(formData.get("value") as string);
+  if (mode !== "PERCENTAGE" && mode !== "FIXED") return { error: "Invalid fee type." };
+  if (isNaN(value) || value < 0) return { error: "Enter a valid fee (0 for free transfers)." };
+  if (mode === "PERCENTAGE" && value > 100) return { error: "Percentage can't exceed 100." };
+
+  await saveTransferFeeSetting({ mode, value });
+
+  revalidatePath("/admin/settings");
+  revalidatePath("/wallet/send");
   return { success: true };
 }
 

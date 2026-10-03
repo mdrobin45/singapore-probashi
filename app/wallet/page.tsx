@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/session";
 import { redirect } from "next/navigation";
 import Link from "next/link";
+import { CREDIT_TX_TYPES, WALLET_TX_LABELS } from "@/lib/wallet-tx";
 
 async function getWalletData(userId: string) {
   const [wallet, deposits, withdrawals] = await Promise.all([
@@ -25,8 +26,6 @@ async function getWalletData(userId: string) {
   return { wallet, deposits, withdrawals };
 }
 
-const CREDIT_TYPES = new Set(["DEPOSIT", "SHARE_SALE", "REFUND", "COMMISSION", "ADMIN_CREDIT"]);
-
 const DEPOSIT_STATUS: Record<string, string> = {
   PENDING: "bg-amber-100 text-amber-700",
   APPROVED: "bg-green-100 text-green-700",
@@ -36,18 +35,6 @@ const DEPOSIT_STATUS: Record<string, string> = {
 export default async function WalletPage() {
   const session = await getSession();
   if (!session) redirect("/login");
-
-  const TX_TYPE_LABELS: Record<string, string> = {
-    DEPOSIT: "Deposit",
-    WITHDRAWAL: "Withdrawal",
-    SHARE_PURCHASE: "Share Purchase",
-    SHARE_SALE: "Share Sale",
-    REFUND: "Refund",
-    COMMISSION: "Referral Commission",
-    ADMIN_CREDIT: "Admin Credit",
-    ADMIN_DEBIT: "Admin Debit",
-    CHECKOUT_PAYMENT: "Checkout Payment",
-  };
 
   const { wallet, deposits, withdrawals } = await getWalletData(session.userId);
   const balance = wallet ? Number(wallet.balance) : 0;
@@ -68,7 +55,7 @@ export default async function WalletPage() {
           <p className="text-sm font-medium text-white/70 mb-1">Available Balance</p>
           <p className="text-4xl font-bold">৳{balance.toFixed(2)}</p>
           <p className="text-xs text-white/60 mt-1">Singapore Dollar</p>
-          <div className="flex gap-2 mt-5">
+          <div className="flex flex-wrap gap-2 mt-5">
             <Link
               href="/dashboard/deposit"
               className="inline-block bg-white/20 hover:bg-white/30 text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition-colors"
@@ -80,6 +67,12 @@ export default async function WalletPage() {
               className="inline-block bg-white/10 hover:bg-white/20 text-white text-sm font-semibold px-5 py-2.5 rounded-xl border border-white/30 transition-colors"
             >
               Withdraw
+            </Link>
+            <Link
+              href="/wallet/send"
+              className="inline-block bg-white/10 hover:bg-white/20 text-white text-sm font-semibold px-5 py-2.5 rounded-xl border border-white/30 transition-colors"
+            >
+              Send Money
             </Link>
           </div>
         </div>
@@ -117,22 +110,22 @@ export default async function WalletPage() {
                 {wallet.transactions.map((tx) => (
                   <div key={tx.id} className="px-6 py-4 flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <div className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 ${CREDIT_TYPES.has(tx.type) ? "bg-green-50" : "bg-red-50"}`}>
-                        <svg className={`w-4 h-4 ${CREDIT_TYPES.has(tx.type) ? "text-green-600" : "text-red-500"}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <div className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 ${CREDIT_TX_TYPES.has(tx.type) ? "bg-green-50" : "bg-red-50"}`}>
+                        <svg className={`w-4 h-4 ${CREDIT_TX_TYPES.has(tx.type) ? "text-green-600" : "text-red-500"}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                            d={CREDIT_TYPES.has(tx.type)
+                            d={CREDIT_TX_TYPES.has(tx.type)
                               ? "M12 4v16m8-8H4"
                               : "M20 12H4"} />
                         </svg>
                       </div>
                       <div>
-                        <p className="text-sm font-medium text-foreground">{TX_TYPE_LABELS[tx.type] ?? tx.type}</p>
+                        <p className="text-sm font-medium text-foreground">{WALLET_TX_LABELS[tx.type] ?? tx.type}</p>
                         <p className="text-xs text-muted-foreground">{tx.description}</p>
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className={`text-sm font-bold ${CREDIT_TYPES.has(tx.type) ? "text-green-600" : "text-red-600"}`}>
-                        {CREDIT_TYPES.has(tx.type) ? "+" : "−"}৳{Number(tx.amount).toFixed(2)}
+                      <p className={`text-sm font-bold ${CREDIT_TX_TYPES.has(tx.type) ? "text-green-600" : "text-red-600"}`}>
+                        {CREDIT_TX_TYPES.has(tx.type) ? "+" : "−"}৳{Number(tx.amount).toFixed(2)}
                       </p>
                       <p className="text-xs text-muted-foreground">
                         {tx.createdAt.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })}

@@ -39,6 +39,7 @@ enum PurchaseStatus {
   PENDING
   APPROVED
   REJECTED
+  COMPLETED // ShareListing only: every listed share has been sold
 }
 
 enum PaymentMethod {
@@ -61,6 +62,11 @@ enum WalletTxType {
   ADMIN_CREDIT
   ADMIN_DEBIT
   CHECKOUT_PAYMENT
+  TRANSFER_SENT
+  TRANSFER_RECEIVED
+  TRANSFER_FEE
+  PICKPUT_PAYMENT
+  PICKPUT_EARNING
 }
 
 enum DepositStatus {
@@ -192,6 +198,10 @@ model User {
   reminders            Reminder[]
   forumTopics          ForumTopic[]
   forumReplies         ForumReply[]
+  sentTransfers              WalletTransfer[]       @relation("TransferSender")
+  receivedTransfers          WalletTransfer[]       @relation("TransferRecipient")
+  pickPutTrips               PickPutTrip[]
+  pickPutBookings            PickPutBooking[]
 
   @@index([email])
   @@index([nidNumber])
@@ -281,6 +291,8 @@ model ShareOwnership {
   projectId     String
   ownerId       String
   quantity      Int
+  // Average BDT the owner actually paid per share — locked at purchase time,
+  // never derived from the project's current price.
   purchasePrice Decimal  @db.Decimal(12, 2)
   acquiredAt    DateTime @default(now())
   updatedAt     DateTime @updatedAt
@@ -375,6 +387,9 @@ model ShareBuyRequest {
   shareNumber   String
   size          ShareSize
   price         Decimal        @db.Decimal(12, 2)
+  // Share SGD→BDT rate when the request was made, so the SGD equivalent
+  // shown later never moves when admin changes the rate. Null on legacy rows.
+  sgdRate       Decimal?       @db.Decimal(10, 4)
   preferredDate DateTime
   status        PurchaseStatus @default(PENDING)
   adminNote     String?
@@ -393,7 +408,7 @@ model ShareBuyRequest {
 model Wallet {
   id        String   @id @default(cuid())
   userId    String   @unique
-  balance   Decimal  @db.Decimal(12, 2) @default(0)
+  balance   Decimal  @default(0) @db.Decimal(12, 2)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -451,6 +466,24 @@ model WithdrawalRequest {
 
   user        User  @relation(fields: [userId], references: [id])
   processedBy User? @relation("WithdrawalProcessor", fields: [processedById], references: [id])
+}
+
+// User-to-user wallet transfer. The fee (admin setting, default 0) is paid by
+// the sender on top of the amount; the recipient always gets the full amount.
+model WalletTransfer {
+  id          String   @id @default(cuid())
+  senderId    String
+  recipientId String
+  amount      Decimal  @db.Decimal(12, 2)
+  fee         Decimal  @default(0) @db.Decimal(12, 2)
+  note        String?
+  createdAt   DateTime @default(now())
+
+  sender    User @relation("TransferSender", fields: [senderId], references: [id])
+  recipient User @relation("TransferRecipient", fields: [recipientId], references: [id])
+
+  @@index([senderId])
+  @@index([recipientId])
 }
 
 // ─────────────────────────────────────────────
@@ -538,7 +571,7 @@ model Checkout {
   token          String         @unique
   userId         String
   subtotal       Decimal        @db.Decimal(12, 2)
-  discountAmount Decimal        @db.Decimal(12, 2) @default(0)
+  discountAmount Decimal        @default(0) @db.Decimal(12, 2)
   totalAmount    Decimal        @db.Decimal(12, 2)
   status         CheckoutStatus @default(DRAFT)
   paymentMethod  PaymentMethod?
@@ -913,3 +946,93 @@ model ForumReply {
   @@index([userId])
 }
 
+// ─────────────────────────────────────────────
+// PICK & PUT (traveler luggage space, charged per kg)
+// ─────────────────────────────────────────────
+
+enum TripDirection {
+  SG_TO_BD
+  BD_TO_SG
+}
+
+enum PickPutTripStatus {
+  PENDING // awaiting admin approval
+  OPEN // approved, accepting bookings
+  CLOSED // no longer taking bookings
+  REJECTED
+}
+
+enum PickPutBookingStatus {
+  PENDING // paid into escrow, waiting for traveler/admin to accept
+  ACCEPTED
+  DELIVERED // traveler has been paid
+  REJECTED // refunded
+  CANCELLED // refunded
+}
+
+// Admin-set per-kg rate for travel dates in [startDate, endDate]. A null
+// direction covers both directions; when several match, the newest wins.
+model PickPutRate {
+  id        String         @id @default(cuid())
+  direction TripDirection?
+  startDate DateTime       @db.Date
+  endDate   DateTime       @db.Date
+  ratePerKg Decimal        @db.Decimal(10, 2)
+  note      String?
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+
+  @@index([startDate, endDate])
+}
+
+// A traveler ("Pick") offering spare luggage capacity on one flight.
+model PickPutTrip {
+  id         String            @id @default(cuid())
+  travelerId String
+  direction  TripDirection
+  travelDate DateTime          @db.Date
+  flightInfo String?
+  totalKg    Decimal           @db.Decimal(6, 2)
+  bookedKg   Decimal           @default(0) @db.Decimal(6, 2)
+  // Locked from the PickPutRate for travelDate when the trip is created
+  // (admin may adjust it on approval). Bookings copy it, so later rate
+  // changes never touch existing trips or bookings.
+  ratePerKg  Decimal           @db.Decimal(10, 2)
+  notes      String?
+  status     PickPutTripStatus @default(PENDING)
+  adminNote  String?
+  createdAt  DateTime          @default(now())
+  updatedAt  DateTime          @updatedAt
+
+  traveler User             @relation(fields: [travelerId], references: [id])
+  bookings PickPutBooking[]
+
+  @@index([status, travelDate])
+  @@index([travelerId])
+}
+
+// A customer ("Put") sending items with a traveler. Paid from the wallet at
+// booking time and held by the platform until delivery (paid out to the
+// traveler) or rejection/cancellation (refunded to the customer).
+model PickPutBooking {
+  id              String               @id @default(cuid())
+  tripId          String
+  customerId      String
+  weightKg        Decimal              @db.Decimal(6, 2)
+  ratePerKg       Decimal              @db.Decimal(10, 2)
+  totalAmount     Decimal              @db.Decimal(12, 2)
+  itemDescription String
+  receiverName    String
+  receiverPhone   String
+  receiverAddress String?
+  status          PickPutBookingStatus @default(PENDING)
+  adminNote       String?
+  createdAt       DateTime             @default(now())
+  updatedAt       DateTime             @updatedAt
+
+  trip     PickPutTrip @relation(fields: [tripId], references: [id])
+  customer User        @relation(fields: [customerId], references: [id])
+
+  @@index([tripId])
+  @@index([customerId])
+}

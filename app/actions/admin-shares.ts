@@ -10,6 +10,20 @@ import { notifyUser } from "@/lib/notifications";
 
 type ActionState = { error?: string; success?: boolean; shareNumbersCreated?: number } | null;
 
+// ShareOwnership.purchasePrice is the average BDT actually paid per share.
+// It's locked at purchase time and only moves when the owner buys more —
+// admin changing a project's current price never touches it.
+function averagePurchasePrice(
+  existing: { quantity: number; purchasePrice: unknown } | null,
+  addedQty: number,
+  addedTotal: number
+): number {
+  const prevQty = existing ? existing.quantity : 0;
+  const prevTotal = existing ? Number(existing.purchasePrice) * prevQty : 0;
+  const qty = prevQty + addedQty;
+  return qty > 0 ? Math.round(((prevTotal + addedTotal) / qty) * 100) / 100 : 0;
+}
+
 async function requireAdmin() {
   const session = await getSession();
   if (!session) redirect("/login");
@@ -86,7 +100,10 @@ export async function processPurchaseAction(
       if (existing) {
         await tx.shareOwnership.update({
           where: { projectId_ownerId: { projectId: request.projectId, ownerId: request.buyerId } },
-          data: { quantity: { increment: request.quantity } },
+          data: {
+            quantity: { increment: request.quantity },
+            purchasePrice: averagePurchasePrice(existing, request.quantity, Number(request.totalAmount)),
+          },
         });
       } else {
         await tx.shareOwnership.create({
@@ -94,7 +111,7 @@ export async function processPurchaseAction(
             projectId: request.projectId,
             ownerId: request.buyerId,
             quantity: request.quantity,
-            purchasePrice: request.totalAmount,
+            purchasePrice: averagePurchasePrice(null, request.quantity, Number(request.totalAmount)),
           },
         });
       }
@@ -593,7 +610,10 @@ export async function processResellAction({
         if (buyerOwnership) {
           await tx.shareOwnership.update({
             where: { projectId_ownerId: { projectId: trade.listing.projectId, ownerId: trade.buyerId } },
-            data: { quantity: { increment: trade.quantity } },
+            data: {
+              quantity: { increment: trade.quantity },
+              purchasePrice: averagePurchasePrice(buyerOwnership, trade.quantity, Number(trade.totalAmount)),
+            },
           });
         } else {
           await tx.shareOwnership.create({
@@ -601,7 +621,7 @@ export async function processResellAction({
               projectId: trade.listing.projectId,
               ownerId: trade.buyerId,
               quantity: trade.quantity,
-              purchasePrice: trade.totalAmount,
+              purchasePrice: averagePurchasePrice(null, trade.quantity, Number(trade.totalAmount)),
             },
           });
         }

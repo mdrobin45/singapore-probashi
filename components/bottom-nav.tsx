@@ -81,7 +81,7 @@ const GUEST_LINKS = [
   { href: "/air-ticket",         label: "Air Ticket",         icon: IcoPlane  },
   { href: "/currency",           label: "Currency",           icon: IcoCurr   },
   { href: "/taxi",               label: "Taxi",               icon: IcoTaxi   },
-  { href: "/lost-found",         label: "Pick & Put",       icon: IcoSearch },
+  { href: "/pick-put",         label: "Pick & Put",       icon: IcoSearch },
   { href: "/contact",            label: "Contact",            icon: IcoChat   },
 ];
 
@@ -90,7 +90,7 @@ const USER_LINKS = [
   { href: "/shares/buy-request", label: "Share 4", icon: IcoRequest  },
   { href: "/shares/resell",      label: "Resell Market",      icon: IcoResell   },
   { href: "/services",           label: "Services",           icon: IcoServices },
-  { href: "/lost-found/my",      label: "My Pick & Put",    icon: IcoSearch   },
+  { href: "/pick-put/my",      label: "My Pick & Put",    icon: IcoSearch   },
   { href: "/apply",              label: "Apply",              icon: IcoApply    },
   { href: "/wallet",             label: "Wallet",             icon: IcoWallet   },
   { href: "/air-ticket",         label: "Air Tickets",        icon: IcoPlane  },

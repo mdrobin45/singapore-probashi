@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/session";
 import { redirect } from "next/navigation";
 import Link from "next/link";
+import { CREDIT_TX_TYPES, WALLET_TX_LABELS } from "@/lib/wallet-tx";
 
 const STATUS_BADGES: Record<string, string> = {
   PENDING: "bg-amber-100 text-amber-700",
@@ -352,10 +353,10 @@ export default async function HistoryPage({
                   </thead>
                   <tbody className="divide-y divide-border">
                     {wallet.transactions.map((tx) => {
-                      const isCredit = ["DEPOSIT", "SHARE_SALE", "REFUND", "COMMISSION", "ADMIN_CREDIT"].includes(tx.type);
+                      const isCredit = CREDIT_TX_TYPES.has(tx.type);
                       return (
                         <tr key={tx.id} className="hover:bg-muted/20">
-                          <td className="px-5 py-3 font-semibold text-foreground">{tx.type}</td>
+                          <td className="px-5 py-3 font-semibold text-foreground">{WALLET_TX_LABELS[tx.type] ?? tx.type}</td>
                           <td className="px-4 py-3 text-muted-foreground">{tx.description}</td>
                           <td className={`px-4 py-3 font-bold ${isCredit ? "text-green-600" : "text-red-600"}`}>
                             {isCredit ? "+" : "−"}৳{Number(tx.amount).toFixed(2)}

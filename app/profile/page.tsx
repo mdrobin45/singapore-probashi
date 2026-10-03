@@ -193,10 +193,10 @@ export default async function ProfilePage() {
 							View Wallet
 						</Link>
 						<Link
-							href="/lost-found/new"
+							href="/pick-put/new"
 							className="text-xs font-semibold bg-muted text-foreground px-4 py-2 rounded-lg hover:bg-border transition-colors"
 						>
-							Post Pick & Put
+							Offer Pick & Put Space
 						</Link>
 						<Link
 							href="/taxi/my"

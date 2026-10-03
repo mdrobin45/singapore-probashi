@@ -1,5 +1,4 @@
 import { prisma } from "@/lib/prisma";
-import { getShareSgdRate } from "@/lib/share-pricing";
 import { getCommissionSetting, computeCommissionAmount } from "@/lib/commission";
 import { getShareAdminCutPercent } from "@/lib/commission";
 import { ProcessPurchaseForm } from "./process-form";
@@ -33,9 +32,8 @@ const METHOD_LABELS: Record<string, string> = {
 };
 
 export default async function AdminPurchasesPage() {
-  const [requests, rate, shareCommission, adminCutPercent] = await Promise.all([
+  const [requests, shareCommission, adminCutPercent] = await Promise.all([
     getPurchaseRequests(),
-    getShareSgdRate(),
     getCommissionSetting("SHARE"),
     getShareAdminCutPercent(),
   ]);
@@ -79,8 +77,8 @@ export default async function AdminPurchasesPage() {
                   <td className="px-4 py-3.5">
                     <p className="font-medium text-foreground max-w-40 truncate">{r.project.name}</p>
                     <p className="text-xs text-muted-foreground">
-                      ${Number(r.project.sharePriceSgd).toFixed(2)} SGD/share
-                      <span className="text-muted-foreground/70"> (1 SGD = ৳{rate.toFixed(2)})</span>
+                      ৳{(Number(r.totalAmount) / Math.max(r.quantity, 1)).toFixed(2)}/share at request
+                      <span className="text-muted-foreground/70"> (now ${Number(r.project.sharePriceSgd).toFixed(2)} SGD)</span>
                     </p>
                   </td>
                   <td className="px-4 py-3.5 font-medium text-foreground">

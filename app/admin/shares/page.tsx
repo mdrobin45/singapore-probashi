@@ -100,7 +100,7 @@ export default async function AdminSharesPage() {
                     <div className="flex gap-4 mt-2 text-xs">
                       <span>Share #: <strong className="text-foreground font-mono">{r.shareNumber}</strong></span>
                       <span>Size: <strong className="text-foreground">{r.size}</strong></span>
-                      <span>Offered: <strong className="text-foreground">৳{Number(r.price).toFixed(2)}</strong> <span className="text-muted-foreground font-normal">(~${(Number(r.price) / rate).toFixed(2)} SGD)</span></span>
+                      <span>Offered: <strong className="text-foreground">৳{Number(r.price).toFixed(2)}</strong> <span className="text-muted-foreground font-normal">(~${(Number(r.price) / Number(r.sgdRate ?? rate)).toFixed(2)} SGD)</span></span>
                       <span>Preferred Date: <strong className="text-foreground">{r.preferredDate.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })}</strong></span>
                     </div>
                   </div>

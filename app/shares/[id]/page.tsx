@@ -158,9 +158,9 @@ export default async function ShareDetailPage({
                   </div>
                   <div>
                     <p className="text-xl font-bold text-green-700">
-                      ৳{sgdToBdt(Number(project.sharePriceSgd) * ownership.quantity, rate).toFixed(2)}
+                      ৳{Number(ownership.purchasePrice).toFixed(2)}
                     </p>
-                    <p className="text-xs text-green-600">Current value</p>
+                    <p className="text-xs text-green-600">Bought at (per share)</p>
                   </div>
                 </div>
               </div>
