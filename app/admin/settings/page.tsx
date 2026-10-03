@@ -19,6 +19,9 @@ import { WhatsAppApiSettingsForm } from "./whatsapp-form";
 import { SiteContactForm } from "./site-contact-form";
 import { TransferFeeForm } from "./transfer-fee-form";
 import { getTransferFeeSetting } from "@/lib/wallet";
+import { ReminderCronPanel } from "./reminder-cron-panel";
+import { getReminderCronKey } from "@/lib/reminders";
+import { headers } from "next/headers";
 
 async function getBankRates() {
   try {
@@ -38,7 +41,7 @@ async function getPaymentAccounts() {
 }
 
 export default async function AdminSettingsPage() {
-  const [settings, liveRate, banks, paymentAccounts, commissionSettings, shareRate, shareAdminCutPercent, notificationEmail, adSenseSettings, reminderSlotPrice, smtpSettings, whatsAppSettings, contactSettings, transferFee] = await Promise.all([
+  const [settings, liveRate, banks, paymentAccounts, commissionSettings, shareRate, shareAdminCutPercent, notificationEmail, adSenseSettings, reminderSlotPrice, smtpSettings, whatsAppSettings, contactSettings, transferFee, reminderCronKey, requestHeaders] = await Promise.all([
     getCurrencySettings(),
     getLiveBdtRate(),
     getBankRates(),
@@ -53,7 +56,13 @@ export default async function AdminSettingsPage() {
     getWhatsAppApiSettings(),
     getSiteContactSettings(),
     getTransferFeeSetting(),
+    getReminderCronKey(),
+    headers(),
   ]);
+
+  const host = requestHeaders.get("x-forwarded-host") ?? requestHeaders.get("host");
+  const proto = requestHeaders.get("x-forwarded-proto") ?? "https";
+  const reminderCronUrl = `${proto}://${host}/api/cron/reminders?key=${reminderCronKey}`;
 
   return (
     <div className="max-w-2xl mx-auto space-y-8">
@@ -277,6 +286,7 @@ export default async function AdminSettingsPage() {
         </div>
         <div className="p-6">
           <ReminderPriceForm currentPrice={reminderSlotPrice} />
+          <ReminderCronPanel cronUrl={reminderCronUrl} />
         </div>
       </div>
 

@@ -4,8 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/session";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { sendEmail } from "@/lib/email";
-import { sendWhatsAppMessage } from "@/lib/whatsapp-server";
+import { deliverReminder, sendDueReminders } from "@/lib/reminders";
 
 export async function getReminderSlotPrice(): Promise<number> {
   try {
@@ -133,10 +132,17 @@ export async function saveReminderAction(formData: FormData) {
     }
   }
 
+  // The date/time inputs are in the user's local time, but the server runs in
+  // UTC — convert using the browser's timezone offset (minutes, UTC − local),
+  // falling back to Singapore time (UTC+8) if the browser didn't send one.
   let remindAt: Date | null = null;
   if (dateStr) {
-    const fullDateTime = timeStr ? `${dateStr}T${timeStr}:00` : dateStr;
-    remindAt = new Date(fullDateTime);
+    const [y, mo, d] = dateStr.split("-").map(Number);
+    const [h, mi] = timeStr.split(":").map(Number);
+    const tzRaw = formData.get("tzOffset");
+    const tzOffset = tzRaw !== null && tzRaw !== "" && Number.isFinite(Number(tzRaw)) ? Number(tzRaw) : -480;
+    remindAt = new Date(Date.UTC(y, mo - 1, d, h || 0, mi || 0) + tzOffset * 60_000);
+    if (isNaN(remindAt.getTime())) return { error: "Invalid date or time." };
   }
 
   await prisma.reminder.upsert({
@@ -177,49 +183,10 @@ export async function triggerTestReminderAction(slotIndex: number) {
     return { error: "No note found in this reminder slot." };
   }
 
-  // Send Email if channel is GMAIL or BOTH
-  if (reminder.channel === "GMAIL" || reminder.channel === "BOTH") {
-    if (reminder.user.email) {
-      await sendEmail(
-        reminder.user.email,
-        `🔔 Singapore Probashi Reminder: Slot #${slotIndex}`,
-        `
-          <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 12px;">
-            <h2 style="color: #047857;">🔔 Singapore Probashi Alarm Reminder</h2>
-            <p>Hello <strong>${reminder.user.fullName}</strong>,</p>
-            <p>This is your scheduled alarm reminder:</p>
-            <div style="background: #f8fafc; padding: 16px; border-left: 4px solid #047857; margin: 16px 0; border-radius: 4px;">
-              <p style="font-size: 16px; margin: 0; color: #1e293b;"><strong>${reminder.note}</strong></p>
-              ${reminder.remindAt ? `<p style="font-size: 12px; color: #64748b; margin-top: 8px;">Target Date: ${reminder.remindAt.toLocaleDateString("en-GB")}</p>` : ""}
-            </div>
-            <p style="font-size: 12px; color: #94a3b8;">Singapore Probashi Community Services</p>
-          </div>
-        `
-      );
-    }
-  }
 
-  // Send Automated WhatsApp message if configured and channel requested
-  let waApiSuccess = false;
-  if ((reminder.channel === "WHATSAPP" || reminder.channel === "BOTH") && reminder.user.phone) {
-    const waNote = `🔔 Singapore Probashi Reminder (Slot #${slotIndex})\n\n${reminder.note}${
-      reminder.remindAt ? `\nTarget Date: ${reminder.remindAt.toLocaleDateString("en-GB")}` : ""
-    }`;
-    const waRes = await sendWhatsAppMessage({ to: reminder.user.phone, text: waNote });
-    waApiSuccess = waRes.success;
-  }
+  // Manual test send — doesn't disarm the scheduled reminder.
+  const { waSent } = await deliverReminder(reminder);
 
-  // In-app notification
-  await prisma.notification.create({
-    data: {
-      userId: session.userId,
-      title: `Alarm Reminder (Slot #${slotIndex})`,
-      message: reminder.note,
-      type: "SYSTEM",
-    },
-  });
-
-  // Update last sent timestamp
   await prisma.reminder.update({
     where: { id: reminder.id },
     data: { lastSentAt: new Date() },
@@ -227,5 +194,13 @@ export async function triggerTestReminderAction(slotIndex: number) {
 
   revalidatePath("/reminders");
   revalidatePath("/alarm");
-  return { success: true, message: `Test reminder alert sent for Slot #${slotIndex}!`, waApiSuccess };
+  return { success: true, message: `Test reminder alert sent for Slot #${slotIndex}!`, waApiSuccess: waSent };
+}
+
+// Admin: send all due reminders immediately (same as the scheduled job).
+export async function runDueRemindersAction(): Promise<{ error?: string; message?: string }> {
+  const session = await requireUser();
+  if (!["SUPER_ADMIN", "ADMIN"].includes(session.role)) return { error: "Unauthorized." };
+  const { due, sent } = await sendDueReminders();
+  return { message: due === 0 ? "No reminders are due right now." : `Sent ${sent} of ${due} due reminder(s).` };
 }

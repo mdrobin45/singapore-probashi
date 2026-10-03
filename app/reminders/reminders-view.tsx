@@ -1,8 +1,21 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { unlockSlotAction, saveReminderAction, triggerTestReminderAction } from "@/app/actions/reminders";
+
+// Local date/time for the inputs. Only computed in the browser — the server
+// renders in UTC, which would show the wrong day/time.
+function toLocalInputs(value: string | Date): { date: string; time: string } {
+  const d = new Date(value);
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return {
+    date: `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`,
+    time: `${pad(d.getHours())}:${pad(d.getMinutes())}`,
+  };
+}
+
+const noopSubscribe = () => () => {};
 
 type ReminderSlot = {
   id?: string;
@@ -30,6 +43,7 @@ export function RemindersView({
 }) {
   const [loadingSlot, setLoadingSlot] = useState<number | null>(null);
   const [msg, setMsg] = useState<{ slotIndex: number; text: string; error?: boolean } | null>(null);
+  const isClient = useSyncExternalStore(noopSubscribe, () => true, () => false);
 
   async function handleUnlock(slotIndex: number) {
     if (walletBalance < slotPrice) {
@@ -55,6 +69,7 @@ export function RemindersView({
   async function handleSave(e: React.FormEvent<HTMLFormElement>, slotIndex: number) {
     e.preventDefault();
     const fd = new FormData(e.currentTarget);
+    fd.set("tzOffset", String(new Date().getTimezoneOffset()));
     setLoadingSlot(slotIndex);
     setMsg(null);
     const res = await saveReminderAction(fd);
@@ -127,12 +142,10 @@ export function RemindersView({
         {slots.map((s) => {
           const isSlotFree = s.slotIndex === 1;
           const isUnlocked = isSlotFree || s.isUnlocked;
-          const defaultDate = s.remindAt
-            ? new Date(s.remindAt).toISOString().split("T")[0]
-            : "";
-          const defaultTime = s.remindAt
-            ? new Date(s.remindAt).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" })
-            : "09:00";
+          const local = isClient && s.remindAt ? toLocalInputs(s.remindAt) : null;
+          const defaultDate = local?.date ?? "";
+          const defaultTime = local?.time ?? "09:00";
+          const wasSent = Boolean(s.lastSentAt && !s.isActive && s.note);
 
           return (
             <div
@@ -164,12 +177,22 @@ export function RemindersView({
                     🔒 Locked
                   </span>
                 )}
+                {isUnlocked && s.isActive && s.remindAt && (
+                  <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-blue-100 text-blue-700">
+                    ⏰ Scheduled
+                  </span>
+                )}
+                {isUnlocked && wasSent && (
+                  <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-green-100 text-green-700">
+                    ✓ Sent
+                  </span>
+                )}
               </div>
 
               {/* Card Body */}
               <div className="p-5">
                 {isUnlocked ? (
-                  <form onSubmit={(e) => handleSave(e, s.slotIndex)} className="space-y-4">
+                  <form key={isClient ? "client" : "server"} onSubmit={(e) => handleSave(e, s.slotIndex)} className="space-y-4">
                     <input type="hidden" name="slotIndex" value={s.slotIndex} />
 
                     {/* Note input */}

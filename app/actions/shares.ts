@@ -6,7 +6,7 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import { getReferredByAgentId } from "@/lib/commission";
 import { getShareSgdRate, sgdToBdt } from "@/lib/share-pricing";
-import { effectiveShareCertPrice } from "@/lib/share-pricing-utils";
+import { SHARE4_AMOUNTS, effectiveShareCertPrice } from "@/lib/share-pricing-utils";
 import { notifyAdmin } from "@/lib/notifications";
 import { getLockedShareNumbers, getListingRemainingCount } from "@/lib/share-listings";
 
@@ -283,7 +283,7 @@ const buyRequestSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
   shareNumber: z.string().min(1, "Share number is required"),
   size: z.enum(["SMALL", "BIG"]),
-  price: z.coerce.number().positive("Enter a valid price"),
+  price: z.coerce.number().refine((n) => SHARE4_AMOUNTS.includes(n), "Choose an amount from ৳100 to ৳5,000"),
   preferredDate: z.coerce.date({ message: "Enter a valid date" }),
 });
 

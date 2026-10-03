@@ -42,6 +42,42 @@ export function CvBuilderClient({
   const [finPassport, setFinPassport] = useState("");
   const [dob, setDob] = useState("");
   const [nationality, setNationality] = useState("Bangladeshi");
+  const [photo, setPhoto] = useState<string | null>(null);
+  const [photoError, setPhotoError] = useState<string | null>(null);
+
+  // Shrinks the chosen photo in the browser to a passport-size JPEG data URL.
+  // It never leaves the device — it's only drawn into the CV for printing.
+  function handlePhotoChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      setPhotoError("Please choose an image file (JPG or PNG).");
+      return;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      setPhotoError("Photo is too large — please choose one under 10 MB.");
+      return;
+    }
+    setPhotoError(null);
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = () => {
+      const maxW = 360, maxH = 450;
+      const scale = Math.min(1, maxW / img.width, maxH / img.height);
+      const canvas = document.createElement("canvas");
+      canvas.width = Math.round(img.width * scale);
+      canvas.height = Math.round(img.height * scale);
+      canvas.getContext("2d")?.drawImage(img, 0, 0, canvas.width, canvas.height);
+      setPhoto(canvas.toDataURL("image/jpeg", 0.85));
+      URL.revokeObjectURL(url);
+    };
+    img.onerror = () => {
+      setPhotoError("Couldn't read that image. Please try another photo.");
+      URL.revokeObjectURL(url);
+    };
+    img.src = url;
+  }
   const [sector, setSector] = useState("Construction / Process");
   const [summary, setSummary] = useState(
     "Hardworking, dedicated, and safety-conscious worker with extensive hands-on experience in Singapore. Proven track record of high productivity, teamwork, and adherence to Workplace Safety & Health regulations."
@@ -260,6 +296,30 @@ Please help me review and connect with prospective employers.`;
             <h2 className="font-bold text-foreground text-sm flex items-center gap-2">
               <span>👤</span> Personal Information
             </h2>
+
+            <div className="flex items-center gap-4">
+              <div className="w-20 h-24 rounded-xl border border-dashed border-border bg-muted overflow-hidden flex items-center justify-center shrink-0">
+                {photo ? (
+                  // eslint-disable-next-line @next/next/no-img-element -- local data URL preview
+                  <img src={photo} alt="Your photo" className="w-full h-full object-cover" />
+                ) : (
+                  <span className="text-2xl text-muted-foreground">📷</span>
+                )}
+              </div>
+              <div className="space-y-1.5">
+                <label className="inline-block cursor-pointer text-xs font-semibold px-3 py-2 rounded-xl bg-brand-50 text-brand hover:bg-brand-100 transition-colors">
+                  {photo ? "Change Photo" : "Upload Photo"}
+                  <input type="file" accept="image/*" onChange={handlePhotoChange} className="sr-only" />
+                </label>
+                {photo && (
+                  <button type="button" onClick={() => setPhoto(null)} className="block text-xs text-red-600 hover:underline">
+                    Remove photo
+                  </button>
+                )}
+                <p className="text-[11px] text-muted-foreground">Passport-style photo, plain background</p>
+                {photoError && <p className="text-[11px] text-red-600">{photoError}</p>}
+              </div>
+            </div>
 
             <div>
               <label className="block text-xs font-semibold text-muted-foreground mb-1">Full Name</label>
@@ -527,11 +587,21 @@ Please help me review and connect with prospective employers.`;
             >
               {/* CV Top Header */}
               <div className="border-b-2 border-brand pb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div className="flex items-center gap-4">
+                {photo && (
+                  // eslint-disable-next-line @next/next/no-img-element -- local data URL, must print
+                  <img
+                    src={photo}
+                    alt={fullName || "Photo"}
+                    className="w-24 h-28 object-cover rounded-lg border border-border shrink-0"
+                  />
+                )}
                 <div>
                   <h1 className="text-2xl sm:text-3xl font-extrabold text-foreground tracking-tight uppercase">
                     {fullName || "Your Full Name"}
                   </h1>
                   <p className="text-base font-semibold text-brand mt-1">{sector || "Worker / Specialist"}</p>
+                </div>
                 </div>
                 <div className="text-xs sm:text-right text-muted-foreground space-y-1">
                   {phone && <p>📞 {phone}</p>}
