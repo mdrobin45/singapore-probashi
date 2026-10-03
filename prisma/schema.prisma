@@ -67,6 +67,7 @@ enum WalletTxType {
   TRANSFER_FEE
   PICKPUT_PAYMENT
   PICKPUT_EARNING
+  SERVICE_FEE
 }
 
 enum DepositStatus {

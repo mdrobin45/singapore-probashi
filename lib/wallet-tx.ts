@@ -16,6 +16,7 @@ export const WALLET_TX_LABELS: Record<string, string> = {
   TRANSFER_FEE: "Transfer Fee",
   PICKPUT_PAYMENT: "Pick & Put Payment",
   PICKPUT_EARNING: "Pick & Put Earning",
+  SERVICE_FEE: "Service Fee",
 };
 
 export const CREDIT_TX_TYPES = new Set([

@@ -75,7 +75,7 @@ export async function unlockSlotAction(slotIndex: number) {
       await tx.walletTransaction.create({
         data: {
           walletId: wallet.id,
-          type: "REFUND", // Or custom type
+          type: "SERVICE_FEE",
           amount: slotPrice,
           description: `Unlocked Reminder Alarm Slot #${slotIndex}`,
           balanceBefore: wallet.balance,
